@@ -1,7 +1,7 @@
 # ------------------------------------------------------------------------------
 # Program Name: summary_plots_per_diff.R
 # Authors: Hamza Ahsan
-# Date Last Modified: May 17, 2021
+# Date Last Modified: July 6, 2021
 # Program Purpose: Produces summary plots of the percent difference between the
 # perturbations and the reference case averaged over all years
 # Input Files: ~Emissions-MIP/input/
@@ -20,8 +20,8 @@ library(grid)
 # Specify location of Emissions-MIP directory
 emi_dir <- paste0('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP')
 
-# Specify region (i.e., global, land, sea, arctic, n-land, n-sea, s-land, s-sea)
-region <- "s-sea"
+# Specify region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, SH-sea)
+region <- "SH-sea"
 
 # Define default ggplot colors and associate with models (in case a plot is 
 # missing a model, the color scheme will remain consistent)
@@ -30,19 +30,21 @@ gg_color_hue <- function(n) {
   hcl(h = hues, l = 65, c = 100)[1:n]
 }
 
-cols = gg_color_hue(5)
+cols = gg_color_hue(7)
 
-model_colors <- c(CESM1 = cols[1], E3SM = cols[2], GISS = cols[3],
-                  MIROC = cols[4], NorESM2 = cols[5])
+model_colors <- c(CESM1 = cols[1], E3SM = cols[2], GISS = cols[3], MIROC = cols[4], 
+                  NorESM2 = cols[5], GFDL = cols[6], OsloCTM3 = cols[7])
 
 # ------------------------------------------------------------------------------
 
 # Setup directory for bc-no-seas percent difference data
-setwd(paste0(emi_dir, '/input/', region, '/bc-no-seas/per-diff'))
+setwd(paste0(emi_dir, '/input/', region, '/bc-no-season/per-diff'))
 
 # Read in csv files and bind into single data frame
 target_filename <- list.files(getwd(), "*.csv")
-bc_no_seas <- bind_rows(map(target_filename, read.csv))
+bc_no_seas <- rbind(map(target_filename, read.csv))
+bc_no_seas <- lapply(bc_no_seas, function(x) {x["unit"] <- NULL; x})
+bc_no_seas <- bind_rows(bc_no_seas)
 
 # Extract model from file names (fifth segment) and bind to experiment data frame
 models <- sapply(strsplit(target_filename, "[-.]+"),function(x) x[5])
@@ -60,7 +62,9 @@ setwd(paste0(emi_dir, '/input/', region, '/high-SO4/per-diff'))
 
 # Read in csv files and bind into single data frame
 target_filename <- list.files(getwd(), "*.csv")
-high_so4 <- bind_rows(map(target_filename, read.csv))
+high_so4 <- rbind(map(target_filename, read.csv))
+high_so4 <- lapply(high_so4, function(x) {x["unit"] <- NULL; x})
+high_so4 <- bind_rows(high_so4)
 
 # Extract model from file names (fifth segment) and bind to experiment data frame
 models <- sapply(strsplit(target_filename, "[-.]+"),function(x) x[5])
@@ -78,7 +82,9 @@ setwd(paste0(emi_dir, '/input/', region, '/no-SO4/per-diff'))
 
 # Read in csv files and bind into single data frame
 target_filename <- list.files(getwd(), "*.csv")
-no_so4 <- bind_rows(map(target_filename, read.csv))
+no_so4 <- rbind(map(target_filename, read.csv))
+no_so4 <- lapply(no_so4, function(x) {x["unit"] <- NULL; x})
+no_so4 <- bind_rows(no_so4)
 
 # Extract model from file names (fifth segment) and bind to experiment data frame
 models <- sapply(strsplit(target_filename, "[-.]+"),function(x) x[5])
@@ -92,11 +98,13 @@ no_so4_summary <- no_so4 %>% dplyr::group_by(variable, model) %>%
 #---------------------------------------------------
 
 # Setup directory for SO2-at-height percent difference data
-setwd(paste0(emi_dir, '/input/', region, '/so2-at-hgt/per-diff'))
+setwd(paste0(emi_dir, '/input/', region, '/so2-at-height/per-diff'))
 
 # Read in csv files and bind into single data frame
 target_filename <- list.files(getwd(), "*.csv")
-so2_at_hgt <- bind_rows(map(target_filename, read.csv))
+so2_at_hgt <- rbind(map(target_filename, read.csv))
+so2_at_hgt <- lapply(so2_at_hgt, function(x) {x["unit"] <- NULL; x})
+so2_at_hgt <- bind_rows(so2_at_hgt)
 
 # Extract model from file names (fifth segment) and bind to experiment data frame
 models <- sapply(strsplit(target_filename, "[-.]+"),function(x) x[5])
@@ -110,11 +118,13 @@ so2_at_hgt_summary <- so2_at_hgt %>% dplyr::group_by(variable, model) %>%
 #---------------------------------------------------
 
 # Setup directory for SO2-no-season percent difference data
-setwd(paste0(emi_dir, '/input/', region, '/so2-no-seas/per-diff'))
+setwd(paste0(emi_dir, '/input/', region, '/so2-no-season/per-diff'))
 
 # Read in csv files and bind into single data frame
 target_filename <- list.files(getwd(), "*.csv")
-so2_no_seas <- bind_rows(map(target_filename, read.csv))
+so2_no_seas <- rbind(map(target_filename, read.csv))
+so2_no_seas <- lapply(so2_no_seas, function(x) {x["unit"] <- NULL; x})
+so2_no_seas <- bind_rows(so2_no_seas)
 
 # Extract model from file names (fifth segment) and bind to experiment data frame
 models <- sapply(strsplit(target_filename, "[-.]+"),function(x) x[5])
@@ -132,7 +142,6 @@ summary_data <- list(bc_no_seas_summary, high_so4_summary, no_so4_summary, so2_a
 
 # Correct model names for CESM and CESM2
 summary_data$model[which(summary_data$model == "CESM")] <- "CESM1"
-#summary_data$model[which(summary_data$model == "CESM2")] <- "CESM2-WACCM6"
 
 # Change to long format
 summary_long <- summary_data %>% gather(experiment, value, -c(model, variable)) %>%
@@ -295,7 +304,7 @@ net_rad_cs <- dplyr::mutate(net_rad_cs, value = value.x + value.y) %>%
 
 net_rad_plot <- ggplot(net_rad, aes(x = experiment, y = value, color = model)) +
   theme_bw() +
-  labs(title=paste0('net radiative flux at TOA - ', region), y="Percent") +
+  labs(title=paste0('net radiative flux \n at TOA - ', region), y="Percent") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -308,7 +317,7 @@ net_rad_plot <- ggplot(net_rad, aes(x = experiment, y = value, color = model)) +
 
 net_rad_cs_plot <- ggplot(net_rad_cs, aes(x = experiment, y = value, color = model)) +
   theme_bw() +
-  labs(title=paste0('clear-sky net radiative flux at TOA - ', region), y="Percent") +
+  labs(title=paste0('clear-sky net radiative \n flux at TOA - ', region), y="Percent") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -445,6 +454,47 @@ tot_s_plot <- ggplot(tot_s, aes(x = experiment, y = value, color = model)) +
   geom_point( position=position_dodge(width=0.4), size = 1.5)
 
 
+od550aer <- dplyr::filter(summary_long, variable == "od550aer")
+od550aer_plot <- ggplot(od550aer, aes(x = experiment, y = value, color = model)) +
+  theme_bw() +
+  labs(title = paste0('ambient aerosol optical \n thickness at 550nm - ', region), y="Percent") +
+  theme(plot.title = element_text(hjust = 0.5, size = title_font),
+        axis.text = element_text(size = axis_font),
+        axis.title = element_text(size = axis_title_font),
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.title.x = element_blank()) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(od550aer$value)), max(abs(od550aer$value)))) +
+  scale_colour_manual(values = model_colors) +
+  geom_point( position=position_dodge(width = 0.4), size = 1.5)
+
+
+clt <- dplyr::filter(summary_long, variable == "clt")
+clt_plot <- ggplot(clt, aes(x = experiment, y = value, color = model)) +
+  theme_bw() +
+  labs(title = paste0('total cloud cover \n percentage - ', region), y="Percent") +
+  theme(plot.title = element_text(hjust = 0.5, size = title_font),
+        axis.text = element_text(size = axis_font),
+        axis.title = element_text(size = axis_title_font),
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.title.x = element_blank()) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(clt$value)), max(abs(clt$value)))) +
+  scale_colour_manual(values = model_colors) +
+  geom_point( position=position_dodge(width = 0.4), size = 1.5)
+
+
+cltc <- dplyr::filter(summary_long, variable == "cltc")
+cltc_plot <- ggplot(cltc, aes(x = experiment, y = value, color = model)) +
+  theme_bw() +
+  labs(title = paste0('convective cloud cover \n percentage - ', region), y="Percent") +
+  theme(plot.title = element_text(hjust = 0.5, size = title_font),
+        axis.text = element_text(size = axis_font),
+        axis.title = element_text(size = axis_title_font),
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.title.x = element_blank()) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(cltc$value)), max(abs(cltc$value)))) +
+  scale_colour_manual(values = model_colors) +
+  geom_point( position=position_dodge(width = 0.4), size = 1.5)
+
 # Function from stack exchange to generate a shared legend
 grid_arrange_shared_legend <- function(...) {
   plots <- list(...)
@@ -475,7 +525,10 @@ forcing_plot <- grid_arrange_shared_legend(rlut_plot,
                                            rsdt_plot, 
                                            rlutcs_plot, 
                                            rsutcs_plot,
-                                           net_rad_cs_plot)
+                                           net_rad_cs_plot,
+                                           od550aer_plot,
+                                           clt_plot,
+                                           cltc_plot)
 
 deposition_plot <- grid_arrange_shared_legend(drybc_plot,
                                               wetbc_plot,
