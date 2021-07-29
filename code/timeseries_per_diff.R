@@ -37,7 +37,7 @@ model_colors <- c(CESM1 = cols[1], E3SM = cols[2], GISS = cols[3], MIROC = cols[
 
 # ------------------------------------------------------------------------------
 #Load the csv file
-excluded_models <- read.csv(file = paste0(emi_dir, '/input', '/excluded_data.csv'))
+excluded_models <- read.csv(file = paste0(emi_dir, '/input', '/excluded_data.csv'), fileEncoding="UTF-8-BOM")
 excluded_models %>% drop_na() #gets rid of any empty spaces
 
 #-------------------------------------------------------------------------------
@@ -69,7 +69,7 @@ for(pert in perts){
   #runs through each excluded model pair and filters them out of summary_long
   if(nrow(excluded_models) != 0) { #only runs if the data frame is not empty
     for (val in 1:nrow(excluded_models)) {
-      experiment <- filter(experiment, pert != excluded_models$Scenario[val] & experiment$model != excluded_models$ï..Model[val])
+      experiment <- filter(experiment, pert != excluded_models$Scenario[val] & experiment$model != excluded_models$Model[val])
     }
   }
 

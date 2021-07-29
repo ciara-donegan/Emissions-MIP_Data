@@ -37,7 +37,7 @@ model_colors <- c(CESM1 = cols[1], E3SM = cols[2], GISS = cols[3], MIROC = cols[
 
 # ------------------------------------------------------------------------------
 #Load the csv file
-excluded_models <- read.csv(file = paste0(emi_dir, '/input', '/excluded_data.csv'))
+excluded_models <- read.csv(file = paste0(emi_dir, '/input', '/excluded_data.csv'), fileEncoding="UTF-8-BOM")
 excluded_models %>% drop_na() #gets rid of any empty spaces
 
 #-------------------------------------------------------------------------------
@@ -177,7 +177,7 @@ summary_long <- summary_data %>% gather(experiment, value, -c(model, variable)) 
 #runs through each excluded model pair and filters them out of summary_long
 if(nrow(excluded_models) != 0) { #only runs if the data frame is not empty
   for (val in 1:nrow(excluded_models)) {
-    summary_long <- filter(summary_long, experiment != excluded_models$Scenario[val] & model != excluded_models$ï..Model[val])
+    summary_long <- filter(summary_long, experiment != excluded_models$Scenario[val] & model != excluded_models$Model[val])
   }
 } #tested with GISS and so2 at Height. Successfully removed models!
 
