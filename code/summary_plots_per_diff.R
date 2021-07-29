@@ -23,7 +23,7 @@ emi_dir <- paste0('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP')
 # Specify region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, SH-sea)
 region <- "SH-sea"
 
-# Define default ggplot colors and associate with models (in case a plot is 
+# Define default ggplot colors and associate with models (in case a plot is
 # missing a model, the color scheme will remain consistent)
 gg_color_hue <- function(n) {
   hues = seq(15, 375, length = n + 1)
@@ -32,12 +32,12 @@ gg_color_hue <- function(n) {
 
 cols = gg_color_hue(7)
 
-model_colors <- c(CESM1 = cols[1], E3SM = cols[2], GISS = cols[3], MIROC = cols[4], 
+model_colors <- c(CESM1 = cols[1], E3SM = cols[2], GISS = cols[3], MIROC = cols[4],
                   NorESM2 = cols[5], GFDL = cols[6], OsloCTM3 = cols[7])
 
 # ------------------------------------------------------------------------------
 #Load the csv file
-excluded_models <- read.csv(file = paste0(emi_dir, 'input', '/excluded_data.csv'))
+excluded_models <- read.csv(file = paste0(emi_dir, '/input', '/excluded_data.csv'))
 excluded_models %>% drop_na() #gets rid of any empty spaces
 
 #-------------------------------------------------------------------------------
@@ -108,7 +108,7 @@ setwd(paste0(emi_dir, '/input/', region, '/so2-at-height/per-diff'))
 # Read in csv files and bind into single data frame
 target_filename <- list.files(getwd(), "*.csv")
 #put in function to remove data here before data starts being pulled?
-so2_at_hgt <- rbind(map(target_filename, read.csv)) 
+so2_at_hgt <- rbind(map(target_filename, read.csv))
 so2_at_hgt <- lapply(so2_at_hgt, function(x) {x["unit"] <- NULL; x})
 so2_at_hgt <- bind_rows(so2_at_hgt)
 
@@ -511,7 +511,7 @@ cltc_plot <- ggplot(cltc, aes(x = experiment, y = value, color = model)) +
 # Function from stack exchange to generate a shared legend
 grid_arrange_shared_legend <- function(...) {
   plots <- list(...)
-  g <- ggplotGrob(plots[[1]] + theme(legend.position="bottom", 
+  g <- ggplotGrob(plots[[1]] + theme(legend.position="bottom",
                                      legend.title = element_blank(),
                                      legend.text = element_text(size = 9,
                                                                 margin = margin(r = 10, unit = "pt"))))$grobs
@@ -526,17 +526,17 @@ grid_arrange_shared_legend <- function(...) {
     top = textGrob("Summary - percent difference", gp = gpar(fontsize = 12)))
 }
 
-emissions_plot <- grid_arrange_shared_legend(emibc_plot, 
-                                             emiso2_plot, 
-                                             mmrbc_plot, 
-                                             mmrso4_plot, 
+emissions_plot <- grid_arrange_shared_legend(emibc_plot,
+                                             emiso2_plot,
+                                             mmrbc_plot,
+                                             mmrso4_plot,
                                              so2_plot)
 
-forcing_plot <- grid_arrange_shared_legend(rlut_plot, 
+forcing_plot <- grid_arrange_shared_legend(rlut_plot,
                                            rsut_plot,
                                            net_rad_plot,
-                                           rsdt_plot, 
-                                           rlutcs_plot, 
+                                           rsdt_plot,
+                                           rlutcs_plot,
                                            rsutcs_plot,
                                            net_rad_cs_plot,
                                            od550aer_plot,
