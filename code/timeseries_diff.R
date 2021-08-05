@@ -71,7 +71,7 @@ for(pert in perts){
     for (val in 1:nrow(excluded_models)) {
       experiment <- filter(experiment, pert != excluded_models$Scenario[val] & experiment$model != excluded_models$Model[val])
     }
-  } #tested with GISS and so2 at Height. Successfully removed models!
+  }
 
   # Convert volume mixing ratio to mass mixing ratio by multiplying by molar mass
   # of SO2 and dividing by molar mass of air
