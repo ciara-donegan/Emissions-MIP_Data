@@ -179,7 +179,7 @@ if(nrow(excluded_models) != 0) { #only runs if the data frame is not empty
   for (val in 1:nrow(excluded_models)) {
     summary_long <- filter(summary_long, experiment != excluded_models$Scenario[val] & model != excluded_models$Model[val])
   }
-} #tested with GISS and so2 at Height. Successfully removed models!
+}
 
 # Generate plots
 title_font <- 9.5
