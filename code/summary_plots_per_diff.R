@@ -9,6 +9,9 @@
 # TODO:
 # ------------------------------------------------------------------------------
 
+#Sets the working directory to where the excluded_data and Rscripts are
+setwd('C:/Users/such559/OneDrive - PNNL/Documents/Emissions-MIP/code')
+
 # Load required libraries
 library(dplyr)
 library(tidyr)
@@ -17,11 +20,18 @@ library(ggplot2)
 library(gridExtra)
 library(grid)
 
+#Sets the working directory to where the excluded_data and Rscripts are
+setwd('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP/code')
+
 # Specify location of Emissions-MIP directory
-emi_dir <- paste0('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP')
+MIP_dir <- paste0('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP/input/')
+
+#Specify location of the Rscripts from the command line
+emi_dir <- getwd()
 
 # Specify region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, SH-sea)
-region <- "SH-sea"
+region <- commandArgs(trailingOnly = TRUE) #pulling region from command line
+region <- region[1] #replaces regions with the first trailing string in the command line
 
 # Define default ggplot colors and associate with models (in case a plot is
 # missing a model, the color scheme will remain consistent)
@@ -37,13 +47,13 @@ model_colors <- c(CESM1 = cols[1], E3SM = cols[2], GISS = cols[3], MIROC = cols[
 
 # ------------------------------------------------------------------------------
 #Load the csv file
-excluded_models <- read.csv(file = paste0(emi_dir, '/input', '/excluded_data.csv'), fileEncoding="UTF-8-BOM")
+excluded_models <- read.csv(file = 'excluded_data.csv', fileEncoding="UTF-8-BOM")
 excluded_models %>% drop_na() #gets rid of any empty spaces
 
 #-------------------------------------------------------------------------------
 
 # Setup directory for bc-no-seas percent difference data
-setwd(paste0(emi_dir, '/input/', region, '/bc-no-season/per-diff'))
+setwd(paste0(MIP_dir, region, '/bc-no-season/per-diff'))
 
 # Read in csv files and bind into single data frame
 target_filename <- list.files(getwd(), "*.csv")
@@ -63,7 +73,7 @@ bc_no_seas_summary <- bc_no_seas %>% dplyr::group_by(variable, model) %>%
 #---------------------------------------------------
 
 # Setup directory for high-SO4 percent difference data
-setwd(paste0(emi_dir, '/input/', region, '/high-SO4/per-diff'))
+setwd(paste0(MIP_dir, region, '/high-SO4/per-diff'))
 
 # Read in csv files and bind into single data frame
 target_filename <- list.files(getwd(), "*.csv")
@@ -83,7 +93,7 @@ high_so4_summary <- high_so4 %>% dplyr::group_by(variable, model) %>%
 #---------------------------------------------------
 
 # Setup directory for no-SO4 percent difference data
-setwd(paste0(emi_dir, '/input/', region, '/no-SO4/per-diff'))
+setwd(paste0(MIP_dir, region, '/no-SO4/per-diff'))
 
 # Read in csv files and bind into single data frame
 target_filename <- list.files(getwd(), "*.csv")
@@ -103,7 +113,7 @@ no_so4_summary <- no_so4 %>% dplyr::group_by(variable, model) %>%
 #---------------------------------------------------
 
 # Setup directory for SO2-at-height percent difference data
-setwd(paste0(emi_dir, '/input/', region, '/so2-at-height/per-diff'))
+setwd(paste0(MIP_dir, region, '/so2-at-height/per-diff'))
 
 # Read in csv files and bind into single data frame
 target_filename <- list.files(getwd(), "*.csv")
@@ -124,7 +134,7 @@ so2_at_hgt_summary <- so2_at_hgt %>% dplyr::group_by(variable, model) %>%
 #---------------------------------------------------
 
 # Setup directory for SO2-no-season percent difference data
-setwd(paste0(emi_dir, '/input/', region, '/so2-no-season/per-diff'))
+setwd(paste0(MIP_dir, region, '/so2-no-season/per-diff'))
 
 # Read in csv files and bind into single data frame
 target_filename <- list.files(getwd(), "*.csv")

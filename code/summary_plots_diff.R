@@ -17,11 +17,18 @@ library(ggplot2)
 library(gridExtra)
 library(grid)
 
+#Sets the working directory to where the excluded_data and Rscripts are
+setwd('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP/code')
+
 # Specify location of Emissions-MIP directory
-emi_dir <- paste0('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP')
+MIP_dir <- paste0('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP/input/')
+
+#Specify location of the Rscripts from the command line
+emi_dir <- getwd()
 
 # Specify region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, SH-sea)
-region <- "SH-sea"
+region <- commandArgs(trailingOnly = TRUE) #pulling region from command line
+region <- region[1] #replaces regions with the first trailing string in the command line
 
 # Define default ggplot colors and associate with models (in case a plot is
 # missing a model, the color scheme will remain consistent)
@@ -37,14 +44,14 @@ model_colors <- c(CESM1 = cols[1], E3SM = cols[2], GISS = cols[3], MIROC = cols[
 
 # ------------------------------------------------------------------------------
 #Load the csv file
-excluded_models <- read.csv(file = paste0(emi_dir, '/input', '/excluded_data.csv'), fileEncoding="UTF-8-BOM")
+excluded_models <- read.csv(file = 'excluded_data.csv', fileEncoding="UTF-8-BOM")
 excluded_models %>% drop_na() #gets rid of any empty spaces
 
 #-------------------------------------------------------------------------------
 
 
 # Setup directory for bc-no-seas difference data
-setwd(paste0(emi_dir, '/input/', region, '/bc-no-season/diff'))
+setwd(paste0(MIP_dir, region, '/bc-no-season/diff'))
 
 # Read in csv files and bind into single data frame
 target_filename <- list.files(getwd(), "*.csv")
@@ -68,7 +75,7 @@ bc_no_seas_summary$bc_no_seas[which(bc_no_seas_summary$variable == "so2")] = bc_
 #---------------------------------------------------
 
 # Setup directory for high-SO4 difference data
-setwd(paste0(emi_dir, '/input/', region, '/high-SO4/diff'))
+setwd(paste0(MIP_dir, region, '/high-SO4/diff'))
 
 # Read in csv files and bind into single data frame
 target_filename <- list.files(getwd(), "*.csv")
@@ -93,7 +100,7 @@ high_so4_summary$high_so4[which(high_so4_summary$variable == "so2")] = high_so4_
 #---------------------------------------------------
 
 # Setup directory for no-SO4 difference data
-setwd(paste0(emi_dir, '/input/', region, '/no-SO4/diff'))
+setwd(paste0(MIP_dir, region, '/no-SO4/diff'))
 
 # Read in csv files and bind into single data frame
 target_filename <- list.files(getwd(), "*.csv")
@@ -117,7 +124,7 @@ no_so4_summary$no_so4[which(no_so4_summary$variable == "so2")] = no_so4_summary$
 #---------------------------------------------------
 
 # Setup directory for SO2-at-height difference data
-setwd(paste0(emi_dir, '/input/', region, '/so2-at-height/diff'))
+setwd(paste0(MIP_dir, region, '/so2-at-height/diff'))
 
 # Read in csv files and bind into single data frame
 target_filename <- list.files(getwd(), "*.csv")
@@ -141,7 +148,7 @@ so2_at_hgt_summary$so2_at_hgt[which(so2_at_hgt_summary$variable == "so2")] = so2
 #---------------------------------------------------
 
 # Setup directory for SO2-no-season difference data
-setwd(paste0(emi_dir, '/input/', region, '/so2-no-season/diff'))
+setwd(paste0(MIP_dir, region, '/so2-no-season/diff'))
 
 # Read in csv files and bind into single data frame
 target_filename <- list.files(getwd(), "*.csv")
@@ -179,7 +186,7 @@ if(nrow(excluded_models) != 0) { #only runs if the data frame is not empty
   for (val in 1:nrow(excluded_models)) {
     summary_long <- filter(summary_long, experiment != excluded_models$Scenario[val] & model != excluded_models$Model[val])
   }
-} #tested with GISS and so2 at Height. Successfully removed models!
+}
 
 # Generate plots
 title_font <- 9.5
