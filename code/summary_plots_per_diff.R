@@ -156,7 +156,7 @@ summary_long <- summary_data %>% gather(experiment, value, -c(model, variable)) 
 #runs through each excluded model pair and filters them out of summary_long
 if(nrow(excluded_models) != 0) { #only runs if the data frame is not empty
   for (val in 1:nrow(excluded_models)) {
-    summary_long <- filter(summary_long, experiment != excluded_models$Scenario[val] & model != excluded_models$Model[val])
+    summary_long <- filter(summary_long, experiment != excluded_models$Scenario[val] | model != excluded_models$Model[val])
   }
 }
 
