@@ -77,7 +77,7 @@ for(pert in perts){
   #runs through each excluded model pair and filters them out of summary_long
   if(nrow(excluded_models) != 0) { #only runs if the data frame is not empty
     for (val in 1:nrow(excluded_models)) {
-      experiment <- filter(experiment, pert != excluded_models$Scenario[val] & experiment$model != excluded_models$Model[val])
+      experiment <- filter(experiment, pert != excluded_models$Scenario[val] | experiment$model != excluded_models$Model[val])
     }
   }
 
