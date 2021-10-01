@@ -60,7 +60,13 @@ experiment$model[which(experiment$model == "CMIP6_CMIP_E3SM")] <- "E3SM"
 experiment$model[which(experiment$model == "CMIP6_CMIP_CESM2")] <- "CESM2"
 
 # Change any negative value to positive (i.e., CESM2 wetbc, wetso2, wetso4)
-experiment$value <- abs(experiment$value)
+# Invert sign of CESM2 wet deposition variables
+experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetbc")] <- 
+  -1 * experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetbc")]
+experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetso2")] <- 
+  -1 * experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetso2")]
+experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetso4")] <- 
+  -1 * experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetso4")]
 
 # Rearrange data frame by years descending
 experiment <- dplyr::arrange(experiment, year)
