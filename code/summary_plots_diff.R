@@ -246,7 +246,7 @@ emibc_plot <- ggplot(emibc, aes(x = experiment, y = value, color = model)) +
         axis.title = element_text(size = axis_title_font),
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.title.x = element_blank()) +
-  scale_y_continuous(labels = scales::scientific_format(digits = 2), limits = c(-max(abs(emibc$value)), max(abs(emibc$value)))) +
+  scale_y_continuous(labels = scales::scientific_format(digits = 2), limits = c(-max(abs(emibc$value))-max(abs(emibc$sd)), max(abs(emibc$value))+max(abs(emibc$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width=0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
@@ -261,8 +261,7 @@ emiso2_plot <- ggplot(emiso2, aes(x = experiment, y = value, color = model)) +
         axis.title = element_text(size = axis_title_font),
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.title.x = element_blank()) +
-  scale_y_continuous(labels = scales::scientific_format(digits = 2), limits = c(-max(abs(emiso2$value)), max(abs(emiso2$value)))) +
-  scale_colour_manual(values = model_colors) +
+  scale_y_continuous(labels = scales::scientific_format(digits = 2), limits = c(-max(abs(emiso2$value))-max(abs(emiso2$sd)), max(abs(emiso2$value))+max(abs(emiso2$sd)))) +
   geom_point( position=position_dodge(width=0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
   
@@ -276,7 +275,7 @@ mmrbc_plot <- ggplot(mmrbc, aes(x = experiment, y = value, color = model)) +
         axis.title = element_text(size = axis_title_font),
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.title.x = element_blank()) +
-  scale_y_continuous(labels = scales::scientific_format(digits = 2), limits = c(-max(abs(mmrbc$value)), max(abs(mmrbc$value)))) +
+  scale_y_continuous(labels = scales::scientific_format(digits = 2), limits = c(-max(abs(mmrbc$value))-max(abs(mmrbc$sd)), max(abs(mmrbc$value))+max(abs(mmrbc$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width=0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
@@ -291,7 +290,7 @@ mmrso4_plot <- ggplot(mmrso4, aes(x = experiment, y = value, color = model)) +
         axis.title = element_text(size = axis_title_font),
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.title.x = element_blank()) +
-  scale_y_continuous(labels = scales::scientific_format(digits = 2), limits = c(-max(abs(mmrso4$value)), max(abs(mmrso4$value)))) +
+  scale_y_continuous(labels = scales::scientific_format(digits = 2), limits = c(-max(abs(mmrso4$value))-max(abs(mmrso4$sd)), max(abs(mmrso4$value))+max(abs(mmrso4$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width=0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
@@ -306,7 +305,7 @@ so2_plot <- ggplot(so2, aes(x = experiment, y = value, color = model)) +
         axis.title = element_text(size = axis_title_font),
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.title.x = element_blank()) +
-  scale_y_continuous(labels = scales::scientific_format(digits = 2), limits = c(-max(abs(so2$value)), max(abs(so2$value)))) +
+  scale_y_continuous(labels = scales::scientific_format(digits = 2), limits = c(-max(abs(so2$value))-max(abs(so2$sd)), max(abs(so2$value))+max(abs(so2$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width=0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
@@ -321,7 +320,7 @@ rlut_plot <- ggplot(rlut, aes(x = experiment, y = value, color = model)) +
         axis.title = element_text(size = axis_title_font),
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.title.x = element_blank()) +
-  scale_y_continuous(limits = c(-max(abs(rlut$value)), max(abs(rlut$value)))) +
+  scale_y_continuous(limits = c(-max(abs(rlut$value))-max(abs(rlut$sd)), max(abs(rlut$value))+max(abs(rlut$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width=0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
@@ -336,7 +335,7 @@ rsut_plot <- ggplot(rsut, aes(x = experiment, y = value, color = model)) +
         axis.title = element_text(size = axis_title_font),
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.title.x = element_blank()) +
-  scale_y_continuous(limits = c(-max(abs(rsut$value)), max(abs(rsut$value)))) +
+  scale_y_continuous(limits = c(-max(abs(rsut$value))-max(abs(rsut$sd)), max(abs(rsut$value))+max(abs(rsut$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width=0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
@@ -351,7 +350,7 @@ rsdt_plot <- ggplot(rsdt, aes(x = experiment, y = value, color = model)) +
         axis.title = element_text(size = axis_title_font),
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.title.x = element_blank()) +
-  scale_y_continuous(limits = c(-max(abs(rsdt$value)), max(abs(rsdt$value)))) +
+  scale_y_continuous(limits = c(-max(abs(rsdt$value))-max(abs(rsdt$sd)), max(abs(rsdt$value))+max(abs(rsdt$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width=0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
@@ -366,7 +365,7 @@ rlutcs_plot <- ggplot(rlutcs, aes(x = experiment, y = value, color = model)) +
         axis.title = element_text(size = axis_title_font),
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.title.x = element_blank()) +
-  scale_y_continuous(labels = scales::number_format(accuracy = 0.01), limits = c(-max(abs(rlutcs$value)), max(abs(rlutcs$value)))) +
+  scale_y_continuous(limits = c(-max(abs(rlutcs$value))-max(abs(rlutcs$sd)), max(abs(rlutcs$value))+max(abs(rlutcs$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width=0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
@@ -381,7 +380,7 @@ rsutcs_plot <- ggplot(rsutcs, aes(x = experiment, y = value, color = model)) +
         axis.title = element_text(size = axis_title_font),
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.title.x = element_blank()) +
-  scale_y_continuous(limits = c(-max(abs(rsutcs$value)), max(abs(rsutcs$value)))) +
+  scale_y_continuous(limits = c(-max(abs(rsutcs$value))-max(abs(rsutcs$sd)), max(abs(rsutcs$value))+max(abs(rsutcs$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width=0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
@@ -407,7 +406,7 @@ net_rad_plot <- ggplot(net_rad, aes(x = experiment, y = value, color = model)) +
         axis.title = element_text(size = axis_title_font),
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.title.x = element_blank()) +
-  scale_y_continuous(limits = c(-max(abs(net_rad$value)), max(abs(net_rad$value)))) +
+  scale_y_continuous(limits = c(-max(abs(net_rad$value))-max(abs(net_rad$sd)), max(abs(net_rad$value))+max(abs(net_rad$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width=0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
@@ -421,7 +420,7 @@ net_rad_cs_plot <- ggplot(net_rad_cs, aes(x = experiment, y = value, color = mod
         axis.title = element_text(size = axis_title_font),
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.title.x = element_blank()) +
-  scale_y_continuous(limits = c(-max(abs(net_rad_cs$value)), max(abs(net_rad_cs$value)))) +
+  scale_y_continuous(limits = c(-max(abs(net_rad_cs$value))-max(abs(net_rad_cs$sd)), max(abs(net_rad_cs$value))+max(abs(net_rad_cs$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width=0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
@@ -436,7 +435,7 @@ drybc_plot <- ggplot(drybc, aes(x = experiment, y = value, color = model)) +
         axis.title = element_text(size = axis_title_font),
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.title.x = element_blank()) +
-  scale_y_continuous(labels = scales::scientific_format(digits = 2), limits = c(-max(abs(drybc$value)), max(abs(drybc$value)))) +
+  scale_y_continuous(labels = scales::scientific_format(digits = 2), limits = c(-max(abs(drybc$value))-max(abs(drybc$sd)), max(abs(drybc$value))+max(abs(drybc$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width=0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
@@ -451,7 +450,7 @@ wetbc_plot <- ggplot(wetbc, aes(x = experiment, y = value, color = model)) +
         axis.title = element_text(size = axis_title_font),
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.title.x = element_blank()) +
-  scale_y_continuous(labels = scales::scientific_format(digits = 2), limits = c(-max(abs(wetbc$value)), max(abs(wetbc$value)))) +
+  scale_y_continuous(labels = scales::scientific_format(digits = 2), limits = c(-max(abs(wetbc$value))-max(abs(wetbc$sd)), max(abs(wetbc$value))+max(abs(wetbc$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width=0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
@@ -471,7 +470,7 @@ tot_bc_plot <- ggplot(tot_bc, aes(x = experiment, y = value, color = model)) +
         axis.title = element_text(size = axis_title_font),
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.title.x = element_blank()) +
-  scale_y_continuous(labels = scales::scientific_format(digits = 2), limits = c(-max(abs(tot_bc$value)), max(abs(tot_bc$value)))) +
+  scale_y_continuous(labels = scales::scientific_format(digits = 2), limits = c(-max(abs(tot_bc$value))-max(abs(tot_bc$sd)), max(abs(tot_bc$value))+max(abs(tot_bc$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width=0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
@@ -486,7 +485,7 @@ dryso2_plot <- ggplot(dryso2, aes(x = experiment, y = value, color = model)) +
         axis.title = element_text(size = axis_title_font),
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.title.x = element_blank()) +
-  scale_y_continuous(labels = scales::scientific_format(digits = 2), limits = c(-max(abs(dryso2$value)), max(abs(dryso2$value)))) +
+  scale_y_continuous(labels = scales::scientific_format(digits = 2), limits = c(-max(abs(dryso2$value))-max(abs(dryso2$sd)), max(abs(dryso2$value))+max(abs(dryso2$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width=0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
@@ -501,7 +500,7 @@ wetso2_plot <- ggplot(wetso2, aes(x = experiment, y = value, color = model)) +
         axis.title = element_text(size = axis_title_font),
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.title.x = element_blank()) +
-  scale_y_continuous(labels = scales::scientific_format(digits = 2), limits = c(-max(abs(wetso2$value)), max(abs(wetso2$value)))) +
+  scale_y_continuous(labels = scales::scientific_format(digits = 2), limits = c(-max(abs(wetso2$value))-max(abs(wetso2$sd)), max(abs(wetso2$value))+max(abs(wetso2$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width=0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
@@ -516,7 +515,7 @@ dryso4_plot <- ggplot(dryso4, aes(x = experiment, y = value, color = model)) +
         axis.title = element_text(size = axis_title_font),
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.title.x = element_blank()) +
-  scale_y_continuous(labels = scales::scientific_format(digits = 2), limits = c(-max(abs(dryso4$value)), max(abs(dryso4$value)))) +
+  scale_y_continuous(labels = scales::scientific_format(digits = 2), limits = c(-max(abs(dryso4$value))-max(abs(dryso4$sd)), max(abs(dryso4$value))+max(abs(dryso4$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width=0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
@@ -531,7 +530,7 @@ wetso4_plot <- ggplot(wetso4, aes(x = experiment, y = value, color = model)) +
         axis.title = element_text(size = axis_title_font),
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.title.x = element_blank()) +
-  scale_y_continuous(labels = scales::scientific_format(digits = 2), limits = c(-max(abs(wetso4$value)), max(abs(wetso4$value)))) +
+  scale_y_continuous(labels = scales::scientific_format(digits = 2), limits = c(-max(abs(wetso4$value))-max(abs(wetso4$sd)), max(abs(wetso4$value))+max(abs(wetso4$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width=0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
@@ -561,7 +560,7 @@ tot_s_plot <- ggplot(tot_s, aes(x = experiment, y = value, color = model)) +
         axis.title = element_text(size = axis_title_font),
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.title.x = element_blank()) +
-  scale_y_continuous(labels = scales::scientific_format(digits = 2), limits = c(-max(abs(tot_s$value)), max(abs(tot_s$value)))) +
+  scale_y_continuous(labels = scales::scientific_format(digits = 2), limits = c(-max(abs(tot_s$value))-max(abs(tot_s$sd)), max(abs(tot_s$value))+max(abs(tot_s$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width=0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
@@ -576,7 +575,7 @@ od550aer_plot <- ggplot(od550aer, aes(x = experiment, y = value, color = model))
         axis.title = element_text(size = axis_title_font),
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.title.x = element_blank()) +
-  scale_y_continuous(labels = scales::scientific_format(digits = 2), limits = c(-max(abs(od550aer$value)), max(abs(od550aer$value)))) +
+  scale_y_continuous(limits = c(-max(abs(od550aer$value))-max(abs(od550aer$sd)), max(abs(od550aer$value))+max(abs(od550aer$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width=0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
@@ -591,7 +590,7 @@ clt_plot <- ggplot(clt, aes(x = experiment, y = value, color = model)) +
         axis.title = element_text(size = axis_title_font),
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.title.x = element_blank()) +
-  scale_y_continuous(labels = scales::scientific_format(digits = 2), limits = c(-max(abs(clt$value)), max(abs(clt$value)))) +
+  scale_y_continuous(limits = c(-max(abs(clt$value))-max(abs(clt$sd)), max(abs(clt$value))+max(abs(clt$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width=0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
@@ -606,7 +605,7 @@ cltc_plot <- ggplot(cltc, aes(x = experiment, y = value, color = model)) +
         axis.title = element_text(size = axis_title_font),
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.title.x = element_blank()) +
-  scale_y_continuous(labels = scales::scientific_format(digits = 2), limits = c(-max(abs(cltc$value)), max(abs(cltc$value)))) +
+  scale_y_continuous(limits = c(-max(abs(cltc$value))-max(abs(cltc$sd)), max(abs(cltc$value))+max(abs(cltc$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width=0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
