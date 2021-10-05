@@ -20,11 +20,11 @@ library(grid)
 # Specify location of Emissions-MIP directory
 emi_dir <- paste0('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP-Phase1a')
 
-# Specify region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, 
+# Specify region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land,
 # SH-sea, NH-atlantic, NH-pacific)
 region <- "NH-pacific"
 
-# Define default ggplot colors and associate with models (in case a plot is 
+# Define default ggplot colors and associate with models (in case a plot is
 # missing a model, the color scheme will remain consistent)
 gg_color_hue <- function(n) {
   hues = seq(15, 375, length = n + 1)
@@ -54,11 +54,11 @@ rep_models <- rep(models, each = 4) # four years
 bc_no_seas$model <- rep_models
 
 # Invert sign of CESM2 wet deposition variables
-bc_no_seas$value[which(bc_no_seas$model == "CESM2" & bc_no_seas$variable == "wetbc")] <- 
+bc_no_seas$value[which(bc_no_seas$model == "CESM2" & bc_no_seas$variable == "wetbc")] <-
   -1 * bc_no_seas$value[which(bc_no_seas$model == "CESM2" & bc_no_seas$variable == "wetbc")]
-bc_no_seas$value[which(bc_no_seas$model == "CESM2" & bc_no_seas$variable == "wetso2")] <- 
+bc_no_seas$value[which(bc_no_seas$model == "CESM2" & bc_no_seas$variable == "wetso2")] <-
   -1 * bc_no_seas$value[which(bc_no_seas$model == "CESM2" & bc_no_seas$variable == "wetso2")]
-bc_no_seas$value[which(bc_no_seas$model == "CESM2" & bc_no_seas$variable == "wetso4")] <- 
+bc_no_seas$value[which(bc_no_seas$model == "CESM2" & bc_no_seas$variable == "wetso4")] <-
   -1 * bc_no_seas$value[which(bc_no_seas$model == "CESM2" & bc_no_seas$variable == "wetso4")]
 
 # Take the average over all years for each variable and calculate std. dev.
@@ -67,10 +67,10 @@ bc_no_seas_summary <- bc_no_seas %>% dplyr::group_by(variable, model) %>%
 
 # Convert SO2 volume mixing ratio to mass mixing ratio by multiplying by molar mass
 # of SO2 and dividing by molar mass of air
-bc_no_seas_summary$bc_no_seas[which(bc_no_seas_summary$variable == "so2")] <- 
+bc_no_seas_summary$bc_no_seas[which(bc_no_seas_summary$variable == "so2")] <-
   bc_no_seas_summary$bc_no_seas[which(bc_no_seas_summary$variable == "so2")] * 64.066 / 28.96
 
-bc_no_seas_summary$bc_no_seas_sd[which(bc_no_seas_summary$variable == "so2")] <- 
+bc_no_seas_summary$bc_no_seas_sd[which(bc_no_seas_summary$variable == "so2")] <-
   bc_no_seas_summary$bc_no_seas_sd[which(bc_no_seas_summary$variable == "so2")] * 64.066 / 28.96
 
 #---------------------------------------------------
@@ -90,11 +90,11 @@ rep_models <- rep(models, each = 4) # four years
 high_so4$model <- rep_models
 
 # Invert sign of CESM2 wet deposition variables
-high_so4$value[which(high_so4$model == "CESM2" & high_so4$variable == "wetbc")] <- 
+high_so4$value[which(high_so4$model == "CESM2" & high_so4$variable == "wetbc")] <-
   -1 * high_so4$value[which(high_so4$model == "CESM2" & high_so4$variable == "wetbc")]
-high_so4$value[which(high_so4$model == "CESM2" & high_so4$variable == "wetso2")] <- 
+high_so4$value[which(high_so4$model == "CESM2" & high_so4$variable == "wetso2")] <-
   -1 * high_so4$value[which(high_so4$model == "CESM2" & high_so4$variable == "wetso2")]
-high_so4$value[which(high_so4$model == "CESM2" & high_so4$variable == "wetso4")] <- 
+high_so4$value[which(high_so4$model == "CESM2" & high_so4$variable == "wetso4")] <-
   -1 * high_so4$value[which(high_so4$model == "CESM2" & high_so4$variable == "wetso4")]
 
 # Take the average over all years for each variable and calculate std. dev.
@@ -103,10 +103,10 @@ high_so4_summary <- high_so4 %>% dplyr::group_by(variable, model) %>%
 
 # Convert SO2 volume mixing ratio to mass mixing ratio by multiplying by molar mass
 # of SO2 and dividing by molar mass of air
-high_so4_summary$high_so4[which(high_so4_summary$variable == "so2")] <- 
+high_so4_summary$high_so4[which(high_so4_summary$variable == "so2")] <-
   high_so4_summary$high_so4[which(high_so4_summary$variable == "so2")] * 64.066 / 28.96
 
-high_so4_summary$high_so4_sd[which(high_so4_summary$variable == "so2")] <- 
+high_so4_summary$high_so4_sd[which(high_so4_summary$variable == "so2")] <-
   high_so4_summary$high_so4_sd[which(high_so4_summary$variable == "so2")] * 64.066 / 28.96
 
 #---------------------------------------------------
@@ -126,11 +126,11 @@ rep_models <- rep(models, each = 4) # four years
 no_so4$model <- rep_models
 
 # Invert sign of CESM2 wet deposition variables
-no_so4$value[which(no_so4$model == "CESM2" & no_so4$variable == "wetbc")] <- 
+no_so4$value[which(no_so4$model == "CESM2" & no_so4$variable == "wetbc")] <-
   -1 * no_so4$value[which(no_so4$model == "CESM2" & no_so4$variable == "wetbc")]
-no_so4$value[which(no_so4$model == "CESM2" & no_so4$variable == "wetso2")] <- 
+no_so4$value[which(no_so4$model == "CESM2" & no_so4$variable == "wetso2")] <-
   -1 * no_so4$value[which(no_so4$model == "CESM2" & no_so4$variable == "wetso2")]
-no_so4$value[which(no_so4$model == "CESM2" & no_so4$variable == "wetso4")] <- 
+no_so4$value[which(no_so4$model == "CESM2" & no_so4$variable == "wetso4")] <-
   -1 * no_so4$value[which(no_so4$model == "CESM2" & no_so4$variable == "wetso4")]
 
 # Take the average over all years for each variable and calculate std. dev.
@@ -139,10 +139,10 @@ no_so4_summary <- no_so4 %>% dplyr::group_by(variable, model) %>%
 
 # Convert SO2 volume mixing ratio to mass mixing ratio by multiplying by molar mass
 # of SO2 and dividing by molar mass of air
-no_so4_summary$no_so4[which(no_so4_summary$variable == "so2")] <- 
+no_so4_summary$no_so4[which(no_so4_summary$variable == "so2")] <-
   no_so4_summary$no_so4[which(no_so4_summary$variable == "so2")] * 64.066 / 28.96
 
-no_so4_summary$no_so4_sd[which(no_so4_summary$variable == "so2")] <- 
+no_so4_summary$no_so4_sd[which(no_so4_summary$variable == "so2")] <-
   no_so4_summary$no_so4_sd[which(no_so4_summary$variable == "so2")] * 64.066 / 28.96
 
 #---------------------------------------------------
@@ -167,10 +167,10 @@ so2_at_hgt_summary <- so2_at_hgt %>% dplyr::group_by(variable, model) %>%
 
 # Convert SO2 volume mixing ratio to mass mixing ratio by multiplying by molar mass
 # of SO2 and dividing by molar mass of air
-so2_at_hgt_summary$so2_at_hgt[which(so2_at_hgt_summary$variable == "so2")] <- 
+so2_at_hgt_summary$so2_at_hgt[which(so2_at_hgt_summary$variable == "so2")] <-
   so2_at_hgt_summary$so2_at_hgt[which(so2_at_hgt_summary$variable == "so2")] * 64.066 / 28.96
 
-so2_at_hgt_summary$so2_at_hgt_sd[which(so2_at_hgt_summary$variable == "so2")] <- 
+so2_at_hgt_summary$so2_at_hgt_sd[which(so2_at_hgt_summary$variable == "so2")] <-
   so2_at_hgt_summary$so2_at_hgt_sd[which(so2_at_hgt_summary$variable == "so2")] * 64.066 / 28.96
 
 #---------------------------------------------------
@@ -190,11 +190,11 @@ rep_models <- rep(models, each = 4) # four years
 so2_no_seas$model <- rep_models
 
 # Invert sign of CESM2 wet deposition variables
-so2_no_seas$value[which(so2_no_seas$model == "CESM2" & so2_no_seas$variable == "wetbc")] <- 
+so2_no_seas$value[which(so2_no_seas$model == "CESM2" & so2_no_seas$variable == "wetbc")] <-
   -1 * so2_no_seas$value[which(so2_no_seas$model == "CESM2" & so2_no_seas$variable == "wetbc")]
-so2_no_seas$value[which(so2_no_seas$model == "CESM2" & so2_no_seas$variable == "wetso2")] <- 
+so2_no_seas$value[which(so2_no_seas$model == "CESM2" & so2_no_seas$variable == "wetso2")] <-
   -1 * so2_no_seas$value[which(so2_no_seas$model == "CESM2" & so2_no_seas$variable == "wetso2")]
-so2_no_seas$value[which(so2_no_seas$model == "CESM2" & so2_no_seas$variable == "wetso4")] <- 
+so2_no_seas$value[which(so2_no_seas$model == "CESM2" & so2_no_seas$variable == "wetso4")] <-
   -1 * so2_no_seas$value[which(so2_no_seas$model == "CESM2" & so2_no_seas$variable == "wetso4")]
 
 # Take the average over all years for each variable and calculate std. dev.
@@ -203,10 +203,10 @@ so2_no_seas_summary <- so2_no_seas %>% dplyr::group_by(variable, model) %>%
 
 # Convert SO2 volume mixing ratio to mass mixing ratio by multiplying by molar mass
 # of SO2 and dividing by molar mass of air
-so2_no_seas_summary$so2_no_seas[which(so2_no_seas_summary$variable == "so2")] <- 
+so2_no_seas_summary$so2_no_seas[which(so2_no_seas_summary$variable == "so2")] <-
   so2_no_seas_summary$so2_no_seas[which(so2_no_seas_summary$variable == "so2")] * 64.066 / 28.96
 
-so2_no_seas_summary$so2_no_seas_sd[which(so2_no_seas_summary$variable == "so2")] <- 
+so2_no_seas_summary$so2_no_seas_sd[which(so2_no_seas_summary$variable == "so2")] <-
   so2_no_seas_summary$so2_no_seas_sd[which(so2_no_seas_summary$variable == "so2")] * 64.066 / 28.96
 
 #---------------------------------------------------
@@ -218,12 +218,12 @@ summary_data <- list(bc_no_seas_summary, high_so4_summary, no_so4_summary, so2_a
 summary_data$model[which(summary_data$model == "CESM")] <- "CESM1"
 
 # Change to long format
-summary_long_exp <- summary_data %>% 
+summary_long_exp <- summary_data %>%
   gather(experiment, value, -c(model, variable, bc_no_seas_sd, high_so4_sd, no_so4_sd, so2_at_hgt_sd, so2_no_seas_sd)) %>%
   select(variable, model, experiment, value) %>%
   drop_na()
 
-summary_long_sd <- summary_data %>% 
+summary_long_sd <- summary_data %>%
   gather(experiment, sd, -c(model, variable, bc_no_seas, high_so4, no_so4, so2_at_hgt, so2_no_seas)) %>%
   select(variable, model, experiment, sd) %>%
   drop_na()
@@ -264,7 +264,7 @@ emiso2_plot <- ggplot(emiso2, aes(x = experiment, y = value, color = model)) +
   scale_y_continuous(labels = scales::scientific_format(digits = 2), limits = c(-max(abs(emiso2$value))-max(abs(emiso2$sd)), max(abs(emiso2$value))+max(abs(emiso2$sd)))) +
   geom_point( position=position_dodge(width=0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
-  
+
 
 mmrbc <- dplyr::filter(summary_long, variable == "mmrbc")
 mmrbc_plot <- ggplot(mmrbc, aes(x = experiment, y = value, color = model)) +
@@ -613,7 +613,7 @@ cltc_plot <- ggplot(cltc, aes(x = experiment, y = value, color = model)) +
 # Function from stack exchange to generate a shared legend
 grid_arrange_shared_legend <- function(...) {
   plots <- list(...)
-  g <- ggplotGrob(plots[[1]] + theme(legend.position="bottom", 
+  g <- ggplotGrob(plots[[1]] + theme(legend.position="bottom",
                                      legend.title = element_blank(),
                                      legend.text = element_text(size = 9,
                                                                 margin = margin(r = 10, unit = "pt"))))$grobs
@@ -628,17 +628,17 @@ grid_arrange_shared_legend <- function(...) {
     top = textGrob("Summary - absolute difference", gp = gpar(fontsize = 12)))
 }
 
-emissions_plot <- grid_arrange_shared_legend(emibc_plot, 
-                                         emiso2_plot, 
-                                         mmrbc_plot, 
-                                         mmrso4_plot, 
+emissions_plot <- grid_arrange_shared_legend(emibc_plot,
+                                         emiso2_plot,
+                                         mmrbc_plot,
+                                         mmrso4_plot,
                                          so2_plot)
 
-forcing_plot <- grid_arrange_shared_legend(rlut_plot, 
+forcing_plot <- grid_arrange_shared_legend(rlut_plot,
                                           rsut_plot,
                                           net_rad_plot,
-                                          rsdt_plot, 
-                                          rlutcs_plot, 
+                                          rsdt_plot,
+                                          rlutcs_plot,
                                           rsutcs_plot,
                                           net_rad_cs_plot,
                                           od550aer_plot,
