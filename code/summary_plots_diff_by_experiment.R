@@ -18,7 +18,7 @@ library(gridExtra)
 library(grid)
 
 # Specify location of Emissions-MIP directory
-emi_dir <- paste0('C:/Users/such559/Documents/Emissions-MIP_Data')
+emi_dir <- paste0('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP-Phase1a')
 
 # Specify experiment (i.e., bc-no-seas, high-so4, no-so4, reference, so2-at-height, so2-no-seas)
 exper <- c("bc-no-season")
