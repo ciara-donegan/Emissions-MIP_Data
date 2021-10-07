@@ -18,9 +18,9 @@ library(gridExtra)
 library(grid)
 
 # Specify location of Emissions-MIP directory
-emi_dir <- paste0('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP-Phase1a')
+emi_dir <- paste0('C:/Users/such559/Documents/Emissions-MIP_Data')
 
-# Specify region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, 
+# Specify parameter (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, 
 # SH-sea, NH-atlantic, NH-pacific)
 region <- "NH-pacific"
 
