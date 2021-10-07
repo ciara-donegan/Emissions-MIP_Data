@@ -37,6 +37,9 @@ model_colors <- c(CESM1 = cols[1], E3SM = cols[2], GISS = cols[3], CESM2 = cols[
                   MIROC = cols[5], NorESM2 = cols[6], GFDL = cols[7], OsloCTM3 = cols[8],
                   UKESM = cols[9], GEOS = cols[10])
 
+model_symbols <- c(CESM1 = 15, E3SM = 15, GISS = 17, CESM2 = 19, MIROC = 15, 
+                   NorESM2 = 17, GFDL = 19, OsloCTM3 = 19, UKESM = 15, GEOS = 17)
+
 # ------------------------------------------------------------------------------
 
 # Setup directory for bc-no-seas percent difference data
@@ -198,7 +201,7 @@ axis_font <- 9
 axis_title_font <- 9
 
 emibc <- dplyr::filter(summary_long, variable == "emibc")
-emibc_plot <- ggplot(emibc, aes(x = experiment, y = value, color = model)) +
+emibc_plot <- ggplot(emibc, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
   labs(title = paste0('surface flux of BC - ', region), y="Percent") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
@@ -208,12 +211,13 @@ emibc_plot <- ggplot(emibc, aes(x = experiment, y = value, color = model)) +
         axis.title.x = element_blank()) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(emibc$value))-max(abs(emibc$sd)), max(abs(emibc$value))+max(abs(emibc$sd)))) +
   scale_colour_manual(values = model_colors) +
+  scale_shape_manual(values = model_symbols) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
 
 
 emiso2 <- dplyr::filter(summary_long, variable == "emiso2")
-emiso2_plot <- ggplot(emiso2, aes(x = experiment, y = value, color = model)) +
+emiso2_plot <- ggplot(emiso2, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
   labs(title = paste0('surface flux of SO2 - ', region), y="Percent") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
@@ -223,12 +227,13 @@ emiso2_plot <- ggplot(emiso2, aes(x = experiment, y = value, color = model)) +
         axis.title.x = element_blank()) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(emiso2$value))-max(abs(emiso2$sd)), max(abs(emiso2$value))+max(abs(emiso2$sd)))) +
   scale_colour_manual(values = model_colors) +
+  scale_shape_manual(values = model_symbols) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
 
 
 mmrbc <- dplyr::filter(summary_long, variable == "mmrbc")
-mmrbc_plot <- ggplot(mmrbc, aes(x = experiment, y = value, color = model)) +
+mmrbc_plot <- ggplot(mmrbc, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
   labs(title = paste0('surface concentration of BC - ', region), y="Percent") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
@@ -238,12 +243,13 @@ mmrbc_plot <- ggplot(mmrbc, aes(x = experiment, y = value, color = model)) +
         axis.title.x = element_blank()) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(mmrbc$value))-max(abs(mmrbc$sd)), max(abs(mmrbc$value))+max(abs(mmrbc$sd)))) +
   scale_colour_manual(values = model_colors) +
+  scale_shape_manual(values = model_symbols) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
 
 
 mmrso4 <- dplyr::filter(summary_long, variable == "mmrso4")
-mmrso4_plot <- ggplot(mmrso4, aes(x = experiment, y = value, color = model)) +
+mmrso4_plot <- ggplot(mmrso4, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
   labs(title = paste0('surface concentration of SO4 - ', region), y="Percent") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
@@ -253,12 +259,13 @@ mmrso4_plot <- ggplot(mmrso4, aes(x = experiment, y = value, color = model)) +
         axis.title.x = element_blank()) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(mmrso4$value))-max(abs(mmrso4$sd)), max(abs(mmrso4$value))+max(abs(mmrso4$sd)))) +
   scale_colour_manual(values = model_colors) +
+  scale_shape_manual(values = model_symbols) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
 
 
 so2 <- dplyr::filter(summary_long, variable == "so2")
-so2_plot <- ggplot(so2, aes(x = experiment, y = value, color = model)) +
+so2_plot <- ggplot(so2, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
   labs(title = paste0('surface concentration of SO2 - ', region), y="Percent") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
@@ -268,12 +275,13 @@ so2_plot <- ggplot(so2, aes(x = experiment, y = value, color = model)) +
         axis.title.x = element_blank()) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(so2$value))-max(abs(so2$sd)), max(abs(so2$value))+max(abs(so2$sd)))) +
   scale_colour_manual(values = model_colors) +
+  scale_shape_manual(values = model_symbols) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
 
 
 rlut <- dplyr::filter(summary_long, variable == "rlut")
-rlut_plot <- ggplot(rlut, aes(x = experiment, y = value, color = model)) +
+rlut_plot <- ggplot(rlut, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
   labs(title = paste0('upwelling longwave flux \n at TOA - ', region), y="Percent") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
@@ -283,12 +291,13 @@ rlut_plot <- ggplot(rlut, aes(x = experiment, y = value, color = model)) +
         axis.title.x = element_blank()) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(rlut$value))-max(abs(rlut$sd)), max(abs(rlut$value))+max(abs(rlut$sd)))) +
   scale_colour_manual(values = model_colors) +
+  scale_shape_manual(values = model_symbols) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
 
 
 rsut <- dplyr::filter(summary_long, variable == "rsut")
-rsut_plot <- ggplot(rsut, aes(x = experiment, y = value, color = model)) +
+rsut_plot <- ggplot(rsut, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
   labs(title = paste0('upwelling shortwave flux \n at TOA - ', region), y="Percent") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
@@ -298,12 +307,13 @@ rsut_plot <- ggplot(rsut, aes(x = experiment, y = value, color = model)) +
         axis.title.x = element_blank()) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(rsut$value))-max(abs(rsut$sd)), max(abs(rsut$value))+max(abs(rsut$sd)))) +
   scale_colour_manual(values = model_colors) +
+  scale_shape_manual(values = model_symbols) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
 
 
 rsdt <- dplyr::filter(summary_long, variable == "rsdt")
-rsdt_plot <- ggplot(rsdt, aes(x = experiment, y = value, color = model)) +
+rsdt_plot <- ggplot(rsdt, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
   labs(title = paste0('incident shortwave flux \n at TOA - ', region), y="Percent") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
@@ -313,12 +323,13 @@ rsdt_plot <- ggplot(rsdt, aes(x = experiment, y = value, color = model)) +
         axis.title.x = element_blank()) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(rsdt$value))-max(abs(rsdt$sd)), max(abs(rsdt$value))+max(abs(rsdt$sd)))) +
   scale_colour_manual(values = model_colors) +
+  scale_shape_manual(values = model_symbols) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
 
 
 rlutcs <- dplyr::filter(summary_long, variable == "rlutcs")
-rlutcs_plot <- ggplot(rlutcs, aes(x = experiment, y = value, color = model)) +
+rlutcs_plot <- ggplot(rlutcs, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
   labs(title = paste0('upwelling clear-sky longwave \n flux at TOA - ', region), y="Percent") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
@@ -328,12 +339,13 @@ rlutcs_plot <- ggplot(rlutcs, aes(x = experiment, y = value, color = model)) +
         axis.title.x = element_blank()) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(rlutcs$value))-max(abs(rlutcs$sd)), max(abs(rlutcs$value))+max(abs(rlutcs$sd)))) +
   scale_colour_manual(values = model_colors) +
+  scale_shape_manual(values = model_symbols) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
 
 
 rsutcs <- dplyr::filter(summary_long, variable == "rsutcs")
-rsutcs_plot <- ggplot(rsutcs, aes(x = experiment, y = value, color = model)) +
+rsutcs_plot <- ggplot(rsutcs, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
   labs(title = paste0('upwelling clear-sky shortwave \n flux at TOA - ', region), y="Percent") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
@@ -343,6 +355,7 @@ rsutcs_plot <- ggplot(rsutcs, aes(x = experiment, y = value, color = model)) +
         axis.title.x = element_blank()) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(rsutcs$value))-max(abs(rsutcs$sd)), max(abs(rsutcs$value))+max(abs(rsutcs$sd)))) +
   scale_colour_manual(values = model_colors) +
+  scale_shape_manual(values = model_symbols) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
 
@@ -358,7 +371,7 @@ net_rad_cs <- dplyr::mutate(net_rad_cs, value = value.x + value.y) %>%
   dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
   dplyr::select(c(model, experiment, value, sd))
 
-net_rad_plot <- ggplot(net_rad, aes(x = experiment, y = value, color = model)) +
+net_rad_plot <- ggplot(net_rad, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
   labs(title=paste0('net radiative flux \n at TOA - ', region), y="Percent") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
@@ -368,11 +381,12 @@ net_rad_plot <- ggplot(net_rad, aes(x = experiment, y = value, color = model)) +
         axis.title.x = element_blank()) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(net_rad$value))-max(abs(net_rad$sd)), max(abs(net_rad$value))+max(abs(net_rad$sd)))) +
   scale_colour_manual(values = model_colors) +
+  scale_shape_manual(values = model_symbols) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
 
 
-net_rad_cs_plot <- ggplot(net_rad_cs, aes(x = experiment, y = value, color = model)) +
+net_rad_cs_plot <- ggplot(net_rad_cs, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
   labs(title=paste0('clear-sky net radiative \n flux at TOA - ', region), y="Percent") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
@@ -382,12 +396,13 @@ net_rad_cs_plot <- ggplot(net_rad_cs, aes(x = experiment, y = value, color = mod
         axis.title.x = element_blank()) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(net_rad_cs$value))-max(abs(net_rad_cs$sd)), max(abs(net_rad_cs$value))+max(abs(net_rad_cs$sd)))) +
   scale_colour_manual(values = model_colors) +
+  scale_shape_manual(values = model_symbols) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
 
 
 drybc <- dplyr::filter(summary_long, variable == "drybc")
-drybc_plot <- ggplot(drybc, aes(x = experiment, y = value, color = model)) +
+drybc_plot <- ggplot(drybc, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
   labs(title = paste0('dry deposition rate \n of BC - ', region), y="Percent") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
@@ -397,12 +412,13 @@ drybc_plot <- ggplot(drybc, aes(x = experiment, y = value, color = model)) +
         axis.title.x = element_blank()) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(drybc$value))-max(abs(drybc$sd)), max(abs(drybc$value))+max(abs(drybc$sd)))) +
   scale_colour_manual(values = model_colors) +
+  scale_shape_manual(values = model_symbols) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
 
 
 wetbc <- dplyr::filter(summary_long, variable == "wetbc")
-wetbc_plot <- ggplot(wetbc, aes(x = experiment, y = value, color = model)) +
+wetbc_plot <- ggplot(wetbc, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
   labs(title = paste0('wet deposition rate \n of BC - ', region), y="Percent") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
@@ -412,6 +428,7 @@ wetbc_plot <- ggplot(wetbc, aes(x = experiment, y = value, color = model)) +
         axis.title.x = element_blank()) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(wetbc$value))-max(abs(wetbc$sd)), max(abs(wetbc$value))+max(abs(wetbc$sd)))) +
   scale_colour_manual(values = model_colors) +
+  scale_shape_manual(values = model_symbols) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
 
@@ -422,7 +439,7 @@ tot_bc <- dplyr::mutate(tot_bc, value = value.x + value.y) %>%
   dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
   dplyr::select(c(model, experiment, value, sd))
 
-tot_bc_plot <- ggplot(tot_bc, aes(x = experiment, y = value, color = model)) +
+tot_bc_plot <- ggplot(tot_bc, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
   labs(title=paste0('total deposition rate \n of BC - ', region), y="Percent") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
@@ -432,12 +449,13 @@ tot_bc_plot <- ggplot(tot_bc, aes(x = experiment, y = value, color = model)) +
         axis.title.x = element_blank()) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(tot_bc$value))-max(abs(tot_bc$sd)), max(abs(tot_bc$value))+max(abs(tot_bc$sd)))) +
   scale_colour_manual(values = model_colors) +
+  scale_shape_manual(values = model_symbols) +
   geom_point( position=position_dodge(width=0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
 
 
 dryso2 <- dplyr::filter(summary_long, variable == "dryso2")
-dryso2_plot <- ggplot(dryso2, aes(x = experiment, y = value, color = model)) +
+dryso2_plot <- ggplot(dryso2, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
   labs(title = paste0('dry deposition rate \n of SO2 - ', region), y="Percent") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
@@ -447,12 +465,13 @@ dryso2_plot <- ggplot(dryso2, aes(x = experiment, y = value, color = model)) +
         axis.title.x = element_blank()) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(dryso2$value))-max(abs(dryso2$sd)), max(abs(dryso2$value))+max(abs(dryso2$sd)))) +
   scale_colour_manual(values = model_colors) +
+  scale_shape_manual(values = model_symbols) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
 
 
 wetso2 <- dplyr::filter(summary_long, variable == "wetso2")
-wetso2_plot <- ggplot(wetso2, aes(x = experiment, y = value, color = model)) +
+wetso2_plot <- ggplot(wetso2, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
   labs(title = paste0('wet deposition rate \n of SO2 - ', region), y="Percent") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
@@ -462,12 +481,13 @@ wetso2_plot <- ggplot(wetso2, aes(x = experiment, y = value, color = model)) +
         axis.title.x = element_blank()) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(wetso2$value))-max(abs(wetso2$sd)), max(abs(wetso2$value))+max(abs(wetso2$sd)))) +
   scale_colour_manual(values = model_colors) +
+  scale_shape_manual(values = model_symbols) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
 
 
 dryso4 <- dplyr::filter(summary_long, variable == "dryso4")
-dryso4_plot <- ggplot(dryso4, aes(x = experiment, y = value, color = model)) +
+dryso4_plot <- ggplot(dryso4, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
   labs(title = paste0('dry deposition rate \n of SO4 - ', region), y="Percent") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
@@ -477,12 +497,13 @@ dryso4_plot <- ggplot(dryso4, aes(x = experiment, y = value, color = model)) +
         axis.title.x = element_blank()) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(dryso4$value))-max(abs(dryso4$sd)), max(abs(dryso4$value))+max(abs(dryso4$sd)))) +
   scale_colour_manual(values = model_colors) +
+  scale_shape_manual(values = model_symbols) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
 
 
 wetso4 <- dplyr::filter(summary_long, variable == "wetso4")
-wetso4_plot <- ggplot(wetso4, aes(x = experiment, y = value, color = model)) +
+wetso4_plot <- ggplot(wetso4, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
   labs(title = paste0('wet deposition rate \n of SO4 - ', region), y="Percent") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
@@ -492,6 +513,7 @@ wetso4_plot <- ggplot(wetso4, aes(x = experiment, y = value, color = model)) +
         axis.title.x = element_blank()) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(wetso4$value))-max(abs(wetso4$sd)), max(abs(wetso4$value))+max(abs(wetso4$sd)))) +
   scale_colour_manual(values = model_colors) +
+  scale_shape_manual(values = model_symbols) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
 
@@ -512,7 +534,7 @@ tot_s <- dplyr::mutate(tot_s, value = value.x + value.y) %>%
   dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
   dplyr::select(c(model, experiment, value, sd))
 
-tot_s_plot <- ggplot(tot_s, aes(x = experiment, y = value, color = model)) +
+tot_s_plot <- ggplot(tot_s, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
   labs(title=paste0('total deposition rate \n of S - ', region), y="Percent") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
@@ -522,12 +544,13 @@ tot_s_plot <- ggplot(tot_s, aes(x = experiment, y = value, color = model)) +
         axis.title.x = element_blank()) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(tot_s$value))-max(abs(tot_s$sd)), max(abs(tot_s$value))+max(abs(tot_s$sd)))) +
   scale_colour_manual(values = model_colors) +
+  scale_shape_manual(values = model_symbols) +
   geom_point( position=position_dodge(width=0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
 
 
 od550aer <- dplyr::filter(summary_long, variable == "od550aer")
-od550aer_plot <- ggplot(od550aer, aes(x = experiment, y = value, color = model)) +
+od550aer_plot <- ggplot(od550aer, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
   labs(title = paste0('ambient aerosol optical \n thickness at 550nm - ', region), y="Percent") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
@@ -537,12 +560,13 @@ od550aer_plot <- ggplot(od550aer, aes(x = experiment, y = value, color = model))
         axis.title.x = element_blank()) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(od550aer$value))-max(abs(od550aer$sd)), max(abs(od550aer$value))+max(abs(od550aer$sd)))) +
   scale_colour_manual(values = model_colors) +
+  scale_shape_manual(values = model_symbols) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
 
 
 clt <- dplyr::filter(summary_long, variable == "clt")
-clt_plot <- ggplot(clt, aes(x = experiment, y = value, color = model)) +
+clt_plot <- ggplot(clt, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
   labs(title = paste0('total cloud cover \n percentage - ', region), y="Percent") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
@@ -552,12 +576,13 @@ clt_plot <- ggplot(clt, aes(x = experiment, y = value, color = model)) +
         axis.title.x = element_blank()) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(clt$value))-max(abs(clt$sd)), max(abs(clt$value))+max(abs(clt$sd)))) +
   scale_colour_manual(values = model_colors) +
+  scale_shape_manual(values = model_symbols) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
 
 
 cltc <- dplyr::filter(summary_long, variable == "cltc")
-cltc_plot <- ggplot(cltc, aes(x = experiment, y = value, color = model)) +
+cltc_plot <- ggplot(cltc, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
   labs(title = paste0('convective cloud cover \n percentage - ', region), y="Percent") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
@@ -567,6 +592,7 @@ cltc_plot <- ggplot(cltc, aes(x = experiment, y = value, color = model)) +
         axis.title.x = element_blank()) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(cltc$value))-max(abs(cltc$sd)), max(abs(cltc$value))+max(abs(cltc$sd)))) +
   scale_colour_manual(values = model_colors) +
+  scale_shape_manual(values = model_symbols) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
 
