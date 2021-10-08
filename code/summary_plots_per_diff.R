@@ -360,14 +360,15 @@ rsutcs_plot <- ggplot(rsutcs, aes(x = experiment, y = value, color = model, shap
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
 
 
-# Define normal and clear-sky net radiative flux and  (sum of longwave and shortwave radiation)
+# Define normal and clear-sky net radiative flux (incident shortwave + incident longwave - upwelling shortwave - upwelling longwave, 
+# but the incidents cancel out)
 net_rad <- dplyr::left_join(rlut, rsut, by = c("model", "experiment"))
-net_rad <- dplyr::mutate(net_rad, value = value.x + value.y) %>%
+net_rad <- dplyr::mutate(net_rad, value = -1*value.x - value.y) %>%
   dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
   dplyr::select(c(model, experiment, value, sd))
 
 net_rad_cs <- dplyr::left_join(rlutcs, rsutcs, by = c("model", "experiment"))
-net_rad_cs <- dplyr::mutate(net_rad_cs, value = value.x + value.y) %>%
+net_rad_cs <- dplyr::mutate(net_rad_cs, value = -1*value.x - value.y) %>%
   dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
   dplyr::select(c(model, experiment, value, sd))
 
