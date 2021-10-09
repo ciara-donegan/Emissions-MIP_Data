@@ -72,10 +72,6 @@ for(pert in perts){
   # Rearrange data frame by years descending
   experiment <- dplyr::arrange(experiment, year)
 
-  #set min and max axes for graphing later on
-  axes_max <- max(experiment$value)
-  axes_min <- min(experiment$value)
-
   # Define remaining experiments
   emibc_experiment    <- dplyr::filter(experiment, variable == 'emibc')
   emiso2_experiment   <- dplyr::filter(experiment, variable == 'emiso2')
@@ -123,7 +119,11 @@ for(pert in perts){
   tot_s <- dplyr::left_join(dry_s, wet_s, by = c("year", "model"))
   tot_s <- dplyr::mutate(tot_s, value = value.x + value.y) %>%
     dplyr::select(c(year, model, value))
-
+  
+  #find the min and max percentage differences
+  axes_max <- max(mmrbc_experiment$value, mmrso4_experiment$value, so2_experiment$new_value,emibc_experiment$value,emiso2_experiment$value,drybc_experiment$value,wetbc_experiment$value,drybc_experiment$value,dryso2_experiment$value,wetso2_experiment$value,dryso4_experiment$value,wetso4_experiment$value,tot_bc$value,tot_s$value,rlut_experiment$value,rsut_experiment$value,net_rad$value,rsdt_experiment$value,rlutcs_experiment$value,rsutcs_experiment$value,net_rad_cs$value,od550aer_experiment$value,clt_experiment$value,cltc_experiment$value, na.rm = TRUE) 
+  axes_min <- min(mmrbc_experiment$value, mmrso4_experiment$value, so2_experiment$new_value,emibc_experiment$value,emiso2_experiment$value,drybc_experiment$value,wetbc_experiment$value,drybc_experiment$value,dryso2_experiment$value,wetso2_experiment$value,dryso4_experiment$value,wetso4_experiment$value,tot_bc$value,tot_s$value,rlut_experiment$value,rsut_experiment$value,net_rad$value,rsdt_experiment$value,rlutcs_experiment$value,rsutcs_experiment$value,net_rad_cs$value,od550aer_experiment$value,clt_experiment$value,cltc_experiment$value, na.rm = TRUE)
+  
   # Pre-define plot font sizes
   title_font <- 7
   axis_font <- 6

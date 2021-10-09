@@ -192,6 +192,87 @@ summary_long_sd$experiment <- gsub("_sd", "", summary_long_sd$experiment)
 
 summary_long <- dplyr::left_join(summary_long_exp, summary_long_sd)
 
+axes_max <- max(summary_long$value)
+axes_min <- min(summary_long$value)
+
+#Define the necessary variables for the following cumulative functions
+rlut <- dplyr::filter(summary_long, variable == "rlut")
+rsut <- dplyr::filter(summary_long, variable == "rsut")
+rlutcs <- dplyr::filter(summary_long, variable == "rlutcs")
+rsutcs <- dplyr::filter(summary_long, variable == "rsutcs")
+drybc <- dplyr::filter(summary_long, variable == "drybc")
+wetbc <- dplyr::filter(summary_long, variable == "wetbc")
+dryso2 <- dplyr::filter(summary_long, variable == "dryso2")
+wetso2 <- dplyr::filter(summary_long, variable == "wetso2")
+dryso4 <- dplyr::filter(summary_long, variable == "dryso4")
+wetso4 <- dplyr::filter(summary_long, variable == "wetso4")
+
+# Define normal and clear-sky net radiative flux (sum of longwave and shortwave radiation)
+net_rad <- dplyr::left_join(rlut, rsut, by = c("model", "experiment"))
+net_rad <- dplyr::mutate(net_rad, value = value.x + value.y) %>%
+  dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
+  dplyr::select(c(model, experiment, value, sd))
+
+net_rad_cs <- dplyr::left_join(rlutcs, rsutcs, by = c("model", "experiment"))
+net_rad_cs <- dplyr::mutate(net_rad_cs, value = value.x + value.y) %>%
+  dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
+  dplyr::select(c(model, experiment, value, sd))
+
+# Define total BC deposition rate (sum of dry and wet BC )
+tot_bc <- dplyr::left_join(drybc, wetbc, by = c("model", "experiment"))
+tot_bc <- dplyr::mutate(tot_bc, value = value.x + value.y) %>%
+  dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
+  dplyr::select(c(model, experiment, value, sd))
+
+# Define total S deposition rate (sum of dry and wet SO2/SO4 )
+dry_s <- dplyr::left_join(dryso2, dryso4, by = c("model", "experiment"))
+dry_s <- dplyr::mutate(dry_s, value = (32.065/64.066)*value.x + (32.065/96.06)*value.y) %>%
+  dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
+  dplyr::select(c(model, experiment, value, sd))
+
+wet_s <- dplyr::left_join(wetso2, wetso4, by = c("model", "experiment"))
+wet_s <- dplyr::mutate(wet_s, value = (32.065/64.066)*value.x + (32.065/96.06)*value.y) %>%
+  dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
+  dplyr::select(c(model, experiment, value, sd))
+
+tot_s <- dplyr::left_join(dry_s, wet_s, by = c("model", "experiment"))
+tot_s <- dplyr::mutate(tot_s, value = value.x + value.y) %>%
+  dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
+  dplyr::select(c(model, experiment, value, sd))
+
+if (max(tot_s$value) > axes_max){  
+  axes_max <- max(tot_s)
+}
+
+if (max(tot_bc$value) > axes_max){  
+  axes_max <- max(tot_bc)
+}
+
+if (min(tot_s$value) < axes_min){  
+  axes_min <- min(tot_s)
+}
+
+if (min(tot_bc$value) < axes_min){  
+  axes_min <- min(tot_bc)
+}
+
+if (max(net_rad$value) > axes_max){  
+  axes_max <- max(net_rad)
+}
+
+if (max(net_rad_cs$value) > axes_max){  
+  axes_max <- max(net_rad_cs)
+}
+
+if (min(net_rad$value) < axes_min){  
+  axes_min <- min(net_rad)
+}
+
+if (min(net_rad_cs$value) < axes_min){  
+  axes_min <- min(net_rad_cs)
+}
+
+
 # Generate plots
 title_font <- 9.5
 axis_font <- 9
@@ -209,7 +290,8 @@ emibc_plot <- ggplot(emibc, aes(x = experiment, y = value, color = model)) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(emibc$value))-max(abs(emibc$sd)), max(abs(emibc$value))+max(abs(emibc$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
-  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
+  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
+  ylim(axes_min,axes_max)
 
 
 emiso2 <- dplyr::filter(summary_long, variable == "emiso2")
@@ -224,7 +306,9 @@ emiso2_plot <- ggplot(emiso2, aes(x = experiment, y = value, color = model)) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(emiso2$value))-max(abs(emiso2$sd)), max(abs(emiso2$value))+max(abs(emiso2$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
-  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
+  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
+  ylim(axes_min,axes_max)
+
 
 
 mmrbc <- dplyr::filter(summary_long, variable == "mmrbc")
@@ -239,7 +323,9 @@ mmrbc_plot <- ggplot(mmrbc, aes(x = experiment, y = value, color = model)) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(mmrbc$value))-max(abs(mmrbc$sd)), max(abs(mmrbc$value))+max(abs(mmrbc$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
-  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
+  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
+  ylim(axes_min,axes_max)
+
 
 
 mmrso4 <- dplyr::filter(summary_long, variable == "mmrso4")
@@ -254,7 +340,9 @@ mmrso4_plot <- ggplot(mmrso4, aes(x = experiment, y = value, color = model)) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(mmrso4$value))-max(abs(mmrso4$sd)), max(abs(mmrso4$value))+max(abs(mmrso4$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
-  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
+  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
+  ylim(axes_min,axes_max)
+
 
 
 so2 <- dplyr::filter(summary_long, variable == "so2")
@@ -269,7 +357,9 @@ so2_plot <- ggplot(so2, aes(x = experiment, y = value, color = model)) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(so2$value))-max(abs(so2$sd)), max(abs(so2$value))+max(abs(so2$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
-  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
+  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
+  ylim(axes_min,axes_max)
+
 
 
 rlut <- dplyr::filter(summary_long, variable == "rlut")
@@ -284,7 +374,9 @@ rlut_plot <- ggplot(rlut, aes(x = experiment, y = value, color = model)) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(rlut$value))-max(abs(rlut$sd)), max(abs(rlut$value))+max(abs(rlut$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
-  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
+  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
+  ylim(axes_min,axes_max)
+
 
 
 rsut <- dplyr::filter(summary_long, variable == "rsut")
@@ -299,7 +391,9 @@ rsut_plot <- ggplot(rsut, aes(x = experiment, y = value, color = model)) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(rsut$value))-max(abs(rsut$sd)), max(abs(rsut$value))+max(abs(rsut$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
-  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
+  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
+  ylim(axes_min,axes_max)
+
 
 
 rsdt <- dplyr::filter(summary_long, variable == "rsdt")
@@ -314,7 +408,9 @@ rsdt_plot <- ggplot(rsdt, aes(x = experiment, y = value, color = model)) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(rsdt$value))-max(abs(rsdt$sd)), max(abs(rsdt$value))+max(abs(rsdt$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
-  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
+  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
+  ylim(axes_min,axes_max)
+
 
 
 rlutcs <- dplyr::filter(summary_long, variable == "rlutcs")
@@ -329,7 +425,9 @@ rlutcs_plot <- ggplot(rlutcs, aes(x = experiment, y = value, color = model)) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(rlutcs$value))-max(abs(rlutcs$sd)), max(abs(rlutcs$value))+max(abs(rlutcs$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
-  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
+  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
+  ylim(axes_min,axes_max)
+
 
 
 rsutcs <- dplyr::filter(summary_long, variable == "rsutcs")
@@ -344,19 +442,9 @@ rsutcs_plot <- ggplot(rsutcs, aes(x = experiment, y = value, color = model)) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(rsutcs$value))-max(abs(rsutcs$sd)), max(abs(rsutcs$value))+max(abs(rsutcs$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
-  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
+  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
+  ylim(axes_min,axes_max)
 
-
-# Define normal and clear-sky net radiative flux and  (sum of longwave and shortwave radiation)
-net_rad <- dplyr::left_join(rlut, rsut, by = c("model", "experiment"))
-net_rad <- dplyr::mutate(net_rad, value = value.x + value.y) %>%
-  dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
-  dplyr::select(c(model, experiment, value, sd))
-
-net_rad_cs <- dplyr::left_join(rlutcs, rsutcs, by = c("model", "experiment"))
-net_rad_cs <- dplyr::mutate(net_rad_cs, value = value.x + value.y) %>%
-  dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
-  dplyr::select(c(model, experiment, value, sd))
 
 net_rad_plot <- ggplot(net_rad, aes(x = experiment, y = value, color = model)) +
   theme_bw() +
@@ -369,7 +457,9 @@ net_rad_plot <- ggplot(net_rad, aes(x = experiment, y = value, color = model)) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(net_rad$value))-max(abs(net_rad$sd)), max(abs(net_rad$value))+max(abs(net_rad$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
-  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
+  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
+  ylim(axes_min,axes_max)
+
 
 
 net_rad_cs_plot <- ggplot(net_rad_cs, aes(x = experiment, y = value, color = model)) +
@@ -383,7 +473,9 @@ net_rad_cs_plot <- ggplot(net_rad_cs, aes(x = experiment, y = value, color = mod
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(net_rad_cs$value))-max(abs(net_rad_cs$sd)), max(abs(net_rad_cs$value))+max(abs(net_rad_cs$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
-  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
+  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
+  ylim(axes_min,axes_max)
+
 
 
 drybc <- dplyr::filter(summary_long, variable == "drybc")
@@ -398,7 +490,9 @@ drybc_plot <- ggplot(drybc, aes(x = experiment, y = value, color = model)) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(drybc$value))-max(abs(drybc$sd)), max(abs(drybc$value))+max(abs(drybc$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
-  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
+  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
+  ylim(axes_min,axes_max)
+
 
 
 wetbc <- dplyr::filter(summary_long, variable == "wetbc")
@@ -413,14 +507,9 @@ wetbc_plot <- ggplot(wetbc, aes(x = experiment, y = value, color = model)) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(wetbc$value))-max(abs(wetbc$sd)), max(abs(wetbc$value))+max(abs(wetbc$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
-  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
+  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
+  ylim(axes_min,axes_max)
 
-
-# Define total BC deposition rate (sum of dry and wet BC )
-tot_bc <- dplyr::left_join(drybc, wetbc, by = c("model", "experiment"))
-tot_bc <- dplyr::mutate(tot_bc, value = value.x + value.y) %>%
-  dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
-  dplyr::select(c(model, experiment, value, sd))
 
 tot_bc_plot <- ggplot(tot_bc, aes(x = experiment, y = value, color = model)) +
   theme_bw() +
@@ -433,7 +522,8 @@ tot_bc_plot <- ggplot(tot_bc, aes(x = experiment, y = value, color = model)) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(tot_bc$value))-max(abs(tot_bc$sd)), max(abs(tot_bc$value))+max(abs(tot_bc$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width=0.4), size = 1.5) +
-  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
+  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
+  ylim(axes_min,axes_max)
 
 
 dryso2 <- dplyr::filter(summary_long, variable == "dryso2")
@@ -448,7 +538,8 @@ dryso2_plot <- ggplot(dryso2, aes(x = experiment, y = value, color = model)) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(dryso2$value))-max(abs(dryso2$sd)), max(abs(dryso2$value))+max(abs(dryso2$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
-  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
+  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
+  ylim(axes_min,axes_max)
 
 
 wetso2 <- dplyr::filter(summary_long, variable == "wetso2")
@@ -463,7 +554,8 @@ wetso2_plot <- ggplot(wetso2, aes(x = experiment, y = value, color = model)) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(wetso2$value))-max(abs(wetso2$sd)), max(abs(wetso2$value))+max(abs(wetso2$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
-  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
+  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
+  ylim(axes_min,axes_max)
 
 
 dryso4 <- dplyr::filter(summary_long, variable == "dryso4")
@@ -478,7 +570,8 @@ dryso4_plot <- ggplot(dryso4, aes(x = experiment, y = value, color = model)) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(dryso4$value))-max(abs(dryso4$sd)), max(abs(dryso4$value))+max(abs(dryso4$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
-  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
+  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
+  ylim(axes_min,axes_max)
 
 
 wetso4 <- dplyr::filter(summary_long, variable == "wetso4")
@@ -493,24 +586,9 @@ wetso4_plot <- ggplot(wetso4, aes(x = experiment, y = value, color = model)) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(wetso4$value))-max(abs(wetso4$sd)), max(abs(wetso4$value))+max(abs(wetso4$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
-  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
+  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
+  ylim(axes_min,axes_max)
 
-
-# Define total S deposition rate (sum of dry and wet SO2/SO4 )
-dry_s <- dplyr::left_join(dryso2, dryso4, by = c("model", "experiment"))
-dry_s <- dplyr::mutate(dry_s, value = value.x + value.y) %>%
-  dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
-  dplyr::select(c(model, experiment, value, sd))
-
-wet_s <- dplyr::left_join(wetso2, wetso4, by = c("model", "experiment"))
-wet_s <- dplyr::mutate(wet_s, value = value.x + value.y) %>%
-  dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
-  dplyr::select(c(model, experiment, value, sd))
-
-tot_s <- dplyr::left_join(dry_s, wet_s, by = c("model", "experiment"))
-tot_s <- dplyr::mutate(tot_s, value = value.x + value.y) %>%
-  dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
-  dplyr::select(c(model, experiment, value, sd))
 
 tot_s_plot <- ggplot(tot_s, aes(x = experiment, y = value, color = model)) +
   theme_bw() +
@@ -523,7 +601,8 @@ tot_s_plot <- ggplot(tot_s, aes(x = experiment, y = value, color = model)) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(tot_s$value))-max(abs(tot_s$sd)), max(abs(tot_s$value))+max(abs(tot_s$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width=0.4), size = 1.5) +
-  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
+  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
+  ylim(axes_min,axes_max)
 
 
 od550aer <- dplyr::filter(summary_long, variable == "od550aer")
@@ -538,7 +617,8 @@ od550aer_plot <- ggplot(od550aer, aes(x = experiment, y = value, color = model))
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(od550aer$value))-max(abs(od550aer$sd)), max(abs(od550aer$value))+max(abs(od550aer$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
-  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
+  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
+  ylim(axes_min,axes_max)
 
 
 clt <- dplyr::filter(summary_long, variable == "clt")
@@ -553,7 +633,8 @@ clt_plot <- ggplot(clt, aes(x = experiment, y = value, color = model)) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(clt$value))-max(abs(clt$sd)), max(abs(clt$value))+max(abs(clt$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
-  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
+  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
+  ylim(axes_min,axes_max)
 
 
 cltc <- dplyr::filter(summary_long, variable == "cltc")
@@ -568,7 +649,8 @@ cltc_plot <- ggplot(cltc, aes(x = experiment, y = value, color = model)) +
   scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(cltc$value))-max(abs(cltc$sd)), max(abs(cltc$value))+max(abs(cltc$sd)))) +
   scale_colour_manual(values = model_colors) +
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
-  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
+  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
+  ylim(axes_min,axes_max)
 
 # Function from stack exchange to generate a shared legend
 grid_arrange_shared_legend <- function(...) {

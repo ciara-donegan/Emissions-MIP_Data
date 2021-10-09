@@ -73,8 +73,8 @@ for(pert in perts){
   experiment <- dplyr::arrange(experiment, year)
 
   #set min and max axes for graphing later on
-  axes_max <- max(experiment$value)
-  axes_min <- min(experiment$value)
+  #axes_max <- max(experiment$value)
+  #axes_min <- min(experiment$value)
 
   # Convert volume mixing ratio to mass mixing ratio by multiplying by molar mass
   # of SO2 and dividing by molar mass of air
@@ -130,6 +130,21 @@ for(pert in perts){
   tot_s <- dplyr::left_join(dry_s, wet_s, by = c("year", "model"))
   tot_s <- dplyr::mutate(tot_s, value = value.x + value.y) %>%
     dplyr::select(c(year, model, value))
+  
+  
+  #find the maximum and minimum value for all experiments with units kg/kg
+  kgkg_max <- max(mmrbc_experiment$value, mmrso4_experiment$value, so2_experiment$new_value)
+  kgkg_min <- min(mmrbc_experiment$value, mmrso4_experiment$value, so2_experiment$new_value)
+  
+  #find maximum and minimum value for all experiments with units kg/m^2*s
+  kgm2s_max <- max(emibc_experiment$value,emiso2_experiment$value,drybc_experiment$value,wetbc_experiment$value,drybc_experiment$value,dryso2_experiment$value,wetso2_experiment$value,dryso4_experiment$value,wetso4_experiment$value,tot_bc$value,tot_s$value)
+  kgm2s_min <- min(emibc_experiment$value,emiso2_experiment$value,drybc_experiment$value,wetbc_experiment$value,drybc_experiment$value,dryso2_experiment$value,wetso2_experiment$value,dryso4_experiment$value,wetso4_experiment$value,tot_bc$value,tot_s$value)
+  
+  #find maximum and minimum value for all experiments with units W/m^2
+  wm2_max <- max(rlut_experiment$value,rsut_experiment$value,net_rad$value,rsdt_experiment$value,rlutcs_experiment$value,rsutcs_experiment$value,net_rad_cs$value)
+  wm2_min <- min(rlut_experiment$value,rsut_experiment$value,net_rad$value,rsdt_experiment$value,rlutcs_experiment$value,rsutcs_experiment$value,net_rad_cs$value)
+  
+
 
   # Pre-define plot font sizes
   title_font <- 7
@@ -146,7 +161,7 @@ for(pert in perts){
     scale_y_continuous(labels = scales::scientific_format(digits = 2)) +
     scale_colour_manual(values = model_colors) +
     geom_line()+
-    ylim(axes_min,axes_max)
+    ylim(kgm2s_min,kgm2s_max)
 
   emiso2_plot <- ggplot(emiso2_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('surface flux \n of SO2 - ', region), y="emiso2 (kg m-2 s-1)", x="Year") +
@@ -157,7 +172,7 @@ for(pert in perts){
     scale_y_continuous(labels = scales::scientific_format(digits = 2)) +
     scale_colour_manual(values = model_colors) +
     geom_line()+
-    ylim(axes_min,axes_max)
+    ylim(kgm2s_min,kgm2s_max)
 
   mmrbc_plot <- ggplot(mmrbc_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('surface concentration \n of BC - ', region), y="mmrbc (kg kg-1)", x="Year") +
@@ -167,7 +182,7 @@ for(pert in perts){
           axis.title = element_text(size = axis_title_font)) +
     scale_colour_manual(values = model_colors) +
     geom_line() +
-    ylim(axes_min,axes_max)
+    ylim(kgkg_min,kgkg_max)
 
   mmrso4_plot <- ggplot(mmrso4_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('surface concentration \n of SO4 - ', region), y="mmrso4 (kg kg-1)", x="Year") +
@@ -177,7 +192,7 @@ for(pert in perts){
           axis.title = element_text(size = axis_title_font)) +
     scale_colour_manual(values = model_colors) +
     geom_line() +
-    ylim(axes_min,axes_max)
+    ylim(kgkg_min,kgkg_max)
 
   rlut_plot <- ggplot(rlut_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('upwelling longwave flux \n at TOA - ', region), y="rlut (W m-2)", x="Year") +
@@ -187,7 +202,7 @@ for(pert in perts){
           axis.title = element_text(size = axis_title_font)) +
     scale_colour_manual(values = model_colors) +
     geom_line() +
-    ylim(axes_min,axes_max)
+    ylim(wm2_min,wm2_max)
 
   rlutcs_plot <- ggplot(rlutcs_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('upwelling clear-sky longwave \n flux at TOA - ', region), y="rlutcs (W m-2)", x="Year") +
@@ -197,7 +212,7 @@ for(pert in perts){
           axis.title = element_text(size = axis_title_font)) +
     scale_colour_manual(values = model_colors) +
     geom_line() +
-    ylim(axes_min,axes_max)
+    ylim(wm2_min,wm2_max)
 
   rsut_plot <- ggplot(rsut_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('upwelling shortwave flux \n at TOA - ', region), y="rsut (W m-2)", x="Year") +
@@ -207,7 +222,7 @@ for(pert in perts){
           axis.title = element_text(size = axis_title_font)) +
     scale_colour_manual(values = model_colors) +
     geom_line() +
-    ylim(axes_min,axes_max)
+    ylim(wm2_min,wm2_max)
 
   rsutcs_plot <- ggplot(rsutcs_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('upwelling clear-sky shortwave \n flux at TOA - ', region), y="rsutcs (W m-2)", x="Year") +
@@ -217,7 +232,7 @@ for(pert in perts){
           axis.title = element_text(size = axis_title_font)) +
     scale_colour_manual(values = model_colors) +
     geom_line() +
-    ylim(axes_min,axes_max)
+    ylim(wm2_min,wm2_max)
 
   rsdt_plot <- ggplot(rsdt_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('incident shortwave flux \n at TOA - ', region), y="rsdt (W m-2)", x="Year") +
@@ -227,7 +242,7 @@ for(pert in perts){
           axis.title = element_text(size = axis_title_font)) +
     scale_colour_manual(values = model_colors) +
     geom_line() +
-    ylim(axes_min,axes_max)
+    ylim(wm2_min,wm2_max)
 
   net_rad_plot <- ggplot(net_rad, aes(x = year, y = value, color = model)) +
     labs(title=paste0('net radiative flux \n at TOA - ', region), y="rlut + rsut (W m-2)", x="Year") +
@@ -237,7 +252,7 @@ for(pert in perts){
           axis.title = element_text(size = axis_title_font)) +
     scale_colour_manual(values = model_colors) +
     geom_line() +
-    ylim(axes_min,axes_max)
+    ylim(wm2_min,wm2_max)
 
   net_rad_cs_plot <- ggplot(net_rad_cs, aes(x = year, y = value, color = model)) +
     labs(title=paste0('clear-sky net radiative \n flux at TOA - ', region), y="rlutcs + rsutcs (W m-2)", x="Year") +
@@ -247,7 +262,7 @@ for(pert in perts){
           axis.title = element_text(size = axis_title_font)) +
     scale_colour_manual(values = model_colors) +
     geom_line() +
-    ylim(axes_min,axes_max)
+    ylim(wm2_min,wm2_max)
 
   so2_plot <- ggplot(so2_experiment, aes(x = year, y = new_value, color = model)) +
     labs(title=paste0('surface concentration \n of SO2 - ', region), y="so2 (kg kg-1)", x="Year") +
@@ -257,7 +272,7 @@ for(pert in perts){
           axis.title = element_text(size = axis_title_font)) +
     scale_colour_manual(values = model_colors) +
     geom_line() +
-    ylim(axes_min,axes_max)
+    ylim(kgkg_min,kgkg_max)
 
   drybc_plot <- ggplot(drybc_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('dry deposition rate \n of BC - ', region), y="drybc (kg m-2 s-1)", x="Year") +
@@ -268,7 +283,7 @@ for(pert in perts){
     scale_y_continuous(labels = scales::scientific_format(digits = 2)) +
     scale_colour_manual(values = model_colors) +
     geom_line() +
-    ylim(axes_min,axes_max)
+    ylim(kgm2s_min,kgm2s_max)
 
   wetbc_plot <- ggplot(wetbc_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('wet deposition rate \n of BC - ', region), y="wetbc (kg m-2 s-1)", x="Year") +
@@ -279,7 +294,7 @@ for(pert in perts){
     scale_y_continuous(labels = scales::scientific_format(digits = 2)) +
     scale_colour_manual(values = model_colors) +
     geom_line() +
-    ylim(axes_min,axes_max)
+    ylim(kgm2s_min,kgm2s_max)
 
   tot_bc_plot <- ggplot(tot_bc, aes(x = year, y = value, color = model)) +
     labs(title=paste0('total deposition rate \n of BC - ', region), y="drybc + wetbc (kg m-2 s-1)", x="Year") +
@@ -290,7 +305,7 @@ for(pert in perts){
     scale_y_continuous(labels = scales::scientific_format(digits = 2)) +
     scale_colour_manual(values = model_colors) +
     geom_line() +
-    ylim(axes_min,axes_max)
+    ylim(kgm2s_min,kgm2s_max)
 
   dryso2_plot <- ggplot(dryso2_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('dry deposition rate \n of SO2 - ', region), y="dryso2 (kg m-2 s-1)", x="Year") +
@@ -301,7 +316,7 @@ for(pert in perts){
     scale_y_continuous(labels = scales::scientific_format(digits = 2)) +
     scale_colour_manual(values = model_colors) +
     geom_line() +
-    ylim(axes_min,axes_max)
+    ylim(kgm2s_min,kgm2s_max)
 
   wetso2_plot <- ggplot(wetso2_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('wet deposition rate \n of SO2 - ', region), y="wetso2 (kg m-2 s-1)", x="Year") +
@@ -312,7 +327,7 @@ for(pert in perts){
     scale_y_continuous(labels = scales::scientific_format(digits = 2)) +
     scale_colour_manual(values = model_colors) +
     geom_line() +
-    ylim(axes_min,axes_max)
+    ylim(kgm2s_min,kgm2s_max)
 
   dryso4_plot <- ggplot(dryso4_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('dry deposition rate \n of SO4 - ', region), y="dryso4 (kg m-2 s-1)", x="Year") +
@@ -323,7 +338,7 @@ for(pert in perts){
     scale_y_continuous(labels = scales::scientific_format(digits = 2)) +
     scale_colour_manual(values = model_colors) +
     geom_line() +
-    ylim(axes_min,axes_max)
+    ylim(kgm2s_min,kgm2s_max)
 
   wetso4_plot <- ggplot(wetso4_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('wet deposition rate \n of SO4 - ', region), y="wetso4 (kg m-2 s-1)", x="Year") +
@@ -334,7 +349,7 @@ for(pert in perts){
     scale_y_continuous(labels = scales::scientific_format(digits = 2)) +
     scale_colour_manual(values = model_colors) +
     geom_line() +
-    ylim(axes_min,axes_max)
+    ylim(kgm2s_min,kgm2s_max)
 
   tot_s_plot <- ggplot(tot_s, aes(x = year, y = value, color = model)) +
     labs(title=paste0('total deposition rate \n of S - ', region), y="(dryso2 + wetso2)/2 + (dryso4 + wetso4)/3 (kg m-2 s-1)", x="Year") +
@@ -345,7 +360,7 @@ for(pert in perts){
     scale_y_continuous(labels = scales::scientific_format(digits = 2)) +
     scale_colour_manual(values = model_colors) +
     geom_line() +
-    ylim(axes_min,axes_max)
+    ylim(kgm2s_min,kgm2s_max)
 
   od550aer_plot <- ggplot(od550aer_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('ambient aerosol optical \n thickness at 550nm - ', region), y="od550aer", x="Year") +
@@ -354,8 +369,7 @@ for(pert in perts){
           axis.text = element_text(size = axis_font),
           axis.title = element_text(size = axis_title_font)) +
     scale_colour_manual(values = model_colors) +
-    geom_line() +
-    ylim(axes_min,axes_max)
+    geom_line()
 
   clt_plot <- ggplot(clt_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('total cloud cover \n percentage - ', region), y="clt (%)", x="Year") +
@@ -364,8 +378,7 @@ for(pert in perts){
           axis.text = element_text(size = axis_font),
           axis.title = element_text(size = axis_title_font)) +
     scale_colour_manual(values = model_colors) +
-    geom_line() +
-    ylim(axes_min,axes_max)
+    geom_line()
 
   cltc_plot <- ggplot(cltc_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('convective cloud cover \n percentage - ', region), y="cltc (%)", x="Year") +
@@ -374,8 +387,7 @@ for(pert in perts){
           axis.text = element_text(size = axis_font),
           axis.title = element_text(size = axis_title_font)) +
     scale_colour_manual(values = model_colors) +
-    geom_line() +
-    ylim(axes_min,axes_max)
+    geom_line()
 
   # Function from stack exchange to generate a shared legend
   grid_arrange_shared_legend <- function(...) {
