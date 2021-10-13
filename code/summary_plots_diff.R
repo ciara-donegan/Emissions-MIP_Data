@@ -421,7 +421,7 @@ net_rad_plot <- ggplot(net_rad, aes(x = experiment, y = value, color = model, sh
         axis.title = element_text(size = axis_title_font),
         axis.text.x = element_text(angle = 45, hjust = 1),
         axis.title.x = element_blank()) +
-  scale_y_continuous(limits = c(-0.41, 0.41)) +
+  scale_y_continuous(limits = c(-max(abs(net_rad$value))-max(abs(net_rad$sd)), max(abs(net_rad$value))+max(abs(net_rad$sd)))) +
   scale_colour_manual(values = model_colors) +
   scale_shape_manual(values = model_symbols) +
   geom_point( position=position_dodge(width=0.4), size = 1.5) +
