@@ -1,7 +1,7 @@
 # ------------------------------------------------------------------------------
 # Program Name: reference.R
 # Authors: Hamza Ahsan
-# Date Last Modified: July 6, 2021
+# Date Last Modified: September 29, 2021
 # Program Purpose: Produces time series line plots of the reference case 
 # Input Files: ~Emissions-MIP/input/
 # Output Files: ~Emissions-MIP/output/
@@ -17,10 +17,11 @@ library(gridExtra)
 library(grid)
 
 # Specify location of Emissions-MIP directory
-emi_dir <- paste0('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP')
+emi_dir <- paste0('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP-Phase1a')
 
-# Specify region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, SH-sea)
-region <- "arctic"
+# Specify region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, 
+# SH-sea, NH-atlantic, NH-pacific)
+region <- "NH-pacific"
 
 # Define default ggplot colors and associate with models (in case a plot is 
 # missing a model, the color scheme will remain consistent)
@@ -29,10 +30,11 @@ gg_color_hue <- function(n) {
   hcl(h = hues, l = 65, c = 100)[1:n]
 }
 
-cols = gg_color_hue(7)
+cols = gg_color_hue(10)
 
-model_colors <- c(CESM1 = cols[1], E3SM = cols[2], GISS = cols[3], MIROC = cols[4], 
-                  NorESM2 = cols[5], GFDL = cols[6], OsloCTM3 = cols[7])
+model_colors <- c(CESM1 = cols[1], E3SM = cols[2], GISS = cols[3], CESM2 = cols[4],
+                  MIROC = cols[5], NorESM2 = cols[6], GFDL = cols[7], OsloCTM3 = cols[8],
+                  UKESM = cols[9], GEOS = cols[10])
 
 # Setup directory for difference data
 setwd(paste0(emi_dir, '/input/', region, '/reference'))
@@ -51,10 +53,20 @@ models <- sapply(strsplit(target_filename, "[-.]+"),function(x) x[4])
 rep_models <- rep(models, each = 4) # four years
 experiment$model <- rep_models
 
-# Correct model names for CESM and CESM2
+# Correct model names
 experiment$model[which(experiment$model == "CMIP6_AerChemMIP")] <- "GISS"
 experiment$model[which(experiment$model == "CMIP6_CMIP_CESM")] <- "CESM1"
 experiment$model[which(experiment$model == "CMIP6_CMIP_E3SM")] <- "E3SM"
+experiment$model[which(experiment$model == "CMIP6_CMIP_CESM2")] <- "CESM2"
+
+# Change any negative value to positive (i.e., CESM2 wetbc, wetso2, wetso4)
+# Invert sign of CESM2 wet deposition variables
+experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetbc")] <- 
+  -1 * experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetbc")]
+experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetso2")] <- 
+  -1 * experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetso2")]
+experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetso4")] <- 
+  -1 * experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetso4")]
 
 # Rearrange data frame by years descending
 experiment <- dplyr::arrange(experiment, year)
