@@ -21,15 +21,17 @@ library(grid)
 setwd('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP/code')
 
 # Specify location of Emissions-MIP directory
+emi_dir <- paste0('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP-Phase1a')
 MIP_dir <- paste0('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP')
-
-#Specify location of the Rscripts from the command line
-emi_dir <- getwd()
-  #paste0('C:/Users/such559/OneDrive - PNNL/Documents/Emissions-MIP/code')
 
 # Specify region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, SH-sea)
 region <- commandArgs(trailingOnly = TRUE) #pulling region from command line
 region <- region[1] #replaces regions with the first trailing string in the command line
+
+
+# Specify region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, 
+# SH-sea, NH-atlantic, NH-pacific)
+region <- "NH-pacific"
 
 # Define default ggplot colors and associate with models (in case a plot is
 # missing a model, the color scheme will remain consistent)
@@ -38,10 +40,12 @@ gg_color_hue <- function(n) {
   hcl(h = hues, l = 65, c = 100)[1:n]
 }
 
-cols = gg_color_hue(7)
+cols = gg_color_hue(10)
 
-model_colors <- c(CESM1 = cols[1], E3SM = cols[2], GISS = cols[3], MIROC = cols[4],
-                  NorESM2 = cols[5], GFDL = cols[6], OsloCTM3 = cols[7])
+
+model_colors <- c(CESM1 = cols[1], E3SM = cols[2], GISS = cols[3], CESM2 = cols[4],
+                  MIROC = cols[5], NorESM2 = cols[6], GFDL = cols[7], OsloCTM3 = cols[8],
+                  UKESM = cols[9], GEOS = cols[10])
 
 # ------------------------------------------------------------------------------
 #Load the csv file
@@ -70,6 +74,15 @@ for(pert in perts){
 
   # Correct model names for CESM1
   experiment$model[which(experiment$model == "CESM")] <- "CESM1"
+  
+  # Change any negative value to positive (i.e., CESM2 wetbc, wetso2, wetso4)
+  # Invert sign of CESM2 wet deposition variables
+  experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetbc")] <- 
+    -1 * experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetbc")]
+  experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetso2")] <- 
+    -1 * experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetso2")]
+  experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetso4")] <- 
+    -1 * experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetso4")]
 
   # Rearrange data frame by years descending
   experiment <- dplyr::arrange(experiment, year)
