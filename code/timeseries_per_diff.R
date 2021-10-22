@@ -44,15 +44,13 @@ gg_color_hue <- function(n) {
 }
 
 cols = gg_color_hue(10)
-
-
 model_colors <- c(CESM1 = cols[1], E3SM = cols[2], GISS = cols[3], CESM2 = cols[4],
                   MIROC = cols[5], NorESM2 = cols[6], GFDL = cols[7], OsloCTM3 = cols[8],
                   UKESM = cols[9], GEOS = cols[10])
 
 # ------------------------------------------------------------------------------
-#Load the csv file that specifies the excluded models
-excluded_models <- read.csv(file = 'excluded_data.csv', fileEncoding="UTF-8-BOM")
+#reads in csv file specifying which models to exclude from the data
+excluded_models <- read.csv(file = paste0(emi_dir, '/input', '/excluded_data.csv'), fileEncoding="UTF-8-BOM")
 excluded_models %>% drop_na() #gets rid of any empty spaces
 
 #-------------------------------------------------------------------------------
