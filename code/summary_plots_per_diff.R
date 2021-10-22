@@ -24,7 +24,7 @@ emi_dir <- paste0('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP-Phase1
 # SH-sea, NH-atlantic, NH-pacific)
 region <- "NH-pacific"
 
-# Define default ggplot colors and associate with models (in case a plot is 
+# Define default ggplot colors and associate with models (in case a plot is
 # missing a model, the color scheme will remain consistent)
 gg_color_hue <- function(n) {
   hues = seq(15, 375, length = n + 1)
@@ -32,6 +32,7 @@ gg_color_hue <- function(n) {
 }
 
 cols = gg_color_hue(10)
+
 
 model_colors <- c(CESM1 = cols[1], E3SM = cols[2], GISS = cols[3], CESM2 = cols[4],
                   MIROC = cols[5], NorESM2 = cols[6], GFDL = cols[7], OsloCTM3 = cols[8],
@@ -41,6 +42,11 @@ model_symbols <- c(CESM1 = 15, E3SM = 15, GISS = 17, CESM2 = 19, MIROC = 15,
                    NorESM2 = 17, GFDL = 19, OsloCTM3 = 19, UKESM = 15, GEOS = 17)
 
 # ------------------------------------------------------------------------------
+#reads in csv file specifying which models to exclude from the data
+excluded_models <- read.csv(file = paste0(emi_dir, '/input', '/excluded_data.csv'), fileEncoding="UTF-8-BOM")
+excluded_models %>% drop_na() #gets rid of any empty spaces
+
+#-------------------------------------------------------------------------------
 
 # Setup directory for bc-no-seas percent difference data
 setwd(paste0(emi_dir, '/input/', region, '/bc-no-season/per-diff'))
@@ -131,6 +137,7 @@ setwd(paste0(emi_dir, '/input/', region, '/so2-at-height/per-diff'))
 
 # Read in csv files and bind into single data frame
 target_filename <- list.files(getwd(), "*.csv")
+
 so2_at_hgt <- rbind(map(target_filename, read.csv))
 so2_at_hgt <- lapply(so2_at_hgt, function(x) {x["unit"] <- NULL; x})
 so2_at_hgt <- bind_rows(so2_at_hgt)
@@ -190,10 +197,17 @@ summary_long_sd <- summary_data %>%
   gather(experiment, sd, -c(model, variable, bc_no_seas, high_so4, no_so4, so2_at_hgt, so2_no_seas)) %>%
   select(variable, model, experiment, sd) %>%
   drop_na()
+  
+  summary_long_sd$experiment <- gsub("_sd", "", summary_long_sd$experiment)
 
-summary_long_sd$experiment <- gsub("_sd", "", summary_long_sd$experiment)
+  summary_long <- dplyr::left_join(summary_long_exp, summary_long_sd)
 
-summary_long <- dplyr::left_join(summary_long_exp, summary_long_sd)
+#runs through each excluded model pair and filters them out of summary_long
+if(nrow(excluded_models) != 0) { #only runs if the data frame is not empty
+  for (val in 1:nrow(excluded_models)) {
+    summary_long <- filter(summary_long, experiment != excluded_models$Scenario[val] | model != excluded_models$Model[val])
+  }
+}
 
 # Generate plots
 title_font <- 9.5
@@ -600,7 +614,7 @@ cltc_plot <- ggplot(cltc, aes(x = experiment, y = value, color = model, shape = 
 # Function from stack exchange to generate a shared legend
 grid_arrange_shared_legend <- function(...) {
   plots <- list(...)
-  g <- ggplotGrob(plots[[1]] + theme(legend.position="bottom", 
+  g <- ggplotGrob(plots[[1]] + theme(legend.position="bottom",
                                      legend.title = element_blank(),
                                      legend.text = element_text(size = 9,
                                                                 margin = margin(r = 10, unit = "pt"))))$grobs
@@ -615,17 +629,17 @@ grid_arrange_shared_legend <- function(...) {
     top = textGrob("Summary - percent difference", gp = gpar(fontsize = 12)))
 }
 
-emissions_plot <- grid_arrange_shared_legend(emibc_plot, 
-                                             emiso2_plot, 
-                                             mmrbc_plot, 
-                                             mmrso4_plot, 
+emissions_plot <- grid_arrange_shared_legend(emibc_plot,
+                                             emiso2_plot,
+                                             mmrbc_plot,
+                                             mmrso4_plot,
                                              so2_plot)
 
-forcing_plot <- grid_arrange_shared_legend(rlut_plot, 
+forcing_plot <- grid_arrange_shared_legend(rlut_plot,
                                            rsut_plot,
                                            net_rad_plot,
-                                           rsdt_plot, 
-                                           rlutcs_plot, 
+                                           rsdt_plot,
+                                           rlutcs_plot,
                                            rsutcs_plot,
                                            net_rad_cs_plot,
                                            od550aer_plot,
