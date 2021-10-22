@@ -38,7 +38,7 @@ model_colors <- c(CESM1 = cols[1], E3SM = cols[2], GISS = cols[3], CESM2 = cols[
                   UKESM = cols[9], GEOS = cols[10])
 
 # ------------------------------------------------------------------------------
-#Load the csv file
+#reads in csv file specifying which models to exclude from the data
 excluded_models <- read.csv(file = paste0(emi_dir, '/input', '/excluded_data.csv'), fileEncoding="UTF-8-BOM")
 excluded_models %>% drop_na() #gets rid of any empty spaces
 

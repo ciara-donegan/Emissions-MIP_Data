@@ -39,7 +39,7 @@ model_colors <- c(CESM1 = cols[1], E3SM = cols[2], GISS = cols[3], CESM2 = cols[
                   UKESM = cols[9], GEOS = cols[10])
 
 # ------------------------------------------------------------------------------
-#Load the csv file
+#reads in csv file specifying which models to exclude from the data
 excluded_models <- read.csv(file = paste0(emi_dir, '/input', '/excluded_data.csv'), fileEncoding="UTF-8-BOM")
 excluded_models %>% drop_na() #gets rid of any empty spaces
 
@@ -134,7 +134,7 @@ setwd(paste0(emi_dir, '/input/', region, '/so2-at-height/per-diff'))
 
 # Read in csv files and bind into single data frame
 target_filename <- list.files(getwd(), "*.csv")
-#put in function to remove data here before data starts being pulled?
+
 so2_at_hgt <- rbind(map(target_filename, read.csv))
 so2_at_hgt <- lapply(so2_at_hgt, function(x) {x["unit"] <- NULL; x})
 so2_at_hgt <- bind_rows(so2_at_hgt)
