@@ -286,7 +286,7 @@ kgm2s <- summary_long_exp %>% filter(variable =="emibc" | variable == "emiso2" |
 kgm2s_max <- max(kgm2s$value)
 kgm2s_min <- min(kgm2s$value)
 
-#if the combined values are larger/smaller, they will replace the max or min value
+#if the combined values are larger/smaller, they will replace the max or min value on the y axis of the output plots
 if (max(tot_s$value) > kgm2s_max){  
   kgm2s_max <- max(tot_s)
   }

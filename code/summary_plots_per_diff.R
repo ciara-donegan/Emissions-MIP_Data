@@ -192,6 +192,7 @@ summary_long_sd$experiment <- gsub("_sd", "", summary_long_sd$experiment)
 
 summary_long <- dplyr::left_join(summary_long_exp, summary_long_sd)
 
+#Determines max and min values for the y axis
 axes_max <- max(summary_long$value)
 axes_min <- min(summary_long$value)
 
@@ -240,6 +241,7 @@ tot_s <- dplyr::mutate(tot_s, value = value.x + value.y) %>%
   dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
   dplyr::select(c(model, experiment, value, sd))
 
+#if the combined values are larger/smaller, they will replace the max or min value on the y axis of the output plots
 if (max(tot_s$value) > axes_max){  
   axes_max <- max(tot_s)
 }
