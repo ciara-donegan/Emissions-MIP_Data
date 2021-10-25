@@ -21,7 +21,7 @@ library(grid)
 setwd('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP/code')
 
 # Specify location of Emissions-MIP directory
-MIP_dir <- paste0('C:/Users/such559/Documents/Emissions-MIP_phase1b/')
+MIP_dir <- paste0('C:/Users/such559/Documents/Emissions-MIP_phase1b/input/')
 
 
 # Specify region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, SH-sea)
