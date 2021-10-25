@@ -17,8 +17,10 @@ library(ggplot2)
 library(gridExtra)
 library(grid)
 
+#set the working directory to the code directory
+setwd('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP/code')
+
 # Specify location of Emissions-MIP directory
-emi_dir <- paste0('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP-Phase1a')
 MIP_dir <- paste0('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP')
 
 # Specify region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, SH-sea)
@@ -44,7 +46,7 @@ model_colors <- c(CESM1 = cols[1], E3SM = cols[2], GISS = cols[3], CESM2 = cols[
 
 # ------------------------------------------------------------------------------
 #reads in csv file specifying which models to exclude from the data
-excluded_models <- read.csv(file = paste0(emi_dir, '/input', '/excluded_data.csv'), fileEncoding="UTF-8-BOM")
+excluded_models <- read.csv(file = paste0(MIP_dir, '/input', '/excluded_data.csv'), fileEncoding="UTF-8-BOM")
 excluded_models %>% drop_na() #gets rid of any empty spaces
 
 #-------------------------------------------------------------------------------
