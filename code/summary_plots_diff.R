@@ -17,9 +17,6 @@ library(ggplot2)
 library(gridExtra)
 library(grid)
 
-#Sets the working directory to where the excluded_data and Rscripts are
-setwd('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP/code')
-
 # Specify location of Emissions-MIP directory
 emi_dir <- paste0('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP-Phase1a')
 MIP_dir <- paste0('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP/input/')
@@ -246,14 +243,13 @@ summary_long_sd <- summary_data %>%
   select(variable, model, experiment, sd) %>%
   drop_na()
   
-  summary_long_sd$experiment <- gsub("_sd", "", summary_long_sd$experiment)
+summary_long_sd$experiment <- gsub("_sd", "", summary_long_sd$experiment)
 
-  summary_long <- dplyr::left_join(summary_long_exp, summary_long_sd)
+summary_long <- dplyr::left_join(summary_long_exp, summary_long_sd)
 
+summary_long_sd$experiment <- gsub("_sd", "", summary_long_sd$experiment)
 
-  summary_long_sd$experiment <- gsub("_sd", "", summary_long_sd$experiment)
-
-  summary_long <- dplyr::left_join(summary_long_exp, summary_long_sd)
+summary_long <- dplyr::left_join(summary_long_exp, summary_long_sd)
 
 #runs through each excluded model pair and filters them out of summary_long
 if(nrow(excluded_models) != 0) { #only runs if the data frame is not empty

@@ -17,9 +17,6 @@ library(ggplot2)
 library(gridExtra)
 library(grid)
 
-#Sets the working directory to where the excluded_data and Rscripts are
-setwd('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP/code')
-
 # Specify location of Emissions-MIP directory
 emi_dir <- paste0('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP-Phase1a')
 MIP_dir <- paste0('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP')
