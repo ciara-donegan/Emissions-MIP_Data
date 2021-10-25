@@ -56,7 +56,7 @@ perts <- c('bc-no-season', 'high-so4', 'no-so4', 'so2-at-height', 'so2-no-season
 
 for(pert in perts){
   # Specify location of difference data
-  setwd(paste0(MIP_dir, region, '/', pert, '/per-diff'))
+  setwd(paste0(MIP_dir, region, '/input/', pert, '/per-diff'))
 
   # Read in csv files and bind into single data frame
   target_filename <- list.files(getwd(), "*.csv")
