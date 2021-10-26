@@ -17,12 +17,20 @@ library(ggplot2)
 library(gridExtra)
 library(grid)
 
+#set the working directory to the code directory
+setwd('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP/code')
+
 # Specify location of Emissions-MIP directory
-emi_dir <- paste0('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP-Phase1a')
+MIP_dir <- paste0('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP')
+
+# Specify region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, SH-sea)
+region <- commandArgs(trailingOnly = TRUE) #pulling region from command line
+region <- region[1] #replaces regions with the first trailing string in the command line
 
 # Specify region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, 
 # SH-sea, NH-atlantic, NH-pacific)
 region <- "NH-pacific"
+
 
 # Define default ggplot colors and associate with models (in case a plot is
 # missing a model, the color scheme will remain consistent)
@@ -32,14 +40,13 @@ gg_color_hue <- function(n) {
 }
 
 cols = gg_color_hue(10)
-
 model_colors <- c(CESM1 = cols[1], E3SM = cols[2], GISS = cols[3], CESM2 = cols[4],
                   MIROC = cols[5], NorESM2 = cols[6], GFDL = cols[7], OsloCTM3 = cols[8],
                   UKESM = cols[9], GEOS = cols[10])
 
 # ------------------------------------------------------------------------------
 #reads in csv file specifying which models to exclude from the data
-excluded_models <- read.csv(file = paste0(emi_dir, '/input', '/excluded_data.csv'), fileEncoding="UTF-8-BOM")
+excluded_models <- read.csv(file = paste0(MIP_dir, '/input', '/excluded_data.csv'), fileEncoding="UTF-8-BOM")
 excluded_models %>% drop_na() #gets rid of any empty spaces
 
 #-------------------------------------------------------------------------------
@@ -49,7 +56,7 @@ perts <- c('bc-no-season', 'high-so4', 'no-so4', 'so2-at-height', 'so2-no-season
 
 for(pert in perts){
   # Specify location of difference data
-  setwd(paste0(emi_dir, '/input/', region, '/', pert, '/per-diff'))
+  setwd(paste0(MIP_dir, '/input/', region, pert, '/per-diff'))
 
   # Read in csv files and bind into single data frame
   target_filename <- list.files(getwd(), "*.csv")

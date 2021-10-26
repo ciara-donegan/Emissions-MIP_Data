@@ -17,12 +17,20 @@ library(ggplot2)
 library(gridExtra)
 library(grid)
 
+#set the working directory to the code directory
+setwd('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP/code')
+
 # Specify location of Emissions-MIP directory
-emi_dir <- paste0('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP-Phase1a')
+MIP_dir <- paste0('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP/input/')
+
+# Specify region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, SH-sea)
+region <- commandArgs(trailingOnly = TRUE) #pulling region from command line
+region <- region[1] #replaces regions with the first trailing string in the command line
 
 # Specify region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, 
 # SH-sea, NH-atlantic, NH-pacific)
 region <- "NH-pacific"
+
 
 # Define default ggplot colors and associate with models (in case a plot is
 # missing a model, the color scheme will remain consistent)
@@ -37,19 +45,18 @@ cols = gg_color_hue(10)
 model_colors <- c(CESM1 = cols[1], E3SM = cols[2], GISS = cols[3], CESM2 = cols[4],
                   MIROC = cols[5], NorESM2 = cols[6], GFDL = cols[7], OsloCTM3 = cols[8],
                   UKESM = cols[9], GEOS = cols[10])
-
+				  
 model_symbols <- c(CESM1 = 15, E3SM = 15, GISS = 17, CESM2 = 19, MIROC = 15, 
                    NorESM2 = 17, GFDL = 19, OsloCTM3 = 19, UKESM = 15, GEOS = 17)
 
 # ------------------------------------------------------------------------------
 #reads in csv file specifying which models to exclude from the data
-excluded_models <- read.csv(file = paste0(emi_dir, '/input', '/excluded_data.csv'), fileEncoding="UTF-8-BOM")
+excluded_models <- read.csv(file = paste0(MIP_dir, '/excluded_data.csv'), fileEncoding="UTF-8-BOM")
 excluded_models %>% drop_na() #gets rid of any empty spaces
-
 #-------------------------------------------------------------------------------
 
 # Setup directory for bc-no-seas percent difference data
-setwd(paste0(emi_dir, '/input/', region, '/bc-no-season/per-diff'))
+setwd(paste0(MIP_dir, region, '/bc-no-season/per-diff'))
 
 # Read in csv files and bind into single data frame
 target_filename <- list.files(getwd(), "*.csv")
@@ -77,7 +84,7 @@ bc_no_seas_summary <- bc_no_seas %>% dplyr::group_by(variable, model) %>%
 #---------------------------------------------------
 
 # Setup directory for high-SO4 percent difference data
-setwd(paste0(emi_dir, '/input/', region, '/high-SO4/per-diff'))
+setwd(paste0(MIP_dir, region, '/high-SO4/per-diff'))
 
 # Read in csv files and bind into single data frame
 target_filename <- list.files(getwd(), "*.csv")
@@ -105,7 +112,7 @@ high_so4_summary <- high_so4 %>% dplyr::group_by(variable, model) %>%
 #---------------------------------------------------
 
 # Setup directory for no-SO4 percent difference data
-setwd(paste0(emi_dir, '/input/', region, '/no-SO4/per-diff'))
+setwd(paste0(MIP_dir, region, '/no-SO4/per-diff'))
 
 # Read in csv files and bind into single data frame
 target_filename <- list.files(getwd(), "*.csv")
@@ -133,7 +140,7 @@ no_so4_summary <- no_so4 %>% dplyr::group_by(variable, model) %>%
 #---------------------------------------------------
 
 # Setup directory for SO2-at-height percent difference data
-setwd(paste0(emi_dir, '/input/', region, '/so2-at-height/per-diff'))
+setwd(paste0(MIP_dir, region, '/so2-at-height/per-diff'))
 
 # Read in csv files and bind into single data frame
 target_filename <- list.files(getwd(), "*.csv")
@@ -154,7 +161,7 @@ so2_at_hgt_summary <- so2_at_hgt %>% dplyr::group_by(variable, model) %>%
 #---------------------------------------------------
 
 # Setup directory for SO2-no-season percent difference data
-setwd(paste0(emi_dir, '/input/', region, '/so2-no-season/per-diff'))
+setwd(paste0(MIP_dir, region, '/so2-no-season/per-diff'))
 
 # Read in csv files and bind into single data frame
 target_filename <- list.files(getwd(), "*.csv")
@@ -198,6 +205,10 @@ summary_long_sd <- summary_data %>%
   select(variable, model, experiment, sd) %>%
   drop_na()
   
+  summary_long_sd$experiment <- gsub("_sd", "", summary_long_sd$experiment)
+
+  summary_long <- dplyr::left_join(summary_long_exp, summary_long_sd)
+
   summary_long_sd$experiment <- gsub("_sd", "", summary_long_sd$experiment)
 
   summary_long <- dplyr::left_join(summary_long_exp, summary_long_sd)
