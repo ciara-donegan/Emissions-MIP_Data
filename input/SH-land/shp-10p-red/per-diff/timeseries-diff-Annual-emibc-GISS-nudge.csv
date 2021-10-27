@@ -1,6 +1,6 @@
 variable,year,value,unit
-emibc,2000,-0.003977733614036386,kg m-2 s-1
-emibc,2001,-0.003563293907457281,kg m-2 s-1
-emibc,2002,-0.0034543903037984897,kg m-2 s-1
-emibc,2003,-0.0038549402223580246,kg m-2 s-1
-emibc,2004,-0.003655779896870934,kg m-2 s-1
+emibc,2000,0.0,kg m-2 s-1
+emibc,2001,0.0,kg m-2 s-1
+emibc,2002,0.0,kg m-2 s-1
+emibc,2003,0.0,kg m-2 s-1
+emibc,2004,0.0,kg m-2 s-1
