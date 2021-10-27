@@ -1,7 +1,7 @@
 # ------------------------------------------------------------------------------
 # Program Name: timeseries_per_diff.R
 # Authors: Hamza Ahsan
-# Date Last Modified: September 29, 2021
+# Date Last Modified: July 6, 2021
 # Program Purpose: Produces time series line plots of the percent difference
 # between the perturbations and the reference case
 # Input Files: ~Emissions-MIP/input/
@@ -38,6 +38,11 @@ model_colors <- c(CESM1 = cols[1], E3SM = cols[2], GISS = cols[3], CESM2 = cols[
                   UKESM = cols[9], GEOS = cols[10])
 
 # ------------------------------------------------------------------------------
+#reads in csv file specifying which models to exclude from the data
+excluded_models <- read.csv(file = paste0(emi_dir, '/input', '/excluded_data.csv'), fileEncoding="UTF-8-BOM")
+excluded_models %>% drop_na() #gets rid of any empty spaces
+
+#-------------------------------------------------------------------------------
 
 # Iterate over the different perturbation experiments
 perts <- c('bc-no-season', 'high-so4', 'no-so4', 'so2-at-height', 'so2-no-season')
@@ -71,6 +76,13 @@ for(pert in perts){
 
   # Rearrange data frame by years descending
   experiment <- dplyr::arrange(experiment, year)
+
+  #runs through each excluded model pair and filters them out of summary_long
+  if(nrow(excluded_models) != 0) { #only runs if the data frame is not empty
+    for (val in 1:nrow(excluded_models)) {
+      experiment <- filter(experiment, pert != excluded_models$Scenario[val] | experiment$model != excluded_models$Model[val])
+    }
+  }
 
   # Define remaining experiments
   emibc_experiment    <- dplyr::filter(experiment, variable == 'emibc')
@@ -119,7 +131,7 @@ for(pert in perts){
   tot_s <- dplyr::left_join(dry_s, wet_s, by = c("year", "model"))
   tot_s <- dplyr::mutate(tot_s, value = value.x + value.y) %>%
     dplyr::select(c(year, model, value))
-  
+
   #find the min and max percentage differences
   axes_max <- max(mmrbc_experiment$value, mmrso4_experiment$value, so2_experiment$new_value,emibc_experiment$value,emiso2_experiment$value,drybc_experiment$value,wetbc_experiment$value,drybc_experiment$value,dryso2_experiment$value,wetso2_experiment$value,dryso4_experiment$value,wetso4_experiment$value,tot_bc$value,tot_s$value,rlut_experiment$value,rsut_experiment$value,net_rad$value,rsdt_experiment$value,rlutcs_experiment$value,rsutcs_experiment$value,net_rad_cs$value,od550aer_experiment$value,clt_experiment$value,cltc_experiment$value, na.rm = TRUE) 
   axes_min <- min(mmrbc_experiment$value, mmrso4_experiment$value, so2_experiment$new_value,emibc_experiment$value,emiso2_experiment$value,drybc_experiment$value,wetbc_experiment$value,drybc_experiment$value,dryso2_experiment$value,wetso2_experiment$value,dryso4_experiment$value,wetso4_experiment$value,tot_bc$value,tot_s$value,rlut_experiment$value,rsut_experiment$value,net_rad$value,rsdt_experiment$value,rlutcs_experiment$value,rsutcs_experiment$value,net_rad_cs$value,od550aer_experiment$value,clt_experiment$value,cltc_experiment$value, na.rm = TRUE)
@@ -141,6 +153,7 @@ for(pert in perts){
     geom_line() +
     ylim(axes_min,axes_max)
 
+
   emiso2_plot <- ggplot(emiso2_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('surface flux \n of SO2 - ', region), y="Percent", x="Year") +
     theme_bw() +
@@ -151,6 +164,7 @@ for(pert in perts){
     scale_colour_manual(values = model_colors) +
     geom_line() +
     ylim(axes_min,axes_max)
+
 
   mmrbc_plot <- ggplot(mmrbc_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('surface concentration \n of BC - ', region), y="Percent", x="Year") +
@@ -163,6 +177,7 @@ for(pert in perts){
     geom_line() +
     ylim(axes_min,axes_max)
 
+
   mmrso4_plot <- ggplot(mmrso4_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('surface concentration \n of SO4 - ', region), y="Percent", x="Year") +
     theme_bw() +
@@ -173,6 +188,7 @@ for(pert in perts){
     scale_colour_manual(values = model_colors) +
     geom_line() +
     ylim(axes_min,axes_max)
+
 
   rlut_plot <- ggplot(rlut_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('upwelling longwave flux \n at TOA - ', region), y="Percent", x="Year") +
@@ -185,6 +201,7 @@ for(pert in perts){
     geom_line() +
     ylim(axes_min,axes_max)
 
+
   rlutcs_plot <- ggplot(rlutcs_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('upwelling clear-sky longwave \n flux at TOA - ', region), y="Percent", x="Year") +
     theme_bw() +
@@ -195,6 +212,7 @@ for(pert in perts){
     scale_colour_manual(values = model_colors) +
     geom_line() +
     ylim(axes_min,axes_max)
+
 
   rsut_plot <- ggplot(rsut_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('upwelling shortwave flux \n at TOA - ', region), y="Percent", x="Year") +
@@ -207,6 +225,7 @@ for(pert in perts){
     geom_line() +
     ylim(axes_min,axes_max)
 
+
   rsutcs_plot <- ggplot(rsutcs_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('upwelling clear-sky shortwave \n flux at TOA - ', region), y="Percent", x="Year") +
     theme_bw() +
@@ -217,6 +236,7 @@ for(pert in perts){
     scale_colour_manual(values = model_colors) +
     geom_line() +
     ylim(axes_min,axes_max)
+
 
   rsdt_plot <- ggplot(rsdt_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('incident shortwave flux \n at TOA - ', region), y="Percent", x="Year") +
@@ -229,6 +249,7 @@ for(pert in perts){
     geom_line() +
     ylim(axes_min,axes_max)
 
+
   net_rad_plot <- ggplot(net_rad, aes(x = year, y = value, color = model)) +
     labs(title=paste0('net radiative flux \n at TOA - ', region), y="Percent", x="Year") +
     theme_bw() +
@@ -239,6 +260,7 @@ for(pert in perts){
     scale_colour_manual(values = model_colors) +
     geom_line() +
     ylim(axes_min,axes_max)
+
 
   net_rad_cs_plot <- ggplot(net_rad_cs, aes(x = year, y = value, color = model)) +
     labs(title=paste0('clear-sky net radiative \n flux at TOA - ', region), y="Percent", x="Year") +
@@ -251,6 +273,7 @@ for(pert in perts){
     geom_line() +
     ylim(axes_min,axes_max)
 
+
   so2_plot <- ggplot(so2_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('surface concentration \n of SO2 - ', region), y="Percent", x="Year") +
     theme_bw() +
@@ -261,6 +284,7 @@ for(pert in perts){
     scale_colour_manual(values = model_colors) +
     geom_line() +
     ylim(axes_min,axes_max)
+
 
   drybc_plot <- ggplot(drybc_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('dry deposition rate \n of BC - ', region), y="Percent", x="Year") +
@@ -273,6 +297,7 @@ for(pert in perts){
     geom_line() +
     ylim(axes_min,axes_max)
 
+
   wetbc_plot <- ggplot(wetbc_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('wet deposition rate \n of BC - ', region), y="Percent", x="Year") +
     theme_bw() +
@@ -283,6 +308,7 @@ for(pert in perts){
     scale_colour_manual(values = model_colors) +
     geom_line() +
     ylim(axes_min,axes_max)
+
 
   tot_bc_plot <- ggplot(tot_bc, aes(x = year, y = value, color = model)) +
     labs(title=paste0('total deposition rate \n of BC - ', region), y="Percent", x="Year") +
@@ -295,6 +321,7 @@ for(pert in perts){
     geom_line() +
     ylim(axes_min,axes_max)
 
+
   dryso2_plot <- ggplot(dryso2_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('dry deposition rate \n of SO2 - ', region), y="Percent", x="Year") +
     theme_bw() +
@@ -305,6 +332,7 @@ for(pert in perts){
     scale_colour_manual(values = model_colors) +
     geom_line() +
     ylim(axes_min,axes_max)
+
 
   wetso2_plot <- ggplot(wetso2_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('wet deposition rate \n of SO2 - ', region), y="Percent", x="Year") +
@@ -317,6 +345,7 @@ for(pert in perts){
     geom_line() +
     ylim(axes_min,axes_max)
 
+
   dryso4_plot <- ggplot(dryso4_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('dry deposition rate \n of SO4 - ', region), y="Percent", x="Year") +
     theme_bw() +
@@ -327,6 +356,7 @@ for(pert in perts){
     scale_colour_manual(values = model_colors) +
     geom_line() +
     ylim(axes_min,axes_max)
+
 
   wetso4_plot <- ggplot(wetso4_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('wet deposition rate \n of SO4 - ', region), y="Percent", x="Year") +
@@ -339,6 +369,7 @@ for(pert in perts){
     geom_line() +
     ylim(axes_min,axes_max)
 
+
   tot_s_plot <- ggplot(tot_s, aes(x = year, y = value, color = model)) +
     labs(title=paste0('total deposition rate \n of S - ', region), y="Percent", x="Year") +
     theme_bw() +
@@ -349,6 +380,7 @@ for(pert in perts){
     scale_colour_manual(values = model_colors) +
     geom_line() +
     ylim(axes_min,axes_max)
+
 
   od550aer_plot <- ggplot(od550aer_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('ambient aerosol optical \n thickness at 550nm - ', region), y="Percent", x="Year") +
@@ -372,6 +404,7 @@ for(pert in perts){
     geom_line() +
     ylim(axes_min,axes_max)
 
+
   cltc_plot <- ggplot(cltc_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('convective cloud cover \n percentage - ', region), y="Percent", x="Year") +
     theme_bw() +
@@ -382,6 +415,7 @@ for(pert in perts){
     scale_colour_manual(values = model_colors) +
     geom_line() +
     ylim(axes_min,axes_max)
+
 
   # Function from stack exchange to generate a shared legend
   grid_arrange_shared_legend <- function(...) {

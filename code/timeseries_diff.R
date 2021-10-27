@@ -1,7 +1,7 @@
 # ------------------------------------------------------------------------------
 # Program Name: timeseries_diff.R
 # Authors: Hamza Ahsan
-# Date Last Modified: September 29, 2021
+# Date Last Modified: July 6, 2021
 # Program Purpose: Produces time series line plots of the difference between
 # the perturbations and the reference case
 # Input Files: ~Emissions-MIP/input/
@@ -38,6 +38,11 @@ model_colors <- c(CESM1 = cols[1], E3SM = cols[2], GISS = cols[3], CESM2 = cols[
                   UKESM = cols[9], GEOS = cols[10])
 
 # ------------------------------------------------------------------------------
+#reads in csv file specifying which models to exclude from the data
+excluded_models <- read.csv(file = paste0(emi_dir, '/input', '/excluded_data.csv'), fileEncoding="UTF-8-BOM")
+excluded_models %>% drop_na() #gets rid of any empty spaces
+
+#-------------------------------------------------------------------------------
 
 # Iterate over the different perturbation experiments
 perts <- c('bc-no-season', 'high-so4', 'no-so4', 'so2-at-height', 'so2-no-season')
@@ -72,9 +77,18 @@ for(pert in perts){
   # Rearrange data frame by years descending
   experiment <- dplyr::arrange(experiment, year)
 
+
   #set min and max axes for graphing later on
-  #axes_max <- max(experiment$value)
-  #axes_min <- min(experiment$value)
+  axes_max <- max(experiment$value)
+  axes_min <- min(experiment$value)
+
+  #runs through each excluded model pair and filters them out of summary_long
+  if(nrow(excluded_models) != 0) { #only runs if the data frame is not empty
+    for (val in 1:nrow(excluded_models)) {
+      experiment <- filter(experiment, pert != excluded_models$Scenario[val] | experiment$model != excluded_models$Model[val])
+    }
+  }
+
 
   # Convert volume mixing ratio to mass mixing ratio by multiplying by molar mass
   # of SO2 and dividing by molar mass of air
@@ -130,8 +144,7 @@ for(pert in perts){
   tot_s <- dplyr::left_join(dry_s, wet_s, by = c("year", "model"))
   tot_s <- dplyr::mutate(tot_s, value = value.x + value.y) %>%
     dplyr::select(c(year, model, value))
-  
-  
+
   #find the maximum and minimum value for all experiments with units kg/kg
   kgkg_max <- max(mmrbc_experiment$value, mmrso4_experiment$value, so2_experiment$new_value)
   kgkg_min <- min(mmrbc_experiment$value, mmrso4_experiment$value, so2_experiment$new_value)
@@ -143,7 +156,6 @@ for(pert in perts){
   #find maximum and minimum value for all experiments with units W/m^2
   wm2_max <- max(rlut_experiment$value,rsut_experiment$value,net_rad$value,rsdt_experiment$value,rlutcs_experiment$value,rsutcs_experiment$value,net_rad_cs$value)
   wm2_min <- min(rlut_experiment$value,rsut_experiment$value,net_rad$value,rsdt_experiment$value,rlutcs_experiment$value,rsutcs_experiment$value,net_rad_cs$value)
-  
 
 
   # Pre-define plot font sizes
@@ -163,6 +175,7 @@ for(pert in perts){
     geom_line()+
     ylim(kgm2s_min,kgm2s_max)
 
+
   emiso2_plot <- ggplot(emiso2_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('surface flux \n of SO2 - ', region), y="emiso2 (kg m-2 s-1)", x="Year") +
     theme_bw() +
@@ -174,6 +187,7 @@ for(pert in perts){
     geom_line()+
     ylim(kgm2s_min,kgm2s_max)
 
+
   mmrbc_plot <- ggplot(mmrbc_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('surface concentration \n of BC - ', region), y="mmrbc (kg kg-1)", x="Year") +
     theme_bw() +
@@ -183,6 +197,7 @@ for(pert in perts){
     scale_colour_manual(values = model_colors) +
     geom_line() +
     ylim(kgkg_min,kgkg_max)
+
 
   mmrso4_plot <- ggplot(mmrso4_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('surface concentration \n of SO4 - ', region), y="mmrso4 (kg kg-1)", x="Year") +
@@ -194,6 +209,7 @@ for(pert in perts){
     geom_line() +
     ylim(kgkg_min,kgkg_max)
 
+
   rlut_plot <- ggplot(rlut_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('upwelling longwave flux \n at TOA - ', region), y="rlut (W m-2)", x="Year") +
     theme_bw() +
@@ -203,6 +219,7 @@ for(pert in perts){
     scale_colour_manual(values = model_colors) +
     geom_line() +
     ylim(wm2_min,wm2_max)
+
 
   rlutcs_plot <- ggplot(rlutcs_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('upwelling clear-sky longwave \n flux at TOA - ', region), y="rlutcs (W m-2)", x="Year") +
@@ -214,6 +231,7 @@ for(pert in perts){
     geom_line() +
     ylim(wm2_min,wm2_max)
 
+
   rsut_plot <- ggplot(rsut_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('upwelling shortwave flux \n at TOA - ', region), y="rsut (W m-2)", x="Year") +
     theme_bw() +
@@ -223,6 +241,7 @@ for(pert in perts){
     scale_colour_manual(values = model_colors) +
     geom_line() +
     ylim(wm2_min,wm2_max)
+
 
   rsutcs_plot <- ggplot(rsutcs_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('upwelling clear-sky shortwave \n flux at TOA - ', region), y="rsutcs (W m-2)", x="Year") +
@@ -234,6 +253,7 @@ for(pert in perts){
     geom_line() +
     ylim(wm2_min,wm2_max)
 
+
   rsdt_plot <- ggplot(rsdt_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('incident shortwave flux \n at TOA - ', region), y="rsdt (W m-2)", x="Year") +
     theme_bw() +
@@ -243,6 +263,7 @@ for(pert in perts){
     scale_colour_manual(values = model_colors) +
     geom_line() +
     ylim(wm2_min,wm2_max)
+
 
   net_rad_plot <- ggplot(net_rad, aes(x = year, y = value, color = model)) +
     labs(title=paste0('net radiative flux \n at TOA - ', region), y="rlut + rsut (W m-2)", x="Year") +
@@ -254,6 +275,7 @@ for(pert in perts){
     geom_line() +
     ylim(wm2_min,wm2_max)
 
+
   net_rad_cs_plot <- ggplot(net_rad_cs, aes(x = year, y = value, color = model)) +
     labs(title=paste0('clear-sky net radiative \n flux at TOA - ', region), y="rlutcs + rsutcs (W m-2)", x="Year") +
     theme_bw() +
@@ -264,6 +286,7 @@ for(pert in perts){
     geom_line() +
     ylim(wm2_min,wm2_max)
 
+
   so2_plot <- ggplot(so2_experiment, aes(x = year, y = new_value, color = model)) +
     labs(title=paste0('surface concentration \n of SO2 - ', region), y="so2 (kg kg-1)", x="Year") +
     theme_bw() +
@@ -273,6 +296,7 @@ for(pert in perts){
     scale_colour_manual(values = model_colors) +
     geom_line() +
     ylim(kgkg_min,kgkg_max)
+
 
   drybc_plot <- ggplot(drybc_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('dry deposition rate \n of BC - ', region), y="drybc (kg m-2 s-1)", x="Year") +
@@ -285,6 +309,7 @@ for(pert in perts){
     geom_line() +
     ylim(kgm2s_min,kgm2s_max)
 
+
   wetbc_plot <- ggplot(wetbc_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('wet deposition rate \n of BC - ', region), y="wetbc (kg m-2 s-1)", x="Year") +
     theme_bw() +
@@ -295,6 +320,7 @@ for(pert in perts){
     scale_colour_manual(values = model_colors) +
     geom_line() +
     ylim(kgm2s_min,kgm2s_max)
+
 
   tot_bc_plot <- ggplot(tot_bc, aes(x = year, y = value, color = model)) +
     labs(title=paste0('total deposition rate \n of BC - ', region), y="drybc + wetbc (kg m-2 s-1)", x="Year") +
@@ -307,6 +333,7 @@ for(pert in perts){
     geom_line() +
     ylim(kgm2s_min,kgm2s_max)
 
+
   dryso2_plot <- ggplot(dryso2_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('dry deposition rate \n of SO2 - ', region), y="dryso2 (kg m-2 s-1)", x="Year") +
     theme_bw() +
@@ -317,6 +344,7 @@ for(pert in perts){
     scale_colour_manual(values = model_colors) +
     geom_line() +
     ylim(kgm2s_min,kgm2s_max)
+
 
   wetso2_plot <- ggplot(wetso2_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('wet deposition rate \n of SO2 - ', region), y="wetso2 (kg m-2 s-1)", x="Year") +
@@ -329,6 +357,7 @@ for(pert in perts){
     geom_line() +
     ylim(kgm2s_min,kgm2s_max)
 
+
   dryso4_plot <- ggplot(dryso4_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('dry deposition rate \n of SO4 - ', region), y="dryso4 (kg m-2 s-1)", x="Year") +
     theme_bw() +
@@ -339,6 +368,7 @@ for(pert in perts){
     scale_colour_manual(values = model_colors) +
     geom_line() +
     ylim(kgm2s_min,kgm2s_max)
+
 
   wetso4_plot <- ggplot(wetso4_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('wet deposition rate \n of SO4 - ', region), y="wetso4 (kg m-2 s-1)", x="Year") +
@@ -351,6 +381,7 @@ for(pert in perts){
     geom_line() +
     ylim(kgm2s_min,kgm2s_max)
 
+
   tot_s_plot <- ggplot(tot_s, aes(x = year, y = value, color = model)) +
     labs(title=paste0('total deposition rate \n of S - ', region), y="(dryso2 + wetso2)/2 + (dryso4 + wetso4)/3 (kg m-2 s-1)", x="Year") +
     theme_bw() +
@@ -361,6 +392,7 @@ for(pert in perts){
     scale_colour_manual(values = model_colors) +
     geom_line() +
     ylim(kgm2s_min,kgm2s_max)
+
 
   od550aer_plot <- ggplot(od550aer_experiment, aes(x = year, y = value, color = model)) +
     labs(title=paste0('ambient aerosol optical \n thickness at 550nm - ', region), y="od550aer", x="Year") +
