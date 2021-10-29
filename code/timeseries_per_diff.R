@@ -1,9 +1,9 @@
 # ------------------------------------------------------------------------------
-# Program Name: timeseries_per_diff.R
+# Program Name: timeseries_diff.R
 # Authors: Hamza Ahsan
 # Date Last Modified: September 29, 2021
-# Program Purpose: Produces time series line plots of the percent difference 
-# between the perturbations and the reference case
+# Program Purpose: Produces time series line plots of the difference between 
+# the perturbations and the reference case
 # Input Files: ~Emissions-MIP/input/
 # Output Files: ~Emissions-MIP/output/
 # TODO:
@@ -18,11 +18,18 @@ library(gridExtra)
 library(grid)
 
 # Specify location of Emissions-MIP directory
-emi_dir <- paste0('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP-Phase1a')
+emi_dir <- paste0('C:/Users/such559/Documents/Emissions-MIP_Data')
 
-# Specify region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, 
+#specifies whether to sort the data by region or by experiment
+sort_by <- "experiment"
+
+# Specify region if sorting by experiment (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, 
 # SH-sea, NH-atlantic, NH-pacific)
 region <- "NH-pacific"
+
+#Specify perturbation if sorting by region (i.e. bc-no-season, high-so4, no-so4, reference, so2-at-height, so2-no-season)
+pert <- "bc-no-season"
+
 
 # Define default ggplot colors and associate with models (in case a plot is 
 # missing a model, the color scheme will remain consistent)
@@ -38,13 +45,19 @@ model_colors <- c(CESM1 = cols[1], E3SM = cols[2], GISS = cols[3], CESM2 = cols[
                   UKESM = cols[9], GEOS = cols[10])
 
 # ------------------------------------------------------------------------------
+# Iterate over the different perturbation/regional experiments
+if (sort_by == "region"){scenarios <- c('bc-no-season', 'high-so4', 'no-so4', 'so2-at-height', 'so2-no-season')}
+if (sort_by == "experiment"){scenarios <- c("arctic", "global", "land", "NH-atlantic", "NH-land", "NH-pacific", "NH-sea", "sea", "SH-land", "SH-sea")}
 
-# Iterate over the different perturbation experiments
-perts <- c('bc-no-season', 'high-so4', 'no-so4', 'so2-at-height', 'so2-no-season')
 
-for(pert in perts){
+for(scenario in scenarios){
   # Specify location of difference data
-  setwd(paste0(emi_dir, '/input/', region, '/', pert, '/per-diff'))
+  if (sort_by == "region"){
+    setwd(paste0(emi_dir, '/input/', region, '/', scenario, '/per-diff'))
+  }
+  if (sort_by == "experiment"){
+    setwd(paste0(emi_dir, '/input/', scenario, '/', pert, '/per-diff'))
+  }
   
   # Read in csv files and bind into single data frame
   target_filename <- list.files(getwd(), "*.csv")
@@ -57,7 +70,7 @@ for(pert in perts){
   rep_models <- rep(models, each = 4) # four years
   experiment$model <- rep_models
   
-  # Correct model names for CESM and CESM2
+  # Correct model names for CESM1
   experiment$model[which(experiment$model == "CESM")] <- "CESM1"
   
   # Change any negative value to positive (i.e., CESM2 wetbc, wetso2, wetso4)
@@ -68,9 +81,17 @@ for(pert in perts){
     -1 * experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetso2")]
   experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetso4")] <- 
     -1 * experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetso4")]
-
+  
   # Rearrange data frame by years descending
   experiment <- dplyr::arrange(experiment, year)
+  
+  # Convert volume mixing ratio to mass mixing ratio by multiplying by molar mass
+  # of SO2 and dividing by molar mass of air
+  so2_experiment <- dplyr::filter(experiment, variable == 'so2') %>%
+    dplyr::mutate(new_value = value * 64.066 / 28.96)
+  
+  # Change units from mol/mol to kg/kg
+  so2_experiment$unit <- 'kg kg-1'
   
   # Define remaining experiments
   emibc_experiment    <- dplyr::filter(experiment, variable == 'emibc')
@@ -82,7 +103,6 @@ for(pert in perts){
   rsdt_experiment     <- dplyr::filter(experiment, variable == 'rsdt')
   rsut_experiment     <- dplyr::filter(experiment, variable == 'rsut')
   rsutcs_experiment   <- dplyr::filter(experiment, variable == 'rsutcs')
-  so2_experiment      <- dplyr::filter(experiment, variable == 'so2')
   drybc_experiment    <- dplyr::filter(experiment, variable == 'drybc')
   wetbc_experiment    <- dplyr::filter(experiment, variable == 'wetbc')
   dryso2_experiment   <- dplyr::filter(experiment, variable == 'dryso2')
@@ -125,237 +145,72 @@ for(pert in perts){
   axis_font <- 6
   axis_title_font <- 7
   
-  # Generate plots
-  emibc_plot <- ggplot(emibc_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('surface flux \n of BC - ', region), y="Percent", x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_y_continuous(labels = function(x) paste0(x, "%")) +
-    scale_colour_manual(values = model_colors) +
-    geom_line()
+  plot_species <- function(experiment, reg_or_exper,title, units){
+    species_plot <- ggplot(experiment, aes(x = year, y = value, color = model)) +
+      labs(title=paste0(title, ' - ', reg_or_exper), y=units, x="Year") +
+      theme_bw() +
+      theme(plot.title = element_text(hjust = 0.5, size = title_font),
+            axis.text = element_text(size = axis_font),
+            axis.title = element_text(size = axis_title_font)) +
+      scale_y_continuous(labels = scales::scientific_format(digits = 2)) +
+      scale_colour_manual(values = model_colors) +
+      geom_line()
+    
+    return(species_plot)
+  }
+  if (sort_by == "region"){
+    #Generate plots
+    emibc_plot <- plot_species(emibc_experiment, region, "surface flux \n of BC", "emibc (kg m-2 s-1)")
+    emiso2_plot <- plot_species(emiso2_experiment, region, "surface flux \n of SO2","emibc (kg m-2 s-1)")
+    mmrbc_plot <- plot_species(mmrbc_experiment, region, "surface concentration \n of BC","mmrbc (kg kg-1)")
+    mmrso4_plot <- plot_species(mmrso4_experiment, region, "surface concentration \n of SO4","mmrso4 (kg kg-1)")
+    rlut_plot <- plot_species(rlut_experiment, region, "upwelling longwave flux \n at TOA","rlut (W m-2)")
+    rlutcs_plot <- plot_species(rlutcs_experiment, region, "upwelling clear-sky longwave \n flux at TOA","rlutcs (W m-2)")
+    rsut_plot <- plot_species(rsut_experiment, region, "upwelling shortwave flux \n at TOA","rsut (W m-2)")
+    rsutcs_plot <- plot_species(rsutcs_experiment, region, "upwelling clear-sky shortwave \n flux at TOA","rsutcs (W m-2)")
+    rsdt_plot <- plot_species(rsdt_experiment, region, "incident shortwave flux \n at TOA","rsdt (W m-2)")
+    net_rad_plot <- plot_species(net_rad, region, "net radiative flux \n at TOA","rlut + rsut (W m-2)")
+    net_rad_cs_plot <- plot_species(net_rad_cs, region, "clear-sky net radiative \n flux at TOA","rlutcs + rsutcs (W m-2)")
+    so2_plot <- plot_species(so2_experiment, region, "surface concentration \n of SO2","so2 (kg kg-1)")
+    drybc_plot <- plot_species(drybc_experiment, region, "dry deposition rate \n of BC","drybc (kg m-2 s-1)")
+    wetbc_plot <- plot_species(wetbc_experiment, region, "wet deposition rate \n of BC","wetbc (kg m-2 s-1)")
+    tot_bc_plot <- plot_species(tot_bc, region, "total deposition rate \n of BC", "drybc + wetbc (kg m-2 s-1)")
+    dryso2_plot <- plot_species(dryso2_experiment, region, "dry deposition rate \n of SO2", "dryso2 (kg m-2 s-1)")
+    wetso2_plot <- plot_species(wetso2_experiment, region, "wet deposition rate \n of SO2", "wetso2 (kg m-2 s-1)")
+    dryso4_plot <- plot_species(dryso4_experiment, region, "dry deposition rate \n of SO4", "dryso4 (kg m-2 s-1)")
+    wetso4_plot <- plot_species(wetso4_experiment, region, "wet deposition rate \n of SO4", "wetso4 (kg m-2 s-1)")
+    tot_s_plot <- plot_species(tot_s, region, "total deposition rate \n of S", "(dryso2 + wetso2)/2 + (dryso4 + wetso4)/3 (kg m-2 s-1)")
+    od550aer_plot <- plot_species(od550aer_experiment, region, "ambient aerosol optical \n thickness at 550nm", "od550aer")
+    clt_plot <- plot_species(clt_experiment, region, "total cloud cover \n percentage", "clt (%)")
+    cltc_plot <- plot_species(cltc_experiment, region, "convective cloud cover \n percentage", "cltc (%)")
+  }
   
-  emiso2_plot <- ggplot(emiso2_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('surface flux \n of SO2 - ', region), y="Percent", x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_y_continuous(labels = function(x) paste0(x, "%")) +
-    scale_colour_manual(values = model_colors) +
-    geom_line()
-  
-  mmrbc_plot <- ggplot(mmrbc_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('surface concentration \n of BC - ', region), y="Percent", x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_y_continuous(labels = function(x) paste0(x, "%")) +
-    scale_colour_manual(values = model_colors) +
-    geom_line()
-  
-  mmrso4_plot <- ggplot(mmrso4_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('surface concentration \n of SO4 - ', region), y="Percent", x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_y_continuous(labels = function(x) paste0(x, "%")) +
-    scale_colour_manual(values = model_colors) +
-    geom_line()
-  
-  rlut_plot <- ggplot(rlut_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('upwelling longwave flux \n at TOA - ', region), y="Percent", x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_y_continuous(labels = function(x) paste0(x, "%")) +
-    scale_colour_manual(values = model_colors) +
-    geom_line()
-  
-  rlutcs_plot <- ggplot(rlutcs_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('upwelling clear-sky longwave \n flux at TOA - ', region), y="Percent", x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_y_continuous(labels = function(x) paste0(x, "%")) +
-    scale_colour_manual(values = model_colors) +
-    geom_line()
-  
-  rsut_plot <- ggplot(rsut_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('upwelling shortwave flux \n at TOA - ', region), y="Percent", x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_y_continuous(labels = function(x) paste0(x, "%")) +
-    scale_colour_manual(values = model_colors) +
-    geom_line()
-  
-  rsutcs_plot <- ggplot(rsutcs_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('upwelling clear-sky shortwave \n flux at TOA - ', region), y="Percent", x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_y_continuous(labels = function(x) paste0(x, "%")) +
-    scale_colour_manual(values = model_colors) +
-    geom_line()
-  
-  rsdt_plot <- ggplot(rsdt_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('incident shortwave flux \n at TOA - ', region), y="Percent", x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_y_continuous(labels = function(x) paste0(x, "%")) +
-    scale_colour_manual(values = model_colors) +
-    geom_line()
-  
-  net_rad_plot <- ggplot(net_rad, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('net radiative flux \n at TOA - ', region), y="Percent", x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_y_continuous(labels = function(x) paste0(x, "%")) +
-    scale_colour_manual(values = model_colors) +
-    geom_line()
-  
-  net_rad_cs_plot <- ggplot(net_rad_cs, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('clear-sky net radiative \n flux at TOA - ', region), y="Percent", x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_y_continuous(labels = function(x) paste0(x, "%")) +
-    scale_colour_manual(values = model_colors) +
-    geom_line()
-  
-  so2_plot <- ggplot(so2_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('surface concentration \n of SO2 - ', region), y="Percent", x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_y_continuous(labels = function(x) paste0(x, "%")) +
-    scale_colour_manual(values = model_colors) +
-    geom_line()
-  
-  drybc_plot <- ggplot(drybc_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('dry deposition rate \n of BC - ', region), y="Percent", x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_y_continuous(labels = function(x) paste0(x, "%")) +
-    scale_colour_manual(values = model_colors) +
-    geom_line()
-  
-  wetbc_plot <- ggplot(wetbc_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('wet deposition rate \n of BC - ', region), y="Percent", x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_y_continuous(labels = function(x) paste0(x, "%")) +
-    scale_colour_manual(values = model_colors) +
-    geom_line()
-  
-  tot_bc_plot <- ggplot(tot_bc, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('total deposition rate \n of BC - ', region), y="Percent", x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_y_continuous(labels = function(x) paste0(x, "%")) +
-    scale_colour_manual(values = model_colors) +
-    geom_line()
-  
-  dryso2_plot <- ggplot(dryso2_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('dry deposition rate \n of SO2 - ', region), y="Percent", x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_y_continuous(labels = function(x) paste0(x, "%")) +
-    scale_colour_manual(values = model_colors) +
-    geom_line()
-  
-  wetso2_plot <- ggplot(wetso2_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('wet deposition rate \n of SO2 - ', region), y="Percent", x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_y_continuous(labels = function(x) paste0(x, "%")) +
-    scale_colour_manual(values = model_colors) +
-    geom_line()
-  
-  dryso4_plot <- ggplot(dryso4_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('dry deposition rate \n of SO4 - ', region), y="Percent", x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_y_continuous(labels = function(x) paste0(x, "%")) +
-    scale_colour_manual(values = model_colors) +
-    geom_line()
-  
-  wetso4_plot <- ggplot(wetso4_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('wet deposition rate \n of SO4 - ', region), y="Percent", x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_y_continuous(labels = function(x) paste0(x, "%")) +
-    scale_colour_manual(values = model_colors) +
-    geom_line()
-  
-  tot_s_plot <- ggplot(tot_s, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('total deposition rate \n of S - ', region), y="Percent", x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_y_continuous(labels = function(x) paste0(x, "%")) +
-    scale_colour_manual(values = model_colors) +
-    geom_line()
-  
-  od550aer_plot <- ggplot(od550aer_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('ambient aerosol optical \n thickness at 550nm - ', region), y="Percent", x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_y_continuous(labels = function(x) paste0(x, "%")) +
-    scale_colour_manual(values = model_colors) +
-    geom_line()
-  
-  clt_plot <- ggplot(clt_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('total cloud cover \n percentage - ', region), y="Percent", x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_y_continuous(labels = function(x) paste0(x, "%")) +
-    scale_colour_manual(values = model_colors) +
-    geom_line()
-  
-  cltc_plot <- ggplot(cltc_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('convective cloud cover \n percentage - ', region), y="Percent", x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_y_continuous(labels = function(x) paste0(x, "%")) +
-    scale_colour_manual(values = model_colors) +
-    geom_line()
-  
+  if (sort_by == "experiment"){
+    #Generate plots
+    emibc_plot <- plot_species(emibc_experiment, pert, "surface flux \n of BC", "emibc (kg m-2 s-1)")
+    emiso2_plot <- plot_species(emiso2_experiment, pert, "surface flux \n of SO2","emibc (kg m-2 s-1)")
+    mmrbc_plot <- plot_species(mmrbc_experiment, pert, "surface concentration \n of BC","mmrbc (kg kg-1)")
+    mmrso4_plot <- plot_species(mmrso4_experiment, pert, "surface concentration \n of SO4","mmrso4 (kg kg-1)")
+    rlut_plot <- plot_species(rlut_experiment, pert, "upwelling longwave flux \n at TOA","rlut (W m-2)")
+    rlutcs_plot <- plot_species(rlutcs_experiment, pert, "upwelling clear-sky longwave \n flux at TOA","rlutcs (W m-2)")
+    rsut_plot <- plot_species(rsut_experiment, pert, "upwelling shortwave flux \n at TOA","rsut (W m-2)")
+    rsutcs_plot <- plot_species(rsutcs_experiment, pert, "upwelling clear-sky shortwave \n flux at TOA","rsutcs (W m-2)")
+    rsdt_plot <- plot_species(rsdt_experiment, pert, "incident shortwave flux \n at TOA","rsdt (W m-2)")
+    net_rad_plot <- plot_species(net_rad, pert, "net radiative flux \n at TOA","rlut + rsut (W m-2)")
+    net_rad_cs_plot <- plot_species(net_rad_cs, pert, "clear-sky net radiative \n flux at TOA","rlutcs + rsutcs (W m-2)")
+    so2_plot <- plot_species(so2_experiment, pert, "surface concentration \n of SO2","so2 (kg kg-1)")
+    drybc_plot <- plot_species(drybc_experiment, pert, "dry deposition rate \n of BC","drybc (kg m-2 s-1)")
+    wetbc_plot <- plot_species(wetbc_experiment, pert, "wet deposition rate \n of BC","wetbc (kg m-2 s-1)")
+    tot_bc_plot <- plot_species(tot_bc, pert, "total deposition rate \n of BC", "drybc + wetbc (kg m-2 s-1)")
+    dryso2_plot <- plot_species(dryso2_experiment, pert, "dry deposition rate \n of SO2", "dryso2 (kg m-2 s-1)")
+    wetso2_plot <- plot_species(wetso2_experiment, pert, "wet deposition rate \n of SO2", "wetso2 (kg m-2 s-1)")
+    dryso4_plot <- plot_species(dryso4_experiment, pert, "dry deposition rate \n of SO4", "dryso4 (kg m-2 s-1)")
+    wetso4_plot <- plot_species(wetso4_experiment, pert, "wet deposition rate \n of SO4", "wetso4 (kg m-2 s-1)")
+    tot_s_plot <- plot_species(tot_s, pert, "total deposition rate \n of S", "(dryso2 + wetso2)/2 + (dryso4 + wetso4)/3 (kg m-2 s-1)")
+    od550aer_plot <- plot_species(od550aer_experiment, pert, "ambient aerosol optical \n thickness at 550nm", "od550aer")
+    clt_plot <- plot_species(clt_experiment, pert, "total cloud cover \n percentage", "clt (%)")
+    cltc_plot <- plot_species(cltc_experiment, pert, "convective cloud cover \n percentage", "cltc (%)")
+  }
   # Function from stack exchange to generate a shared legend
   grid_arrange_shared_legend <- function(...) {
     plots <- list(...)
@@ -371,7 +226,7 @@ for(pert in perts){
       legend,
       ncol = 1,
       heights = unit.c(unit(1, "npc") - 1.5 * lheight, lheight), # the "1.5" adds room for title
-      top = textGrob(paste0(pert, ': percent difference'), gp = gpar(fontsize = 12)))
+      top = textGrob(paste0(pert, ': absolute difference'), gp = gpar(fontsize = 12)))
   }
   
   final_plot <- grid_arrange_shared_legend(emibc_plot, 
@@ -380,11 +235,11 @@ for(pert in perts){
                                            mmrso4_plot, 
                                            so2_plot, 
                                            rlut_plot, 
-                                           rsut_plot,
-                                           net_rad_plot,
+                                           rsut_plot, 
+                                           net_rad_plot, 
                                            rsdt_plot, 
                                            rlutcs_plot, 
-                                           rsutcs_plot,
+                                           rsutcs_plot, 
                                            net_rad_cs_plot,
                                            drybc_plot,
                                            wetbc_plot,
@@ -399,8 +254,15 @@ for(pert in perts){
                                            cltc_plot)
   
   # Print plots
-  setwd(paste0('../../../../output/', region, '/timeseries'))
-  
-  # To save to file on A4 paper
-  ggsave(paste0(region, '_', pert ,'_per_diff.pdf'), final_plot, width = 21, height = 29.7, units = "cm")
+  if (sort_by == "region"){ 
+    setwd(paste0('../../../../output/', region, '/timeseries'))
+    # To save to file on A4 paper
+    ggsave(paste0(region, '_', scenario ,'_diff.pdf'), final_plot, width = 21, height = 29.7, units = "cm")
+  }
+  if (sort_by == "experiment"){
+    setwd(paste0('../../../../output/', pert, '/timeseries'))
+    # To save to file on A4 paper
+    ggsave(paste0(scenario, '_', pert ,'_diff.pdf'), final_plot, width = 21, height = 29.7, units = "cm")
+  }
 }
+

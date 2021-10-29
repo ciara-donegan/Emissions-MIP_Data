@@ -1,152 +1,189 @@
 # ------------------------------------------------------------------------------
-# Program Name: summary_plots_diff.R
-# Authors: Hamza Ahsan
-# Date Last Modified: September 29, 2021
-# Program Purpose: Produces summary plots of the difference between the
-# perturbations and the reference case averaged over all years
-# Input Files: ~Emissions-MIP/input/
-# Output Files: ~Emissions-MIP/output/
-# TODO:
-# ------------------------------------------------------------------------------
 
-# Load required libraries
-library(dplyr)
-library(tidyr)
-library(purrr)
-library(ggplot2)
-library(gridExtra)
-library(grid)
+# Setup directory for bc-no-seas difference data
+setwd(paste0(emi_dir, '/input/', region, '/bc-no-season/diff'))
 
-# Specify location of Emissions-MIP directory
-emi_dir <- paste0('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP-Phase1a')
+# Read in csv files and bind into single data frame
+target_filename <- list.files(getwd(), "*.csv")
+bc_no_seas <- rbind(map(target_filename, read.csv))
+bc_no_seas <- lapply(bc_no_seas, function(x) {x["unit"] <- NULL; x})
+bc_no_seas <- bind_rows(bc_no_seas)
 
-# Specify experiment (i.e., bc-no-seas, high-so4, no-so4, reference, so2-at-height, so2-no-seas)
-exper <- c("bc-no-season")
+# Extract model from file names (fifth segment) and bind to experiment data frame
+models <- sapply(strsplit(target_filename, "[-.]+"),function(x) x[5])
+rep_models <- rep(models, each = 4) # four years
+bc_no_seas$model <- rep_models
 
-#Creates a list of regions
-regions <- c("arctic", "global", "land", "NH-atlantic", "NH-land", "NH-pacific", "NH-sea", "sea", "SH-land", "SH-sea")
+# Invert sign of CESM2 wet deposition variables
+bc_no_seas$value[which(bc_no_seas$model == "CESM2" & bc_no_seas$variable == "wetbc")] <- 
+  -1 * bc_no_seas$value[which(bc_no_seas$model == "CESM2" & bc_no_seas$variable == "wetbc")]
+bc_no_seas$value[which(bc_no_seas$model == "CESM2" & bc_no_seas$variable == "wetso2")] <- 
+  -1 * bc_no_seas$value[which(bc_no_seas$model == "CESM2" & bc_no_seas$variable == "wetso2")]
+bc_no_seas$value[which(bc_no_seas$model == "CESM2" & bc_no_seas$variable == "wetso4")] <- 
+  -1 * bc_no_seas$value[which(bc_no_seas$model == "CESM2" & bc_no_seas$variable == "wetso4")]
 
-# Define default ggplot colors and associate with models (in case a plot is 
-# missing a model, the color scheme will remain consistent)
-gg_color_hue <- function(n) {
-  hues = seq(15, 375, length = n + 1)
-  hcl(h = hues, l = 65, c = 100)[1:n]
-}
+# Take the average over all years for each variable and calculate std. dev.
+bc_no_seas_summary <- bc_no_seas %>% dplyr::group_by(variable, model) %>%
+  dplyr::summarise(bc_no_seas = mean(value), bc_no_seas_sd = sd(value))
 
-cols = gg_color_hue(10)
+# Convert SO2 volume mixing ratio to mass mixing ratio by multiplying by molar mass
+# of SO2 and dividing by molar mass of air
+bc_no_seas_summary$bc_no_seas[which(bc_no_seas_summary$variable == "so2")] <- 
+  bc_no_seas_summary$bc_no_seas[which(bc_no_seas_summary$variable == "so2")] * 64.066 / 28.96
 
-model_colors <- c(CESM1 = cols[1], E3SM = cols[2], GISS = cols[3], CESM2 = cols[4],
-                  MIROC = cols[5], NorESM2 = cols[6], GFDL = cols[7], OsloCTM3 = cols[8],
-                  UKESM = cols[9], GEOS = cols[10])
+bc_no_seas_summary$bc_no_seas_sd[which(bc_no_seas_summary$variable == "so2")] <- 
+  bc_no_seas_summary$bc_no_seas_sd[which(bc_no_seas_summary$variable == "so2")] * 64.066 / 28.96
+
+#---------------------------------------------------
+
+# Setup directory for high-SO4 difference data
+setwd(paste0(emi_dir, '/input/', region, '/high-SO4/diff'))
+
+# Read in csv files and bind into single data frame
+target_filename <- list.files(getwd(), "*.csv")
+high_so4 <- rbind(map(target_filename, read.csv))
+high_so4 <- lapply(high_so4, function(x) {x["unit"] <- NULL; x})
+high_so4 <- bind_rows(high_so4)
+
+# Extract model from file names (fifth segment) and bind to experiment data frame
+models <- sapply(strsplit(target_filename, "[-.]+"),function(x) x[5])
+rep_models <- rep(models, each = 4) # four years
+high_so4$model <- rep_models
+
+# Invert sign of CESM2 wet deposition variables
+high_so4$value[which(high_so4$model == "CESM2" & high_so4$variable == "wetbc")] <- 
+  -1 * high_so4$value[which(high_so4$model == "CESM2" & high_so4$variable == "wetbc")]
+high_so4$value[which(high_so4$model == "CESM2" & high_so4$variable == "wetso2")] <- 
+  -1 * high_so4$value[which(high_so4$model == "CESM2" & high_so4$variable == "wetso2")]
+high_so4$value[which(high_so4$model == "CESM2" & high_so4$variable == "wetso4")] <- 
+  -1 * high_so4$value[which(high_so4$model == "CESM2" & high_so4$variable == "wetso4")]
+
+# Take the average over all years for each variable and calculate std. dev.
+high_so4_summary <- high_so4 %>% dplyr::group_by(variable, model) %>%
+  dplyr::summarise(high_so4 = mean(value), high_so4_sd = sd(value))
+
+# Convert SO2 volume mixing ratio to mass mixing ratio by multiplying by molar mass
+# of SO2 and dividing by molar mass of air
+high_so4_summary$high_so4[which(high_so4_summary$variable == "so2")] <- 
+  high_so4_summary$high_so4[which(high_so4_summary$variable == "so2")] * 64.066 / 28.96
+
+high_so4_summary$high_so4_sd[which(high_so4_summary$variable == "so2")] <- 
+  high_so4_summary$high_so4_sd[which(high_so4_summary$variable == "so2")] * 64.066 / 28.96
+
+#---------------------------------------------------
+
+# Setup directory for no-SO4 difference data
+setwd(paste0(emi_dir, '/input/', region, '/no-SO4/diff'))
+
+# Read in csv files and bind into single data frame
+target_filename <- list.files(getwd(), "*.csv")
+no_so4 <- rbind(map(target_filename, read.csv))
+no_so4 <- lapply(no_so4, function(x) {x["unit"] <- NULL; x})
+no_so4 <- bind_rows(no_so4)
+
+# Extract model from file names (fifth segment) and bind to experiment data frame
+models <- sapply(strsplit(target_filename, "[-.]+"),function(x) x[5])
+rep_models <- rep(models, each = 4) # four years
+no_so4$model <- rep_models
+
+# Invert sign of CESM2 wet deposition variables
+no_so4$value[which(no_so4$model == "CESM2" & no_so4$variable == "wetbc")] <- 
+  -1 * no_so4$value[which(no_so4$model == "CESM2" & no_so4$variable == "wetbc")]
+no_so4$value[which(no_so4$model == "CESM2" & no_so4$variable == "wetso2")] <- 
+  -1 * no_so4$value[which(no_so4$model == "CESM2" & no_so4$variable == "wetso2")]
+no_so4$value[which(no_so4$model == "CESM2" & no_so4$variable == "wetso4")] <- 
+  -1 * no_so4$value[which(no_so4$model == "CESM2" & no_so4$variable == "wetso4")]
+
+# Take the average over all years for each variable and calculate std. dev.
+no_so4_summary <- no_so4 %>% dplyr::group_by(variable, model) %>%
+  dplyr::summarise(no_so4 = mean(value), no_so4_sd = sd(value))
+
+# Convert SO2 volume mixing ratio to mass mixing ratio by multiplying by molar mass
+# of SO2 and dividing by molar mass of air
+no_so4_summary$no_so4[which(no_so4_summary$variable == "so2")] <- 
+  no_so4_summary$no_so4[which(no_so4_summary$variable == "so2")] * 64.066 / 28.96
+
+no_so4_summary$no_so4_sd[which(no_so4_summary$variable == "so2")] <- 
+  no_so4_summary$no_so4_sd[which(no_so4_summary$variable == "so2")] * 64.066 / 28.96
+
+#---------------------------------------------------
+
+# Setup directory for SO2-at-height difference data
+setwd(paste0(emi_dir, '/input/', region, '/so2-at-height/diff'))
+
+# Read in csv files and bind into single data frame
+target_filename <- list.files(getwd(), "*.csv")
+so2_at_hgt <- rbind(map(target_filename, read.csv))
+so2_at_hgt <- lapply(so2_at_hgt, function(x) {x["unit"] <- NULL; x})
+so2_at_hgt <- bind_rows(so2_at_hgt)
+
+# Extract model from file names (fifth segment) and bind to experiment data frame
+models <- sapply(strsplit(target_filename, "[-.]+"),function(x) x[5])
+rep_models <- rep(models, each = 4) # four years
+so2_at_hgt$model <- rep_models
+
+# Take the average over all years for each variable and calculate std. dev.
+so2_at_hgt_summary <- so2_at_hgt %>% dplyr::group_by(variable, model) %>%
+  dplyr::summarise(so2_at_hgt = mean(value), so2_at_hgt_sd = sd(value))
+
+# Convert SO2 volume mixing ratio to mass mixing ratio by multiplying by molar mass
+# of SO2 and dividing by molar mass of air
+so2_at_hgt_summary$so2_at_hgt[which(so2_at_hgt_summary$variable == "so2")] <- 
+  so2_at_hgt_summary$so2_at_hgt[which(so2_at_hgt_summary$variable == "so2")] * 64.066 / 28.96
+
+so2_at_hgt_summary$so2_at_hgt_sd[which(so2_at_hgt_summary$variable == "so2")] <- 
+  so2_at_hgt_summary$so2_at_hgt_sd[which(so2_at_hgt_summary$variable == "so2")] * 64.066 / 28.96
+
+#---------------------------------------------------
+
+# Setup directory for SO2-no-season difference data
+setwd(paste0(emi_dir, '/input/', region, '/so2-no-season/diff'))
+
+# Read in csv files and bind into single data frame
+target_filename <- list.files(getwd(), "*.csv")
+so2_no_seas <- rbind(map(target_filename, read.csv))
+so2_no_seas <- lapply(so2_no_seas, function(x) {x["unit"] <- NULL; x})
+so2_no_seas <- bind_rows(so2_no_seas)
+
+# Extract model from file names (fifth segment) and bind to experiment data frame
+models <- sapply(strsplit(target_filename, "[-.]+"),function(x) x[5])
+rep_models <- rep(models, each = 4) # four years
+so2_no_seas$model <- rep_models
+
+# Invert sign of CESM2 wet deposition variables
+so2_no_seas$value[which(so2_no_seas$model == "CESM2" & so2_no_seas$variable == "wetbc")] <- 
+  -1 * so2_no_seas$value[which(so2_no_seas$model == "CESM2" & so2_no_seas$variable == "wetbc")]
+so2_no_seas$value[which(so2_no_seas$model == "CESM2" & so2_no_seas$variable == "wetso2")] <- 
+  -1 * so2_no_seas$value[which(so2_no_seas$model == "CESM2" & so2_no_seas$variable == "wetso2")]
+so2_no_seas$value[which(so2_no_seas$model == "CESM2" & so2_no_seas$variable == "wetso4")] <- 
+  -1 * so2_no_seas$value[which(so2_no_seas$model == "CESM2" & so2_no_seas$variable == "wetso4")]
+
+# Take the average over all years for each variable and calculate std. dev.
+so2_no_seas_summary <- so2_no_seas %>% dplyr::group_by(variable, model) %>%
+  dplyr::summarise(so2_no_seas = mean(value), so2_no_seas_sd = sd(value))
+
+# Convert SO2 volume mixing ratio to mass mixing ratio by multiplying by molar mass
+# of SO2 and dividing by molar mass of air
+so2_no_seas_summary$so2_no_seas[which(so2_no_seas_summary$variable == "so2")] <- 
+  so2_no_seas_summary$so2_no_seas[which(so2_no_seas_summary$variable == "so2")] * 64.066 / 28.96
+
+so2_no_seas_summary$so2_no_seas_sd[which(so2_no_seas_summary$variable == "so2")] <- 
+  so2_no_seas_summary$so2_no_seas_sd[which(so2_no_seas_summary$variable == "so2")] * 64.066 / 28.96
+
+#---------------------------------------------------
 
 
 
-# ------------------------------------------------------------------------------
 
-# Define a function that accumulates data from a region for the specified experiment
-data_accumulation <- function(emi_dir, reg_name, exper){
-  
-  setwd(paste0(emi_dir,'/input/', reg_name,'/',exper, '/diff'))
-  
-  # Read in csv files and bind into single data frame
-  target_filename <- list.files(getwd(), "*.csv")
-  regional_data <- rbind(map(target_filename, read.csv))
-  regional_data <- lapply(regional_data, function(x) {x["unit"] <- NULL; x})
-  regional_data <- bind_rows(regional_data)
-  
-  # Extract model from file names (fifth segment) and bind to experiment data frame
-  models <- sapply(strsplit(target_filename, "[-.]+"),function(x) x[5])
-  rep_models <- rep(models, each = 4) # four years
-  regional_data$model <- rep_models
-  
-  # Invert sign of CESM2 wet deposition variables
-  regional_data$value[which(regional_data$model == "CESM2" & regional_data$variable == "wetbc")] <- 
-    -1 * regional_data$value[which(regional_data$model == "CESM2" & regional_data$variable == "wetbc")]
-  regional_data$value[which(regional_data$model == "CESM2" & regional_data$variable == "wetso2")] <- 
-    -1 * regional_data$value[which(regional_data$model == "CESM2" & regional_data$variable == "wetso2")]
-  regional_data$value[which(regional_data$model == "CESM2" & regional_data$variable == "wetso4")] <- 
-    -1 * regional_data$value[which(regional_data$model == "CESM2" & regional_data$variable == "wetso4")]
-  
-  # Take the average over all years for each variable and calculate std. dev.
-  regional_data_summary <- regional_data %>% dplyr::group_by(variable, model) %>%
-    dplyr::summarise(regional_data = mean(value), regional_data_sd = sd(value))
-  
-  # Convert SO2 volume mixing ratio to mass mixing ratio by multiplying by molar mass
-  # of SO2 and dividing by molar mass of air
-  regional_data_summary$regional_data[which(regional_data_summary$variable == "so2")] <- 
-    regional_data_summary$regional_data[which(regional_data_summary$variable == "so2")] * 64.066 / 28.96
-  
-  regional_data_summary$regional_data_sd[which(regional_data_summary$variable == "so2")] <- 
-    regional_data_summary$regional_data_sd[which(regional_data_summary$variable == "so2")] * 64.066 / 28.96
-  
-  return(regional_data_summary)
-}
 
-#read in data for each region
-arctic <- data_accumulation(emi_dir,'arctic',exper)
-global <- data_accumulation(emi_dir,'global',exper)
-land <- data_accumulation(emi_dir,'land',exper)
-NH_atlantic <- data_accumulation(emi_dir,'NH-atlantic',exper)
-NH_land <- data_accumulation(emi_dir,'NH-land',exper)
-NH_pacific <- data_accumulation(emi_dir,'NH-pacific',exper)
-NH_sea <- data_accumulation(emi_dir,'NH-sea',exper)
-sea <- data_accumulation(emi_dir,'sea',exper)
-SH_land <- data_accumulation(emi_dir,'SH-land',exper)
-SH_sea <- data_accumulation(emi_dir,'SH-sea',exper)
 
-#rename the mean and standard deviation results columns in each data frame
-arctic <- rename(arctic, arctic = regional_data)
-global <- rename(global, global = regional_data)
-land <- rename(land, land = regional_data)
-NH_atlantic <- rename(NH_atlantic, NH_atlantic = regional_data)
-NH_land <- rename(NH_land, NH_land = regional_data)
-NH_pacific <- rename(NH_pacific, NH_pacific = regional_data)
-NH_sea <- rename(NH_sea, NH_sea = regional_data)
-sea <- rename(sea, sea = regional_data)
-SH_land <- rename(SH_land, SH_land = regional_data)
-SH_sea <- rename(SH_sea, SH_sea = regional_data)
 
-arctic <- rename(arctic, arctic_sd = regional_data_sd)
-global <- rename(global, global_sd = regional_data_sd)
-land <- rename(land, land_sd = regional_data_sd)
-NH_atlantic <- rename(NH_atlantic, NH_atlantic_sd = regional_data_sd)
-NH_land <- rename(NH_land, NH_land_sd = regional_data_sd)
-NH_pacific <- rename(NH_pacific, NH_pacific_sd = regional_data_sd)
-NH_sea <- rename(NH_sea, NH_sea_sd = regional_data_sd)
-sea <- rename(sea, sea_sd = regional_data_sd)
-SH_land <- rename(SH_land, SH_land_sd = regional_data_sd)
-SH_sea <- rename(SH_sea, SH_sea_sd = regional_data_sd)
 
-# Bind data together
-summary_data <- list(arctic, global, land, NH_atlantic, NH_land, NH_pacific, NH_sea, sea, SH_land, SH_sea) %>% reduce(left_join, by = c("variable", "model"))
-
-# Correct model names for CESM and CESM2
-summary_data$model[which(summary_data$model == "CESM")] <- "CESM1"
-
-# Change to long format
-summary_long_exp <- summary_data %>% 
-  gather(region, value, -c(model, variable, arctic_sd, global_sd, land_sd, NH_atlantic_sd, NH_land_sd, NH_pacific_sd, NH_sea_sd, sea_sd, SH_land_sd, SH_sea_sd)) %>%
-  select(variable, model, region, value) %>%
-  drop_na()
-
-summary_long_sd <- summary_data %>% 
-  gather(region, sd, -c(model, variable, arctic, global, land, NH_atlantic, NH_land, NH_pacific, NH_sea, sea, SH_land, SH_sea)) %>%
-  select(variable, model, region, sd) %>%
-  drop_na()
-
-summary_long_sd$region <- gsub("_sd", "", summary_long_sd$region)
-
-summary_long <- dplyr::left_join(summary_long_exp, summary_long_sd)
-
-# Generate plots
-title_font <- 9.5
-axis_font <- 9
-axis_title_font <- 9
 
 emibc <- dplyr::filter(summary_long, variable == "emibc")
-emibc_plot <- ggplot(emibc, aes(x = region, y = value, color = model)) +
+emibc_plot <- ggplot(emibc, aes(x = experiment, y = value, color = model)) +
   theme_bw() +
-  labs(title=paste0('surface flux of BC - ', exper), y="emibc (kg m-2 s-1)") +
+  labs(title=paste0('surface flux of BC - ', region_or_exper), y="emibc (kg m-2 s-1)") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -159,9 +196,9 @@ emibc_plot <- ggplot(emibc, aes(x = region, y = value, color = model)) +
 
 
 emiso2 <- dplyr::filter(summary_long, variable == "emiso2")
-emiso2_plot <- ggplot(emiso2, aes(x = region, y = value, color = model)) +
+emiso2_plot <- ggplot(emiso2, aes(x = experiment, y = value, color = model)) +
   theme_bw() +
-  labs(title=paste0('surface flux of SO2 - ', exper), y="emiso2 (kg m-2 s-1)") +
+  labs(title=paste0('surface flux of SO2 - ', region), y="emiso2 (kg m-2 s-1)") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -173,9 +210,9 @@ emiso2_plot <- ggplot(emiso2, aes(x = region, y = value, color = model)) +
 
 
 mmrbc <- dplyr::filter(summary_long, variable == "mmrbc")
-mmrbc_plot <- ggplot(mmrbc, aes(x = region, y = value, color = model)) +
+mmrbc_plot <- ggplot(mmrbc, aes(x = experiment, y = value, color = model)) +
   theme_bw() +
-  labs(title=paste0('surface concentration of BC - ', exper), y="mmrbc (kg kg-1)") +
+  labs(title=paste0('surface concentration of BC - ', region), y="mmrbc (kg kg-1)") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -188,9 +225,9 @@ mmrbc_plot <- ggplot(mmrbc, aes(x = region, y = value, color = model)) +
 
 
 mmrso4 <- dplyr::filter(summary_long, variable == "mmrso4")
-mmrso4_plot <- ggplot(mmrso4, aes(x = region, y = value, color = model)) +
+mmrso4_plot <- ggplot(mmrso4, aes(x = experiment, y = value, color = model)) +
   theme_bw() +
-  labs(title=paste0('surface concentration of SO4 - ', exper), y="mmrso4 (kg kg-1)") +
+  labs(title=paste0('surface concentration of SO4 - ', region), y="mmrso4 (kg kg-1)") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -203,9 +240,9 @@ mmrso4_plot <- ggplot(mmrso4, aes(x = region, y = value, color = model)) +
 
 
 so2 <- dplyr::filter(summary_long, variable == "so2")
-so2_plot <- ggplot(so2, aes(x = region, y = value, color = model)) +
+so2_plot <- ggplot(so2, aes(x = experiment, y = value, color = model)) +
   theme_bw() +
-  labs(title=paste0('surface concentration of SO2 - ', exper), y="so2 (kg kg-1)") +
+  labs(title=paste0('surface concentration of SO2 - ', region), y="so2 (kg kg-1)") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -218,9 +255,9 @@ so2_plot <- ggplot(so2, aes(x = region, y = value, color = model)) +
 
 
 rlut <- dplyr::filter(summary_long, variable == "rlut")
-rlut_plot <- ggplot(rlut, aes(x = region, y = value, color = model)) +
+rlut_plot <- ggplot(rlut, aes(x = experiment, y = value, color = model)) +
   theme_bw() +
-  labs(title=paste0('upwelling longwave flux \n at TOA - ', exper), y="rlut (W m-2)") +
+  labs(title=paste0('upwelling longwave flux \n at TOA - ', region), y="rlut (W m-2)") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -233,9 +270,9 @@ rlut_plot <- ggplot(rlut, aes(x = region, y = value, color = model)) +
 
 
 rsut <- dplyr::filter(summary_long, variable == "rsut")
-rsut_plot <- ggplot(rsut, aes(x = region, y = value, color = model)) +
+rsut_plot <- ggplot(rsut, aes(x = experiment, y = value, color = model)) +
   theme_bw() +
-  labs(title=paste0('upwelling shortwave flux \n at TOA - ', exper), y="rsut (W m-2)") +
+  labs(title=paste0('upwelling shortwave flux \n at TOA - ', region), y="rsut (W m-2)") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -248,9 +285,9 @@ rsut_plot <- ggplot(rsut, aes(x = region, y = value, color = model)) +
 
 
 rsdt <- dplyr::filter(summary_long, variable == "rsdt")
-rsdt_plot <- ggplot(rsdt, aes(x = region, y = value, color = model)) +
+rsdt_plot <- ggplot(rsdt, aes(x = experiment, y = value, color = model)) +
   theme_bw() +
-  labs(title=paste0('incident shortwave flux \n at TOA - ', exper), y="rsdt (W m-2)") +
+  labs(title=paste0('incident shortwave flux \n at TOA - ', region), y="rsdt (W m-2)") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -263,9 +300,9 @@ rsdt_plot <- ggplot(rsdt, aes(x = region, y = value, color = model)) +
 
 
 rlutcs <- dplyr::filter(summary_long, variable == "rlutcs")
-rlutcs_plot <- ggplot(rlutcs, aes(x = region, y = value, color = model)) +
+rlutcs_plot <- ggplot(rlutcs, aes(x = experiment, y = value, color = model)) +
   theme_bw() +
-  labs(title=paste0('upwelling clear-sky longwave \n flux at TOA - ', exper), y="rlutcs (W m-2)") +
+  labs(title=paste0('upwelling clear-sky longwave \n flux at TOA - ', region), y="rlutcs (W m-2)") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -278,9 +315,9 @@ rlutcs_plot <- ggplot(rlutcs, aes(x = region, y = value, color = model)) +
 
 
 rsutcs <- dplyr::filter(summary_long, variable == "rsutcs")
-rsutcs_plot <- ggplot(rsutcs, aes(x = region, y = value, color = model)) +
+rsutcs_plot <- ggplot(rsutcs, aes(x = experiment, y = value, color = model)) +
   theme_bw() +
-  labs(title=paste0('upwelling clear-sky shortwave \n flux at TOA - ', exper), y="rsutcs (W m-2)") +
+  labs(title=paste0('upwelling clear-sky shortwave \n flux at TOA - ', region), y="rsutcs (W m-2)") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -291,22 +328,9 @@ rsutcs_plot <- ggplot(rsutcs, aes(x = region, y = value, color = model)) +
   geom_point( position=position_dodge(width=0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
 
-
-# Define normal and clear-sky net radiative flux (sum of longwave and shortwave radiation)
-net_rad <- dplyr::left_join(rlut, rsut, by = c("model", "region"))
-net_rad <- dplyr::mutate(net_rad, value = value.x + value.y) %>%
-  dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
-  dplyr::select(c(model, region, value, sd))
-
-net_rad_cs <- dplyr::left_join(rlutcs, rsutcs, by = c("model", "region"))
-net_rad_cs <- dplyr::mutate(net_rad_cs, value = value.x + value.y) %>%
-  dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
-  dplyr::select(c(model, region, value, sd))
-
-
-net_rad_plot <- ggplot(net_rad, aes(x = region, y = value, color = model)) +
+net_rad_plot <- ggplot(net_rad, aes(x = experiment, y = value, color = model)) +
   theme_bw() +
-  labs(title=paste0('net radiative flux \n at TOA - ', exper), y="rlut + rsut (W m-2)") +
+  labs(title=paste0('net radiative flux \n at TOA - ', region), y="rlut + rsut (W m-2)") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -318,9 +342,9 @@ net_rad_plot <- ggplot(net_rad, aes(x = region, y = value, color = model)) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
 
 
-net_rad_cs_plot <- ggplot(net_rad_cs, aes(x = region, y = value, color = model)) +
+net_rad_cs_plot <- ggplot(net_rad_cs, aes(x = experiment, y = value, color = model)) +
   theme_bw() +
-  labs(title=paste0('clear-sky net radiative flux \n at TOA - ', exper), y="rlutcs + rsutcs (W m-2)") +
+  labs(title=paste0('clear-sky net radiative flux \n at TOA - ', region), y="rlutcs + rsutcs (W m-2)") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -332,10 +356,11 @@ net_rad_cs_plot <- ggplot(net_rad_cs, aes(x = region, y = value, color = model))
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
 
 
+
 drybc <- dplyr::filter(summary_long, variable == "drybc")
-drybc_plot <- ggplot(drybc, aes(x = region, y = value, color = model)) +
+drybc_plot <- ggplot(drybc, aes(x = experiment, y = value, color = model)) +
   theme_bw() +
-  labs(title=paste0('dry deposition rate \n of BC - ', exper), y="drybc (kg m-2 s-1)") +
+  labs(title=paste0('dry deposition rate \n of BC - ', region), y="drybc (kg m-2 s-1)") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -348,9 +373,9 @@ drybc_plot <- ggplot(drybc, aes(x = region, y = value, color = model)) +
 
 
 wetbc <- dplyr::filter(summary_long, variable == "wetbc")
-wetbc_plot <- ggplot(wetbc, aes(x = region, y = value, color = model)) +
+wetbc_plot <- ggplot(wetbc, aes(x = experiment, y = value, color = model)) +
   theme_bw() +
-  labs(title=paste0('wet deposition rate \n of BC - ', exper), y="wetbc (kg m-2 s-1)") +
+  labs(title=paste0('wet deposition rate \n of BC - ', region), y="wetbc (kg m-2 s-1)") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -362,15 +387,10 @@ wetbc_plot <- ggplot(wetbc, aes(x = region, y = value, color = model)) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
 
 
-# Define total BC deposition rate (sum of dry and wet BC )
-tot_bc <- dplyr::left_join(drybc, wetbc, by = c("model", "region"))
-tot_bc <- dplyr::mutate(tot_bc, value = value.x + value.y) %>%
-  dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
-  dplyr::select(c(model, region, value, sd))
 
-tot_bc_plot <- ggplot(tot_bc, aes(x = region, y = value, color = model)) +
+tot_bc_plot <- ggplot(tot_bc, aes(x = experiment, y = value, color = model)) +
   theme_bw() +
-  labs(title=paste0('total deposition rate \n of BC - ', exper), y="drybc + wetbc (kg m-2 s-1)") +
+  labs(title=paste0('total deposition rate \n of BC - ', region), y="drybc + wetbc (kg m-2 s-1)") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -381,11 +401,10 @@ tot_bc_plot <- ggplot(tot_bc, aes(x = region, y = value, color = model)) +
   geom_point( position=position_dodge(width=0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
 
-
 dryso2 <- dplyr::filter(summary_long, variable == "dryso2")
-dryso2_plot <- ggplot(dryso2, aes(x = region, y = value, color = model)) +
+dryso2_plot <- ggplot(dryso2, aes(x = experiment, y = value, color = model)) +
   theme_bw() +
-  labs(title=paste0('dry deposition rate \n of so2 - ', exper), y="dryso2 (kg m-2 s-1)") +
+  labs(title=paste0('dry deposition rate \n of so2 - ', region), y="dryso2 (kg m-2 s-1)") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -398,9 +417,9 @@ dryso2_plot <- ggplot(dryso2, aes(x = region, y = value, color = model)) +
 
 
 wetso2 <- dplyr::filter(summary_long, variable == "wetso2")
-wetso2_plot <- ggplot(wetso2, aes(x = region, y = value, color = model)) +
+wetso2_plot <- ggplot(wetso2, aes(x = experiment, y = value, color = model)) +
   theme_bw() +
-  labs(title=paste0('wet deposition rate \n of so2 - ', exper), y="wetso2 (kg m-2 s-1)") +
+  labs(title=paste0('wet deposition rate \n of so2 - ', region), y="wetso2 (kg m-2 s-1)") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -412,10 +431,11 @@ wetso2_plot <- ggplot(wetso2, aes(x = region, y = value, color = model)) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
 
 
+
 dryso4 <- dplyr::filter(summary_long, variable == "dryso4")
-dryso4_plot <- ggplot(dryso4, aes(x = region, y = value, color = model)) +
+dryso4_plot <- ggplot(dryso4, aes(x = experiment, y = value, color = model)) +
   theme_bw() +
-  labs(title=paste0('dry deposition rate \n of so4 - ', exper), y="dryso4 (kg m-2 s-1)") +
+  labs(title=paste0('dry deposition rate \n of so4 - ', region), y="dryso4 (kg m-2 s-1)") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -426,11 +446,10 @@ dryso4_plot <- ggplot(dryso4, aes(x = region, y = value, color = model)) +
   geom_point( position=position_dodge(width=0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
 
-
 wetso4 <- dplyr::filter(summary_long, variable == "wetso4")
-wetso4_plot <- ggplot(wetso4, aes(x = region, y = value, color = model)) +
+wetso4_plot <- ggplot(wetso4, aes(x = experiment, y = value, color = model)) +
   theme_bw() +
-  labs(title=paste0('wet deposition rate \n of so4 - ', exper), y="wetso4 (kg m-2 s-1)") +
+  labs(title=paste0('wet deposition rate \n of so4 - ', region), y="wetso4 (kg m-2 s-1)") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -441,26 +460,9 @@ wetso4_plot <- ggplot(wetso4, aes(x = region, y = value, color = model)) +
   geom_point( position=position_dodge(width=0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
 
-
-# Define total S deposition rate (sum of dry and wet SO2/SO4 )
-dry_s <- dplyr::left_join(dryso2, dryso4, by = c("model", "region"))
-dry_s <- dplyr::mutate(dry_s, value = (32.065/64.066)*value.x + (32.065/96.06)*value.y) %>%
-  dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
-  dplyr::select(c(model, region, value, sd))
-
-wet_s <- dplyr::left_join(wetso2, wetso4, by = c("model", "region"))
-wet_s <- dplyr::mutate(wet_s, value = (32.065/64.066)*value.x + (32.065/96.06)*value.y) %>%
-  dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
-  dplyr::select(c(model, region, value, sd))
-
-tot_s <- dplyr::left_join(dry_s, wet_s, by = c("model", "region"))
-tot_s <- dplyr::mutate(tot_s, value = value.x + value.y) %>%
-  dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
-  dplyr::select(c(model, region, value, sd))
-
-tot_s_plot <- ggplot(tot_s, aes(x = region, y = value, color = model)) +
+tot_s_plot <- ggplot(tot_s, aes(x = experiment, y = value, color = model)) +
   theme_bw() +
-  labs(title=paste0('total deposition rate \n of S - ', exper), y="(dryso2 + wetso2)/2 + (dryso4 + wetso4)/3 (kg m-2 s-1)") +
+  labs(title=paste0('total deposition rate \n of S - ', region), y="(dryso2 + wetso2)/2 + (dryso4 + wetso4)/3 (kg m-2 s-1)") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -473,9 +475,9 @@ tot_s_plot <- ggplot(tot_s, aes(x = region, y = value, color = model)) +
 
 
 od550aer <- dplyr::filter(summary_long, variable == "od550aer")
-od550aer_plot <- ggplot(od550aer, aes(x = region, y = value, color = model)) +
+od550aer_plot <- ggplot(od550aer, aes(x = experiment, y = value, color = model)) +
   theme_bw() +
-  labs(title=paste0('ambient aerosol optical \n thickness at 550nm - ', exper), y="od550aer") +
+  labs(title=paste0('ambient aerosol optical \n thickness at 550nm - ', region), y="od550aer") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -488,9 +490,9 @@ od550aer_plot <- ggplot(od550aer, aes(x = region, y = value, color = model)) +
 
 
 clt <- dplyr::filter(summary_long, variable == "clt")
-clt_plot <- ggplot(clt, aes(x = region, y = value, color = model)) +
+clt_plot <- ggplot(clt, aes(x = experiment, y = value, color = model)) +
   theme_bw() +
-  labs(title=paste0('total cloud cover \n percentage - ', exper), y="clt (%)") +
+  labs(title=paste0('total cloud cover \n percentage - ', region), y="clt (%)") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -503,9 +505,9 @@ clt_plot <- ggplot(clt, aes(x = region, y = value, color = model)) +
 
 
 cltc <- dplyr::filter(summary_long, variable == "cltc")
-cltc_plot <- ggplot(cltc, aes(x = region, y = value, color = model)) +
+cltc_plot <- ggplot(cltc, aes(x = experiment, y = value, color = model)) +
   theme_bw() +
-  labs(title=paste0('convective cloud cover \n percentage - ', exper), y="cltc (%)") +
+  labs(title=paste0('convective cloud cover \n percentage - ', region), y="cltc (%)") +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -516,57 +518,22 @@ cltc_plot <- ggplot(cltc, aes(x = region, y = value, color = model)) +
   geom_point( position=position_dodge(width=0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
 
-# Function from stack exchange to generate a shared legend
-grid_arrange_shared_legend <- function(...) {
-  plots <- list(...)
-  g <- ggplotGrob(plots[[1]] + theme(legend.position="bottom", 
-                                     legend.title = element_blank(),
-                                     legend.text = element_text(size = 9,
-                                                                margin = margin(r = 10, unit = "pt"))))$grobs
-  legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
-  lheight <- sum(legend$height)
-  grid.arrange(
-    do.call(arrangeGrob, lapply(plots, function(x)
-      x + theme(legend.position="none"))),
-    legend,
-    ncol = 1,
-    heights = unit.c(unit(1, "npc") - 1.5 * lheight, lheight), # the "1.5" adds room for title
-    top = textGrob("Summary - absolute difference", gp = gpar(fontsize = 12)))
+
+
+#creates a new function that creates plots for cumulative species (such as net_rad_plot)
+plot_cumulative_species <- function(x, y, title, units, region_or_exper){
+  species_plot <- ggplot(species, aes(x = x, y = y, color = model))+
+    theme_bw()+
+    labs(title=paste0(title,' - ', region), y=units) +
+    theme(plot.title = element_text(hjust = 0.5, size = title_font),
+          axis.text = element_text(size = axis_font),
+          axis.title = element_text(size = axis_title_font),
+          axis.text.x = element_text(angle = 45, hjust = 1),
+          axis.title.x = element_blank()) +
+    scale_y_continuous(labels = scales::scientific_format(digits = 2), limits = c(-max(abs(species$value))-max(abs(species$sd)), max(abs(species$value))+max(abs(species$sd))))+
+    scale_colour_manual(values = model_colors) +
+    geom_point( position=position_dodge(width=0.4), size = 1.5) +
+    geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
+  
+  return(species_plot)    
 }
-
-emissions_plot <- grid_arrange_shared_legend(emibc_plot, 
-                                             emiso2_plot, 
-                                             mmrbc_plot, 
-                                             mmrso4_plot, 
-                                             so2_plot)
-
-forcing_plot <- grid_arrange_shared_legend(rlut_plot, 
-                                           rsut_plot,
-                                           net_rad_plot,
-                                           rsdt_plot, 
-                                           rlutcs_plot, 
-                                           rsutcs_plot,
-                                           net_rad_cs_plot,
-                                           od550aer_plot,
-                                           clt_plot,
-                                           cltc_plot)
-
-deposition_plot <- grid_arrange_shared_legend(drybc_plot,
-                                              wetbc_plot,
-                                              tot_bc_plot,
-                                              dryso2_plot,
-                                              wetso2_plot,
-                                              dryso4_plot,
-                                              wetso4_plot,
-                                              tot_s_plot)
-
-# Print plots
-setwd(paste0('../../../../output/', exper, '/summary'))
-
-pdf(paste0(exper, '_summary_plots_diff.pdf'), height = 11, width = 8.5, paper = "letter")
-grid.draw(emissions_plot)
-grid.newpage()
-grid.draw(forcing_plot)
-grid.newpage()
-grid.draw(deposition_plot)
-dev.off()
