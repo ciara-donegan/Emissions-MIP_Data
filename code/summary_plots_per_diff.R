@@ -1,7 +1,7 @@
 # ------------------------------------------------------------------------------
 # Program Name: summary_plots_per_diff.R
 # Authors: Hamza Ahsan
-# Date Last Modified: Sept 3, 2021
+# Date Last Modified: October 29, 2021
 # Program Purpose: Produces summary plots of the percent difference between the
 # perturbations and the reference case averaged over all years
 # Input Files: ~Emissions-MIP/input/
@@ -18,22 +18,17 @@ library(gridExtra)
 library(grid)
 
 # Specify location of Emissions-MIP directory
-emi_dir <- paste0('C:/Users/such559/Documents/Emissions-MIP_Phase1b')
+emi_dir <- paste0('C:/Users/ahsa361/Documents/Emissions-MIP_Data')
 
 # Specify region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, SH-sea,
-# NH-pacific, NH-atlantic)
-region <- "SH-sea"
+# NH-pacific, NH-atlantic, NH-indian)
+region <- "NH-indian"
 
-# Define default ggplot colors and associate with models (in case a plot is 
-# missing a model, the color scheme will remain consistent)
-gg_color_hue <- function(n) {
-  hues = seq(15, 375, length = n + 1)
-  hcl(h = hues, l = 65, c = 100)[1:n]
-}
+# Define colorblind-friendly palette colors and associate with models (in case a  
+# plot is missing a model, the color scheme will remain consistent)
+cbPalette <- c("#0072B2", "#D55E00")
 
-cols = gg_color_hue(5)
-
-model_colors <- c("CESM1" = cols[1], "GISS" = cols[2])
+model_colors <- c('CESM1' = cbPalette[1], 'GISS' = cbPalette[2])
 model_symbols <- c("CESM1" = 15, "GISS" = 17)
 
 # ------------------------------------------------------------------------------
@@ -201,20 +196,48 @@ shp_ind_shift_1950_summary <- shp_ind_shift_1950 %>% dplyr::group_by(variable, m
 #---------------------------------------------------
 
 # Bind data together
-summary_data <- list(shp_10p_red_summary, shp_10p_red_1950_summary, shp_20p_red_summary, shp_20p_red_1950_summary, shp_80p_red_summary, shp_atl_shift_summary, shp_atl_shift_1950_summary, shp_ind_shift_summary, shp_ind_shift_1950_summary) %>% reduce(left_join, by = c("variable", "model"))
+summary_data <- list(shp_10p_red_summary, 
+                     shp_10p_red_1950_summary, 
+                     shp_20p_red_summary, 
+                     shp_20p_red_1950_summary, 
+                     shp_80p_red_summary, 
+                     shp_atl_shift_summary, 
+                     shp_atl_shift_1950_summary, 
+                     shp_ind_shift_summary, 
+                     shp_ind_shift_1950_summary) %>% 
+  reduce(left_join, by = c("variable", "model"))
 
 # Correct model names
 summary_data$model[which(summary_data$model == "CESM")] <- "CESM1"
-summary_data$model[which(summary_data$model == "GISS_SO2")] <- "GISS (SO2)"
 
 # Change to long format
 summary_long_exp <- summary_data %>% 
-  gather(experiment, value, -c(model, variable, shp_10p_red_sd, shp_10p_red_1950_sd, shp_20p_red_sd, shp_20p_red_1950_sd, shp_80p_red_sd, shp_atl_shift_sd, shp_atl_shift_1950_sd, shp_ind_shift_sd, shp_ind_shift_1950_sd)) %>%
+  gather(experiment, value, -c(model, 
+                               variable, 
+                               shp_10p_red_sd, 
+                               shp_10p_red_1950_sd, 
+                               shp_20p_red_sd, 
+                               shp_20p_red_1950_sd, 
+                               shp_80p_red_sd, 
+                               shp_atl_shift_sd, 
+                               shp_atl_shift_1950_sd, 
+                               shp_ind_shift_sd, 
+                               shp_ind_shift_1950_sd)) %>%
   select(variable, model, experiment, value) %>%
   drop_na()
 
 summary_long_sd <- summary_data %>% 
-  gather(experiment, sd, -c(model, variable, shp_10p_red, shp_10p_red_1950, shp_20p_red, shp_20p_red_1950, shp_80p_red, shp_atl_shift, shp_atl_shift_1950, shp_ind_shift, shp_ind_shift_1950)) %>%
+  gather(experiment, sd, -c(model, 
+                            variable, 
+                            shp_10p_red, 
+                            shp_10p_red_1950, 
+                            shp_20p_red, 
+                            shp_20p_red_1950, 
+                            shp_80p_red, 
+                            shp_atl_shift, 
+                            shp_atl_shift_1950, 
+                            shp_ind_shift, 
+                            shp_ind_shift_1950)) %>%
   select(variable, model, experiment, sd) %>%
   drop_na()
 
@@ -230,7 +253,7 @@ axis_title_font <- 9
 emibc <- dplyr::filter(summary_long, variable == "emibc")
 emibc_plot <- ggplot(emibc, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
-  labs(title = paste0('surface flux of BC - ', region), y="Percent") +
+  labs(title = paste0('surface flux of BC - ', region), y=expression(Delta*~emibc)) +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -246,7 +269,7 @@ emibc_plot <- ggplot(emibc, aes(x = experiment, y = value, color = model, shape 
 emiso2 <- dplyr::filter(summary_long, variable == "emiso2")
 emiso2_plot <- ggplot(emiso2, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
-  labs(title = paste0('surface flux of SO2 - ', region), y="Percent") +
+  labs(title = paste0('surface flux of SO2 - ', region), y=expression(Delta*~emiso2)) +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -262,7 +285,7 @@ emiso2_plot <- ggplot(emiso2, aes(x = experiment, y = value, color = model, shap
 mmrbc <- dplyr::filter(summary_long, variable == "mmrbc")
 mmrbc_plot <- ggplot(mmrbc, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
-  labs(title = paste0('surface concentration of BC - ', region), y="Percent") +
+  labs(title = paste0('surface concentration of BC - ', region), y=expression(Delta*~mmrbc)) +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -278,7 +301,7 @@ mmrbc_plot <- ggplot(mmrbc, aes(x = experiment, y = value, color = model, shape 
 mmrso4 <- dplyr::filter(summary_long, variable == "mmrso4")
 mmrso4_plot <- ggplot(mmrso4, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
-  labs(title = paste0('surface concentration of SO4 - ', region), y="Percent") +
+  labs(title = paste0('surface concentration of SO4 - ', region), y=expression(Delta*~mmrso4)) +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -294,7 +317,7 @@ mmrso4_plot <- ggplot(mmrso4, aes(x = experiment, y = value, color = model, shap
 so2 <- dplyr::filter(summary_long, variable == "so2")
 so2_plot <- ggplot(so2, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
-  labs(title = paste0('surface concentration of SO2 - ', region), y="Percent") +
+  labs(title = paste0('surface concentration of SO2 - ', region), y=expression(Delta*~so2)) +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -310,7 +333,7 @@ so2_plot <- ggplot(so2, aes(x = experiment, y = value, color = model, shape = mo
 rlut <- dplyr::filter(summary_long, variable == "rlut")
 rlut_plot <- ggplot(rlut, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
-  labs(title = paste0('upwelling longwave flux \n at TOA - ', region), y="Percent") +
+  labs(title = paste0('longwave fluxat TOA - \n', region), y=expression(Delta*~rlut)) +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -326,7 +349,7 @@ rlut_plot <- ggplot(rlut, aes(x = experiment, y = value, color = model, shape = 
 rsut <- dplyr::filter(summary_long, variable == "rsut")
 rsut_plot <- ggplot(rsut, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
-  labs(title = paste0('upwelling shortwave flux \n at TOA - ', region), y="Percent") +
+  labs(title = paste0('shortwave flux at TOA - \n', region), y=expression(Delta*~rsut)) +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -342,7 +365,7 @@ rsut_plot <- ggplot(rsut, aes(x = experiment, y = value, color = model, shape = 
 rsdt <- dplyr::filter(summary_long, variable == "rsdt")
 rsdt_plot <- ggplot(rsdt, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
-  labs(title = paste0('incident shortwave flux \n at TOA - ', region), y="Percent") +
+  labs(title = paste0('incident shortwave flux \n at TOA - ', region), y=expression(Delta*~rsdt)) +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -358,7 +381,7 @@ rsdt_plot <- ggplot(rsdt, aes(x = experiment, y = value, color = model, shape = 
 rlutcs <- dplyr::filter(summary_long, variable == "rlutcs")
 rlutcs_plot <- ggplot(rlutcs, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
-  labs(title = paste0('upwelling clear-sky longwave \n flux at TOA - ', region), y="Percent") +
+  labs(title = paste0('clear-sky longwave flux \n at TOA - ', region), y=expression(Delta*~rlutcs)) +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -374,7 +397,7 @@ rlutcs_plot <- ggplot(rlutcs, aes(x = experiment, y = value, color = model, shap
 rsutcs <- dplyr::filter(summary_long, variable == "rsutcs")
 rsutcs_plot <- ggplot(rsutcs, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
-  labs(title = paste0('upwelling clear-sky shortwave \n flux at TOA - ', region), y="Percent") +
+  labs(title = paste0('clear-sky shortwaveflux \n at TOA - ', region), y=expression(Delta*~rsutcs)) +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -387,21 +410,27 @@ rsutcs_plot <- ggplot(rsutcs, aes(x = experiment, y = value, color = model, shap
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
 
 
-# Define normal and clear-sky net radiative flux (incident shortwave + incident longwave - upwelling shortwave - upwelling longwave, 
+# Define normal and clear-sky net radiative flux (incident shortwave + incident longwave - shortwave - longwave, 
 # but the incidents cancel out)
 net_rad <- dplyr::left_join(rlut, rsut, by = c("model", "experiment"))
-net_rad <- dplyr::mutate(net_rad, value = -1*value.x - value.y) %>%
+net_rad <- dplyr::mutate(net_rad, value = value.x + value.y) %>%
   dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
   dplyr::select(c(model, experiment, value, sd))
 
 net_rad_cs <- dplyr::left_join(rlutcs, rsutcs, by = c("model", "experiment"))
-net_rad_cs <- dplyr::mutate(net_rad_cs, value = -1*value.x - value.y) %>%
+net_rad_cs <- dplyr::mutate(net_rad_cs, value = value.x + value.y) %>%
+  dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
+  dplyr::select(c(model, experiment, value, sd))
+
+# Define implied cloud response (net - clearsky) as a new variable to plot
+imp_cld <- dplyr::left_join(net_rad, net_rad_cs, by = c("model", "experiment"))
+imp_cld <- dplyr::mutate(imp_cld, value = value.x - value.y) %>%
   dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
   dplyr::select(c(model, experiment, value, sd))
 
 net_rad_plot <- ggplot(net_rad, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
-  labs(title=paste0('net radiative flux \n at TOA - ', region), y="Percent") +
+  labs(title=paste0('net radiative flux at TOA - \n', region), y=expression(Delta*~(rlut~+~rsut))) +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -416,7 +445,7 @@ net_rad_plot <- ggplot(net_rad, aes(x = experiment, y = value, color = model, sh
 
 net_rad_cs_plot <- ggplot(net_rad_cs, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
-  labs(title=paste0('clear-sky net radiative \n flux at TOA - ', region), y="Percent") +
+  labs(title=paste0('clear-sky net radiative \n flux at TOA - ', region), y=expression(Delta*~(rlutcs~+~rsutcs))) +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -429,10 +458,25 @@ net_rad_cs_plot <- ggplot(net_rad_cs, aes(x = experiment, y = value, color = mod
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
 
 
+imp_cld_plot <- ggplot(imp_cld, aes(x = experiment, y = value, color = model, shape = model)) +
+  theme_bw() +
+  labs(title=paste0('implied cloud response at TOA - \n', region), y=expression(Delta*~(rlut~+~rsut~-~rlutcs~-~rsutcs))) +
+  theme(plot.title = element_text(hjust = 0.5, size = title_font),
+        axis.text = element_text(size = axis_font),
+        axis.title = element_text(size = axis_title_font),
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        axis.title.x = element_blank()) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(imp_cld$value))-max(abs(imp_cld$sd)), max(abs(imp_cld$value))+max(abs(imp_cld$sd)))) +
+  scale_colour_manual(values = model_colors) +
+  scale_shape_manual(values = model_symbols) +
+  geom_point( position=position_dodge(width = 0.4), size = 1.5) +
+  geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
+
+
 drybc <- dplyr::filter(summary_long, variable == "drybc")
 drybc_plot <- ggplot(drybc, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
-  labs(title = paste0('dry deposition rate \n of BC - ', region), y="Percent") +
+  labs(title = paste0('dry deposition rate \n of BC - ', region), y=expression(Delta*~drybc)) +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -448,7 +492,7 @@ drybc_plot <- ggplot(drybc, aes(x = experiment, y = value, color = model, shape 
 wetbc <- dplyr::filter(summary_long, variable == "wetbc")
 wetbc_plot <- ggplot(wetbc, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
-  labs(title = paste0('wet deposition rate \n of BC - ', region), y="Percent") +
+  labs(title = paste0('wet deposition rate \n of BC - ', region), y=expression(Delta*~wetbc)) +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -469,7 +513,7 @@ tot_bc <- dplyr::mutate(tot_bc, value = value.x + value.y) %>%
 
 tot_bc_plot <- ggplot(tot_bc, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
-  labs(title=paste0('total deposition rate \n of BC - ', region), y="Percent") +
+  labs(title=paste0('total deposition rate \n of BC - ', region), y=expression(Delta*~(drybc~+~wetbc))) +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -485,7 +529,7 @@ tot_bc_plot <- ggplot(tot_bc, aes(x = experiment, y = value, color = model, shap
 dryso2 <- dplyr::filter(summary_long, variable == "dryso2")
 dryso2_plot <- ggplot(dryso2, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
-  labs(title = paste0('dry deposition rate \n of SO2 - ', region), y="Percent") +
+  labs(title = paste0('dry deposition rate \n of SO2 - ', region), y=expression(Delta*~dryso2)) +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -501,7 +545,7 @@ dryso2_plot <- ggplot(dryso2, aes(x = experiment, y = value, color = model, shap
 wetso2 <- dplyr::filter(summary_long, variable == "wetso2")
 wetso2_plot <- ggplot(wetso2, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
-  labs(title = paste0('wet deposition rate \n of SO2 - ', region), y="Percent") +
+  labs(title = paste0('wet deposition rate \n of SO2 - ', region), y=expression(Delta*~wetso2)) +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -517,7 +561,7 @@ wetso2_plot <- ggplot(wetso2, aes(x = experiment, y = value, color = model, shap
 dryso4 <- dplyr::filter(summary_long, variable == "dryso4")
 dryso4_plot <- ggplot(dryso4, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
-  labs(title = paste0('dry deposition rate \n of SO4 - ', region), y="Percent") +
+  labs(title = paste0('dry deposition rate \n of SO4 - ', region), y=expression(Delta*~dryso4)) +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -533,7 +577,7 @@ dryso4_plot <- ggplot(dryso4, aes(x = experiment, y = value, color = model, shap
 wetso4 <- dplyr::filter(summary_long, variable == "wetso4")
 wetso4_plot <- ggplot(wetso4, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
-  labs(title = paste0('wet deposition rate \n of SO4 - ', region), y="Percent") +
+  labs(title = paste0('wet deposition rate \n of SO4 - ', region), y=expression(Delta*~wetso4)) +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -564,7 +608,7 @@ tot_s <- dplyr::mutate(tot_s, value = value.x + value.y) %>%
 
 tot_s_plot <- ggplot(tot_s, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +
-  labs(title=paste0('total deposition rate \n of S - ', region), y="Percent") +
+  labs(title=paste0('total deposition rate \n of S - ', region), y=expression(Delta*~(dryso2~+~wetso2)/2~+~(dryso4~+~wetso4)/3)) +
   theme(plot.title = element_text(hjust = 0.5, size = title_font),
         axis.text = element_text(size = axis_font),
         axis.title = element_text(size = axis_title_font),
@@ -607,7 +651,8 @@ forcing_plot <- grid_arrange_shared_legend(rlut_plot,
                                            rsdt_plot, 
                                            rlutcs_plot, 
                                            rsutcs_plot,
-                                           net_rad_cs_plot)
+                                           net_rad_cs_plot,
+                                           imp_cld_plot)
 
 deposition_plot <- grid_arrange_shared_legend(drybc_plot,
                                               wetbc_plot,

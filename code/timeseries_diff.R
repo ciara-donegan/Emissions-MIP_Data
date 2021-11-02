@@ -1,7 +1,7 @@
 # ------------------------------------------------------------------------------
 # Program Name: timeseries_diff.R
 # Authors: Hamza Ahsan
-# Date Last Modified: Sept 3, 2021
+# Date Last Modified: October 31, 2021
 # Program Purpose: Produces time series line plots of the difference between 
 # the perturbations and the reference case
 # Input Files: ~Emissions-MIP/input/
@@ -18,23 +18,18 @@ library(gridExtra)
 library(grid)
 
 # Specify location of Emissions-MIP directory
-emi_dir <- paste0('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP-Phase1b')
+emi_dir <- paste0('C:/Users/ahsa361/Documents/Emissions-MIP_Data')
 
 # Specify region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, SH-sea,
-# NH-pacific, NH-atlantic)
-region <- "NH-atlantic"
+# NH-pacific, NH-atlantic, NH-indian)
+region <- "global"
 
-# Define default ggplot colors and associate with models (in case a plot is 
-# missing a model, the color scheme will remain consistent)
-gg_color_hue <- function(n) {
-  hues = seq(15, 375, length = n + 1)
-  hcl(h = hues, l = 65, c = 100)[1:n]
-}
+# Define colorblind-friendly palette colors and associate with models (in case a  
+# plot is missing a model, the color scheme will remain consistent)
+cbPalette <- c("#0072B2", "#D55E00")
 
-cols = gg_color_hue(5)
-
-model_colors <- c("CESM1" = cols[1], "GISS" = cols[2], "GISS (all em)" = cols[3],
-                  "GISS (SO2)" = cols[4])
+model_colors <- c('CESM1' = cbPalette[1], 'GISS' = cbPalette[2])
+model_symbols <- c("CESM1" = 15, "GISS" = 17)
 
 # ------------------------------------------------------------------------------
 
@@ -57,16 +52,8 @@ for(pert in perts){
   experiment$model <- rep_models
   
   # Correct model names
-  if (pert %in% c('shp-10p-red', 'shp-10p-red-1950', 'shp-20p-red', 'shp-20p-red-1950', 
-                  'shp-80p-red')) {
     experiment$model[which(experiment$model == "CESM")] <- "CESM1"
-    experiment$model[which(experiment$model == "GISS")] <- "GISS (all em)"
-    experiment$model[which(experiment$model == "GISS_SO2")] <- "GISS (SO2)"
-  } else if (pert %in% c('shp-atl-shift', 'shp-atl-shift-1950', 'shp-ind-shift',
-                         'shp-ind-shift-1950')) {
-    experiment$model[which(experiment$model == "CESM")] <- "CESM1"
-  }
-  
+
   # Rearrange data frame by years descending
   experiment <- dplyr::arrange(experiment, year)
   
