@@ -18,7 +18,7 @@ library(gridExtra)
 library(grid)
 
 # Specify location of Emissions-MIP directory
-emi_dir <- paste0('C:/Users/such559/Documents/Emissions-MIP_Data')
+emi_dir <- paste0('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP')
 
 #specifies whether to sort the data by region or by experiment
 sort_by <- "experiment"
