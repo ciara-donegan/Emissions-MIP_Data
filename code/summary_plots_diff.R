@@ -30,6 +30,7 @@ region <- "NH-pacific"
 # Specify experiment (i.e., bc-no-season, high-so4, no-so4, reference, so2-at-height, so2-no-season)
 exper <- c("bc-no-season")
 
+
   # Define default ggplot colors and associate with models (in case a plot is 
   # missing a model, the color scheme will remain consistent)
   gg_color_hue <- function(n) {
@@ -46,6 +47,10 @@ exper <- c("bc-no-season")
   model_symbols <- c(CESM1 = 15, E3SM = 15, GISS = 17, CESM2 = 19, MIROC = 15, 
                      NorESM2 = 17, GFDL = 19, OsloCTM3 = 19, UKESM = 15, GEOS = 17)
   
+  # ------------------------------------------------------------------------------
+  #reads in csv file specifying which models to exclude from the data
+  excluded_models <- read.csv(file = paste0(emi_dir, '/input', '/excluded_data.csv'), fileEncoding="UTF-8-BOM")
+  excluded_models %>% drop_na() #gets rid of any empty spaces
   #-----------------------------------------------------------------------------
   #extracts data for each perturbation experiment from csv files
   data_accumulation <- function(emi_dir, reg_name, exper){
@@ -127,6 +132,14 @@ exper <- c("bc-no-season")
   summary_long_sd$experiment <- gsub("_sd", "", summary_long_sd$experiment)
   
   summary_long <- dplyr::left_join(summary_long_exp, summary_long_sd)
+  
+  #runs through each excluded model pair and filters them out of summary_long
+  if(nrow(excluded_models) != 0) { #only runs if the data frame is not empty
+    for (val in 1:nrow(excluded_models)) {
+      summary_long <- filter(summary_long, experiment != excluded_models$Scenario[val] | model != excluded_models$Model[val])
+    }
+  }
+  
   }
   
   if (sort_by == "experiment"){
@@ -280,7 +293,6 @@ od550aer_plot <-  plot_species(od550aer, region, value, 'ambient aerosol optical
 clt_plot <- plot_species(clt, region, value, 'total cloud cover \n percentage', 'clt (%)', exper) 
 cltc_plot <- plot_species(cltc, region, value, 'convective cloud cover \n percentage', 'cltc (%)', exper) 
 
-
 # Define normal and clear-sky net radiative flux (sum of longwave and shortwave radiation)
 if (sort_by == "region"){
   net_rad <- dplyr::left_join(rlut, rsut, by = c("model", "experiment"))
@@ -368,7 +380,7 @@ tot_s_plot <- plot_species(tot_s, region, value, 'total deposition rate \n of S'
 # Function from stack exchange to generate a shared legend
 grid_arrange_shared_legend <- function(...) {
   plots <- list(...)
-  g <- ggplotGrob(plots[[1]] + theme(legend.position="bottom", 
+  g <- ggplotGrob(plots[[1]] + theme(legend.position="bottom",
                                      legend.title = element_blank(),
                                      legend.text = element_text(size = 9,
                                                                 margin = margin(r = 10, unit = "pt"))))$grobs
@@ -383,17 +395,17 @@ grid_arrange_shared_legend <- function(...) {
     top = textGrob("Summary - absolute difference", gp = gpar(fontsize = 12)))
 }
 
-emissions_plot <- grid_arrange_shared_legend(emibc_plot, 
-                                         emiso2_plot, 
-                                         mmrbc_plot, 
-                                         mmrso4_plot, 
+emissions_plot <- grid_arrange_shared_legend(emibc_plot,
+                                         emiso2_plot,
+                                         mmrbc_plot,
+                                         mmrso4_plot,
                                          so2_plot)
 
-forcing_plot <- grid_arrange_shared_legend(rlut_plot, 
+forcing_plot <- grid_arrange_shared_legend(rlut_plot,
                                           rsut_plot,
                                           net_rad_plot,
-                                          rsdt_plot, 
-                                          rlutcs_plot, 
+                                          rsdt_plot,
+                                          rlutcs_plot,
                                           rsutcs_plot,
                                           net_rad_cs_plot,
                                           od550aer_plot,

@@ -30,7 +30,6 @@ region <- "NH-pacific"
 # Specify experiment (i.e., bc-no-season, high-so4, no-so4, reference, so2-at-height, so2-no-season)
 exper <- c("bc-no-season")
 
-# Define default ggplot colors and associate with models (in case a plot is 
 # missing a model, the color scheme will remain consistent)
 gg_color_hue <- function(n) {
   hues = seq(15, 375, length = n + 1)
@@ -38,6 +37,7 @@ gg_color_hue <- function(n) {
 }
 
 cols = gg_color_hue(10)
+
 
 model_colors <- c(CESM1 = cols[1], E3SM = cols[2], GISS = cols[3], CESM2 = cols[4],
                   MIROC = cols[5], NorESM2 = cols[6], GFDL = cols[7], OsloCTM3 = cols[8],
@@ -79,6 +79,10 @@ data_accumulation <- function(emi_dir, reg_name, exper){
   return(regional_data_summary)
 }
 
+# ------------------------------------------------------------------------------
+#reads in csv file specifying which models to exclude from the data
+excluded_models <- read.csv(file = paste0(emi_dir, '/input', '/excluded_data.csv'), fileEncoding="UTF-8-BOM")
+excluded_models %>% drop_na() #gets rid of any empty spaces
 #-----------------------------------------------------------------------------
 if (sort_by == "region"){
   
@@ -120,6 +124,13 @@ if (sort_by == "region"){
   summary_long_sd$experiment <- gsub("_sd", "", summary_long_sd$experiment)
   
   summary_long <- dplyr::left_join(summary_long_exp, summary_long_sd)
+  
+  #runs through each excluded model pair and filters them out of summary_long
+  if(nrow(excluded_models) != 0) { #only runs if the data frame is not empty
+    for (val in 1:nrow(excluded_models)) {
+      summary_long <- filter(summary_long, experiment != excluded_models$Scenario[val] | model != excluded_models$Model[val])
+    }
+  }
 }
 
 if (sort_by == "experiment"){
@@ -361,7 +372,7 @@ tot_s_plot <- plot_species(tot_s, region, value, 'total deposition rate \n of S'
 # Function from stack exchange to generate a shared legend
 grid_arrange_shared_legend <- function(...) {
   plots <- list(...)
-  g <- ggplotGrob(plots[[1]] + theme(legend.position="bottom", 
+  g <- ggplotGrob(plots[[1]] + theme(legend.position="bottom",
                                      legend.title = element_blank(),
                                      legend.text = element_text(size = 9,
                                                                 margin = margin(r = 10, unit = "pt"))))$grobs
@@ -376,17 +387,17 @@ grid_arrange_shared_legend <- function(...) {
     top = textGrob("Summary - absolute difference", gp = gpar(fontsize = 12)))
 }
 
-emissions_plot <- grid_arrange_shared_legend(emibc_plot, 
-                                             emiso2_plot, 
-                                             mmrbc_plot, 
-                                             mmrso4_plot, 
+emissions_plot <- grid_arrange_shared_legend(emibc_plot,
+                                             emiso2_plot,
+                                             mmrbc_plot,
+                                             mmrso4_plot,
                                              so2_plot)
 
-forcing_plot <- grid_arrange_shared_legend(rlut_plot, 
+forcing_plot <- grid_arrange_shared_legend(rlut_plot,
                                            rsut_plot,
                                            net_rad_plot,
-                                           rsdt_plot, 
-                                           rlutcs_plot, 
+                                           rsdt_plot,
+                                           rlutcs_plot,
                                            rsutcs_plot,
                                            net_rad_cs_plot,
                                            od550aer_plot,
