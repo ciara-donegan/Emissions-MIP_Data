@@ -1,9 +1,9 @@
 # ------------------------------------------------------------------------------
 # Program Name: timeseries_diff.R
 # Authors: Hamza Ahsan
-# Date Last Modified: September 29, 2021
-# Program Purpose: Produces time series line plots of the difference between 
-# the perturbations and the reference case
+# Date Last Modified: November 5, 2021
+# Program Purpose: Produces time series line plots of the percent difference
+# between the perturbations and the reference case
 # Input Files: ~Emissions-MIP/input/
 # Output Files: ~Emissions-MIP/output/
 # TODO:
@@ -18,10 +18,10 @@ library(gridExtra)
 library(grid)
 
 #set the working directory to the code directory
-setwd('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP/code')
+setwd('C:/Users/such559/Documents/Emissions-MIP_Data')
 
 # Specify location of Emissions-MIP directory
-emi_dir <- paste0('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP/code')
+emi_dir <- paste0('C:/Users/such559/Documents/Emissions-MIP_Data')
 
 # Specify what you are sorting by and either the region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, SH-sea) or experiment (i.e., bc-no-season, high-so4, no-so4, reference, so2-at-height, so2-no-season)
 #The command line would look like: rscript <rscript>.r <"experiment" or "region"> <specific experiment or region you are sorting by>
@@ -30,18 +30,15 @@ sort_by <- sorting[1]
 if (sort_by == "region"){region <- sorting[2]}
 if (sort_by == "experiment"){pert <- sorting[2]}
 
+# Define colorblind-friendly palette colors and associate with models (in case a  
+# plot is missing a model, the color scheme will remain consistent)
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#920000",
+               "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#490092")
 
-# Define default ggplot colors and associate with models (in case a plot is
-# missing a model, the color scheme will remain consistent)
-gg_color_hue <- function(n) {
-  hues = seq(15, 375, length = n + 1)
-  hcl(h = hues, l = 65, c = 100)[1:n]
-}
-
-cols = gg_color_hue(10)
-model_colors <- c(CESM1 = cols[1], E3SM = cols[2], GISS = cols[3], CESM2 = cols[4],
-                  MIROC = cols[5], NorESM2 = cols[6], GFDL = cols[7], OsloCTM3 = cols[8],
-                  UKESM = cols[9], GEOS = cols[10])
+model_colors <- c(CESM1 = cbPalette[1], E3SM = cbPalette[2], GISS = cbPalette[3], 
+                  CESM2 = cbPalette[4], MIROC = cbPalette[5], NorESM2 = cbPalette[6], 
+                  GFDL = cbPalette[7], OsloCTM3 = cbPalette[8], UKESM = cbPalette[9], 
+                  GEOS = cbPalette[10])
 
 # ------------------------------------------------------------------------------
 # Iterate over the different perturbation/regional experiments
@@ -49,7 +46,7 @@ if (sort_by == "region"){scenarios <- c('bc-no-season', 'high-so4', 'no-so4', 's
 if (sort_by == "experiment"){scenarios <- c("arctic", "global", "land", "NH-atlantic", "NH-land", "NH-pacific", "NH-sea", "sea", "SH-land", "SH-sea")}
 #-------------------------------------------------------------------------------
 #reads in csv file specifying which models to exclude from the data
-excluded_models <- read.csv(file = paste0(emi_dir, '/input', '/excluded_data.csv'), fileEncoding="UTF-8-BOM")
+excluded_models <- read.csv(file = paste0(emi_dir, '/input', '/excluded_data.csv'), fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
 excluded_models %>% drop_na() #gets rid of any empty spaces
 #-------------------------------------------------------------------------------
 
@@ -71,18 +68,9 @@ for(scenario in scenarios){
   models <- sapply(strsplit(target_filename, "[-.]+"),function(x) x[5])
   rep_models <- rep(models, each = 4) # four years
   experiment$model <- rep_models
-  
-  # Correct model names for CESM and CESM2
+
+  # Correct model names
   experiment$model[which(experiment$model == "CESM")] <- "CESM1"
-  
-  # Change any negative value to positive (i.e., CESM2 wetbc, wetso2, wetso4)
-  # Invert sign of CESM2 wet deposition variables
-  experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetbc")] <- 
-    -1 * experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetbc")]
-  experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetso2")] <- 
-    -1 * experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetso2")]
-  experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetso4")] <- 
-    -1 * experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetso4")]
   
   # Rearrange data frame by years descending
   experiment <- dplyr::arrange(experiment, year)
@@ -100,7 +88,7 @@ for(scenario in scenarios){
     #runs through each excluded model pair and filters them out of experiment
     if(nrow(excluded_models) != 0) { #only runs if the data frame is not empty
       for (val in 1:nrow(excluded_models)) {
-        experiment <- filter(experiment, scenario != excluded_models$Scenario[val] | experiment$model != excluded_models$Model[val])
+        summary_long <- filter(summary_long, experiment != excluded_models$Scenario[val] | model != excluded_models$Model[val] | variable != excluded_models$Variable[val])
       }
     }
   }
@@ -134,6 +122,11 @@ for(scenario in scenarios){
   net_rad_cs <- dplyr::mutate(net_rad_cs, value = value.x + value.y) %>%
     dplyr::select(c(year, model, value))
   
+  # Define implied cloud response (net - clearsky) as a new variable to plot
+  imp_cld <- dplyr::left_join(net_rad, net_rad_cs, by = c("year", "model"))
+  imp_cld <- dplyr::mutate(imp_cld, value = value.x - value.y) %>%
+    dplyr::select(c(year, model, value))
+
   # Define total BC deposition rate (sum of dry BC and wet BC deposition)
   tot_bc <- dplyr::left_join(drybc_experiment, wetbc_experiment, by = c("year", "model"))
   tot_bc <- dplyr::mutate(tot_bc, value = value.x + value.y) %>%
@@ -195,6 +188,7 @@ for(scenario in scenarios){
     od550aer_plot <- plot_species(od550aer_experiment, region, "ambient aerosol optical \n thickness at 550nm", "od550aer")
     clt_plot <- plot_species(clt_experiment, region, "total cloud cover \n percentage", "clt (%)")
     cltc_plot <- plot_species(cltc_experiment, region, "convective cloud cover \n percentage", "cltc (%)")
+    imp_cld_plot <- plot_species(imp_cld, region, "implied cloud response \n at TOA", "rlut+rsut-rlutcs-rsutcs(W~m^-2)")
   }
   
   if (sort_by == "experiment"){
@@ -222,6 +216,7 @@ for(scenario in scenarios){
     od550aer_plot <- plot_species(od550aer_experiment, pert, "ambient aerosol optical \n thickness at 550nm", "od550aer")
     clt_plot <- plot_species(clt_experiment, pert, "total cloud cover \n percentage", "clt (%)")
     cltc_plot <- plot_species(cltc_experiment, pert, "convective cloud cover \n percentage", "cltc (%)")
+    imp_cld_plot <- plot_species(imp_cld, pert, "implied cloud response \n at TOA", "rlut+rsut-rlutcs-rsutcs(W~m^-2)")
   }
   
   # Function from stack exchange to generate a shared legend
@@ -254,6 +249,7 @@ for(scenario in scenarios){
                                            rlutcs_plot,
                                            rsutcs_plot,
                                            net_rad_cs_plot,
+                                           imp_cld_plot,
                                            drybc_plot,
                                            wetbc_plot,
                                            tot_bc_plot,

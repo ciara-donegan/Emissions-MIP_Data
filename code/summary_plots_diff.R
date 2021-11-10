@@ -1,7 +1,7 @@
 # ------------------------------------------------------------------------------
 # Program Name: summary_plots_diff.R
 # Authors: Hamza Ahsan
-# Date Last Modified: September 29, 2021
+# Date Last Modified: November 2, 2021
 # Program Purpose: Produces summary plots of the difference between the
 # perturbations and the reference case averaged over all years
 # Input Files: ~Emissions-MIP/input/
@@ -17,18 +17,17 @@ library(ggplot2)
 library(gridExtra)
 library(grid)
 
-#set the working directory to the code directory
-setwd('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP/code')
-
 # Specify location of Emissions-MIP directory
-emi_dir <- paste0('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP/code')
+emi_dir <- paste0('C:/Users/such559/Documents/Emissions-MIP_Data')
 
 # Specify what you are sorting by and either the region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, SH-sea) or experiment (i.e., bc-no-season, high-so4, no-so4, reference, so2-at-height, so2-no-season)
 #The command line would look like: rscript <rscript>.r <"experiment" or "region"> <specific experiment or region you are sorting by>
-sorting <- commandArgs(trailingOnly = TRUE) #pulling region from command line
-sort_by <- sorting[1]
-if (sort_by == "region"){region <- sorting[2]}
-if (sort_by == "experiment"){exper <- sorting[2]}
+#sorting <- commandArgs(trailingOnly = TRUE) #pulling region from command line
+#sort_by <- sorting[1]
+#if (sort_by == "region"){region <- sorting[2]}
+#if (sort_by == "experiment"){exper <- sorting[2]}
+sort_by <- "region"
+region <- "arctic"
 
 # Define default ggplot colors and associate with models (in case a plot is 
 # missing a model, the color scheme will remain consistent)
@@ -37,21 +36,24 @@ gg_color_hue <- function(n) {
   hcl(h = hues, l = 65, c = 100)[1:n]
 }
 
-cols = gg_color_hue(10)
+# Define colorblind-friendly palette colors and associate with models (in case a  
+# plot is missing a model, the color scheme will remain consistent)
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#920000",
+               "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#490092")
 
-model_colors <- c(CESM1 = cols[1], E3SM = cols[2], GISS = cols[3], CESM2 = cols[4],
-                  MIROC = cols[5], NorESM2 = cols[6], GFDL = cols[7], OsloCTM3 = cols[8],
-                  UKESM = cols[9], GEOS = cols[10])
+model_colors <- c(CESM1 = cbPalette[1], E3SM = cbPalette[2], GISS = cbPalette[3], 
+                  CESM2 = cbPalette[4], MIROC = cbPalette[5], NorESM2 = cbPalette[6], 
+                  GFDL = cbPalette[7], OsloCTM3 = cbPalette[8], UKESM = cbPalette[9], 
+                  GEOS = cbPalette[10])
 
 model_symbols <- c(CESM1 = 15, E3SM = 15, GISS = 17, CESM2 = 19, MIROC = 15, 
                    NorESM2 = 17, GFDL = 19, OsloCTM3 = 19, UKESM = 15, GEOS = 17)
 
 # ------------------------------------------------------------------------------
-#reads in csv file specifying which models to exclude from the data
-excluded_models <- read.csv(file = paste0(emi_dir, '/input', '/excluded_data.csv'), fileEncoding="UTF-8-BOM")
+# Reads in csv file specifying which models to exclude from the data
+excluded_models <- read.csv(file = paste0(emi_dir, '/input/excluded_data.csv'), fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
 excluded_models %>% drop_na() #gets rid of any empty spaces
-#-----------------------------------------------------------------------------
-
+#-------------------------------------------------------------------------------
 #extracts data for each perturbation experiment from csv files
 data_accumulation <- function(emi_dir, reg_name, exper){
   
@@ -68,25 +70,16 @@ data_accumulation <- function(emi_dir, reg_name, exper){
   rep_models <- rep(models, each = 4) # four years
   regional_data$model <- rep_models
   
-  # Invert sign of CESM2 wet deposition variables
-  regional_data$value[which(regional_data$model == "CESM2" & regional_data$variable == "wetbc")] <- 
-    -1 * regional_data$value[which(regional_data$model == "CESM2" & regional_data$variable == "wetbc")]
-  regional_data$value[which(regional_data$model == "CESM2" & regional_data$variable == "wetso2")] <- 
-    -1 * regional_data$value[which(regional_data$model == "CESM2" & regional_data$variable == "wetso2")]
-  regional_data$value[which(regional_data$model == "CESM2" & regional_data$variable == "wetso4")] <- 
-    -1 * regional_data$value[which(regional_data$model == "CESM2" & regional_data$variable == "wetso4")]
-  
-  # Take the average over all years for each variable and calculate std. dev.
-  regional_data_summary <- regional_data %>% dplyr::group_by(variable, model) %>%
+  # Convert SO2 volume mixing ratio to mass mixing ratio by multiplying by molar
+  # mass of SO2 and dividing by molar mass of air, invert sign of forcing variables 
+  # to be consistent with convention (i.e. positive value denotes a heating effect),
+  # then take the average over all years for each variable and calculate std dev
+  regional_data_summary <- regional_data %>%
+    dplyr::group_by(variable, model) %>%
+    within(value <- ifelse(variable == "so2", 64.066 / 28.96, 1) * value) %>%
+    within(value <- ifelse(variable %in% c("rlut", "rsut", "rlutcs", "rsutcs"), -1, 1) * value) %>%
+    within(value <- ifelse(variable %in% c("wetbc", "wetso2", "wetso4") & model == "CESM2", -1, 1) * value) %>%
     dplyr::summarise(regional_data = mean(value), regional_data_sd = sd(value))
-  
-  # Convert SO2 volume mixing ratio to mass mixing ratio by multiplying by molar mass
-  # of SO2 and dividing by molar mass of air
-  regional_data_summary$regional_data[which(regional_data_summary$variable == "so2")] <- 
-    regional_data_summary$regional_data[which(regional_data_summary$variable == "so2")] * 64.066 / 28.96
-  
-  regional_data_summary$regional_data_sd[which(regional_data_summary$variable == "so2")] <- 
-    regional_data_summary$regional_data_sd[which(regional_data_summary$variable == "so2")] * 64.066 / 28.96
   
   return(regional_data_summary)
 }
@@ -136,7 +129,8 @@ if (sort_by == "region"){
   #runs through each excluded model pair and filters them out of summary_long
   if(nrow(excluded_models) != 0) { #only runs if the data frame is not empty
     for (val in 1:nrow(excluded_models)) {
-      summary_long <- filter(summary_long, experiment != excluded_models$Scenario[val] | model != excluded_models$Model[val])
+
+      summary_long <- filter(summary_long, experiment != excluded_models$Scenario[val] | model != excluded_models$Model[val] | variable != excluded_models$Variable[val])
     }
   }
   
@@ -367,9 +361,6 @@ if (sort_by == "experiment"){
   tot_bc_plot <- plot_species(tot_bc, region, value, 'total deposition rate \n of BC', 'drybc + wetbc (kg m-2 s-1)', exper, model_colors, model_symbols)
 }
 
-
-
-
 # Define total S deposition rate (sum of dry and wet SO2/SO4 )
 if (sort_by == "region"){
   dry_s <- dplyr::left_join(dryso2, dryso4, by = c("model", "experiment"))
@@ -409,7 +400,25 @@ if (sort_by == "experiment"){
   tot_s_plot <- plot_species(tot_s, region, value, 'total deposition rate \n of S', '(dryso2 + wetso2)/2 + (dryso4 + wetso4)/3 (kg m-2 s-1)', exper, model_colors, model_symbols)
 }
 
+if (sort_by == "region"){
+  # Define implied cloud response (net - clearsky) as a new variable to plot
+  imp_cld <- dplyr::left_join(net_rad, net_rad_cs, by = c("model", "experiment"))
+  imp_cld <- dplyr::mutate(imp_cld, value = value.x - value.y) %>%
+    dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
+    dplyr::select(c(model, experiment, value, sd))
+  
+  imp_cld_plot <- plot_species(imp_cld, region, value, 'implied cloud response at TOA - \n', 'rlut + rsut - rlutcs - rsutcs (W m -2)', region, model_colors, model_symbols)
+}
 
+if (sort_by == "experiment"){
+  # Define implied cloud response (net - clearsky) as a new variable to plot
+  imp_cld <- dplyr::left_join(net_rad, net_rad_cs, by = c("model", "region"))
+  imp_cld <- dplyr::mutate(imp_cld, value = value.x - value.y) %>%
+    dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
+    dplyr::select(c(model, region, value, sd))
+  
+  imp_cld_plot <- plot_species(imp_cld, region, value, 'implied cloud response at TOA - \n', 'rlut + rsut - rlutcs - rsutcs (W m -2)',exper, model_colors, model_symbols)
+}
 
 # Function from stack exchange to generate a shared legend
 grid_arrange_shared_legend <- function(...) {
@@ -442,9 +451,11 @@ forcing_plot <- grid_arrange_shared_legend(rlut_plot,
                                            rlutcs_plot,
                                            rsutcs_plot,
                                            net_rad_cs_plot,
-                                           od550aer_plot,
-                                           clt_plot,
-                                           cltc_plot)
+                                           imp_cld_plot)
+
+cloud_plot <- grid_arrange_shared_legend(od550aer_plot,
+                                         clt_plot,
+                                         cltc_plot)
 
 deposition_plot <- grid_arrange_shared_legend(drybc_plot,
                                               wetbc_plot,
@@ -471,6 +482,8 @@ if (sort_by == 'experiment'){
 grid.draw(emissions_plot)
 grid.newpage()
 grid.draw(forcing_plot)
+grid.newpage()
+grid.draw(cloud_plot)
 grid.newpage()
 grid.draw(deposition_plot)
 dev.off()
