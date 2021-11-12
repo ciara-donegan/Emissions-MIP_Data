@@ -18,24 +18,19 @@ library(gridExtra)
 library(grid)
 
 #set the working directory to the code directory
-setwd('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP')
+setwd('C:/Users/ahsa361/Documents/Emissions-MIP_Data')
 
 # Specify location of Emissions-MIP directory
-emi_dir <- paste0('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP')
+emi_dir <- paste0('C:/Users/ahsa361/Documents/Emissions-MIP_Data')
 
 # Specify what you are sorting by and either the region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, SH-sea) or experiment (i.e., bc-no-season, high-so4, no-so4, reference, so2-at-height, so2-no-season)
 #The command line would look like: rscript <rscript>.r <"experiment" or "region"> <specific experiment or region you are sorting by>
-sorting <- commandArgs(trailingOnly = TRUE) #pulling region from command line
-sort_by <- sorting[1]
-if (sort_by == "region"){region <- sorting[2]}
-if (sort_by == "experiment"){pert <- sorting[2]}
-
-# Define default ggplot colors and associate with models (in case a plot is 
-# missing a model, the color scheme will remain consistent)
-gg_color_hue <- function(n) {
-  hues = seq(15, 375, length = n + 1)
-  hcl(h = hues, l = 65, c = 100)[1:n]
-}
+#sorting <- commandArgs(trailingOnly = TRUE) #pulling region from command line
+#sort_by <- sorting[1]
+#if (sort_by == "region"){region <- sorting[2]}
+#if (sort_by == "experiment"){pert <- sorting[2]}
+sort_by <- "experiment"
+pert <- "bc-no-season"
 
 cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#920000",
                "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#490092")
@@ -179,58 +174,58 @@ for(scenario in scenarios){
   }
   if (sort_by == "region"){
     #Generate plots
-    emibc_plot <- plot_species(emibc_experiment, region, "surface flux \n of BC", "emibc (kg m-2 s-1)")
-    emiso2_plot <- plot_species(emiso2_experiment, region, "surface flux \n of SO2","emibc (kg m-2 s-1)")
-    mmrbc_plot <- plot_species(mmrbc_experiment, region, "surface concentration \n of BC","mmrbc (kg kg-1)")
-    mmrso4_plot <- plot_species(mmrso4_experiment, region, "surface concentration \n of SO4","mmrso4 (kg kg-1)")
-    rlut_plot <- plot_species(rlut_experiment, region, "upwelling longwave flux \n at TOA","rlut (W m-2)")
-    rlutcs_plot <- plot_species(rlutcs_experiment, region, "upwelling clear-sky longwave \n flux at TOA","rlutcs (W m-2)")
-    rsut_plot <- plot_species(rsut_experiment, region, "upwelling shortwave flux \n at TOA","rsut (W m-2)")
-    rsutcs_plot <- plot_species(rsutcs_experiment, region, "upwelling clear-sky shortwave \n flux at TOA","rsutcs (W m-2)")
-    rsdt_plot <- plot_species(rsdt_experiment, region, "incident shortwave flux \n at TOA","rsdt (W m-2)")
-    net_rad_plot <- plot_species(net_rad, region, "net radiative flux \n at TOA","rlut + rsut (W m-2)")
-    net_rad_cs_plot <- plot_species(net_rad_cs, region, "clear-sky net radiative \n flux at TOA","rlutcs + rsutcs (W m-2)")
-    so2_plot <- plot_species(so2_experiment, region, "surface concentration \n of SO2","so2 (kg kg-1)")
-    drybc_plot <- plot_species(drybc_experiment, region, "dry deposition rate \n of BC","drybc (kg m-2 s-1)")
-    wetbc_plot <- plot_species(wetbc_experiment, region, "wet deposition rate \n of BC","wetbc (kg m-2 s-1)")
-    tot_bc_plot <- plot_species(tot_bc, region, "total deposition rate \n of BC", "drybc + wetbc (kg m-2 s-1)")
-    dryso2_plot <- plot_species(dryso2_experiment, region, "dry deposition rate \n of SO2", "dryso2 (kg m-2 s-1)")
-    wetso2_plot <- plot_species(wetso2_experiment, region, "wet deposition rate \n of SO2", "wetso2 (kg m-2 s-1)")
-    dryso4_plot <- plot_species(dryso4_experiment, region, "dry deposition rate \n of SO4", "dryso4 (kg m-2 s-1)")
-    wetso4_plot <- plot_species(wetso4_experiment, region, "wet deposition rate \n of SO4", "wetso4 (kg m-2 s-1)")
-    tot_s_plot <- plot_species(tot_s, region, "total deposition rate \n of S", "(dryso2 + wetso2)/2 + (dryso4 + wetso4)/3 (kg m-2 s-1)")
-    od550aer_plot <- plot_species(od550aer_experiment, region, "ambient aerosol optical \n thickness at 550nm", "od550aer")
-    clt_plot <- plot_species(clt_experiment, region, "total cloud cover \n percentage", "clt (%)")
-    cltc_plot <- plot_species(cltc_experiment, region, "convective cloud cover \n percentage", "cltc (%)")
-    imp_cld_plot <- plot_species(imp_cld, region, "implied cloud response \n at TOA", "rlut+rsut-rlutcs-rsutcs(W~m^-2)")
+    emibc_plot <- plot_species(emibc_experiment, region, "surface flux \n of BC", expression(emibc~(kg~m^-2~s^-1)))
+    emiso2_plot <- plot_species(emiso2_experiment, region, "surface flux \n of SO2",expression(emiso2~(kg~m^-2~s^-1)))
+    mmrbc_plot <- plot_species(mmrbc_experiment, region, "surface concentration \n of BC",expression(mmrbc~(kg~kg-1)))
+    mmrso4_plot <- plot_species(mmrso4_experiment, region, "surface concentration \n of SO4",expression(mmrso4~(kg~kg-1)))
+    rlut_plot <- plot_species(rlut_experiment, region, "upwelling longwave flux \n at TOA",expression(rlut~(W~m-2)))
+    rlutcs_plot <- plot_species(rlutcs_experiment, region, "upwelling clear-sky longwave \n flux at TOA",expression(rlutcs~(W~m-2)))
+    rsut_plot <- plot_species(rsut_experiment, region, "upwelling shortwave flux \n at TOA",expression(rsut~(W~m-2)))
+    rsutcs_plot <- plot_species(rsutcs_experiment, region, "upwelling clear-sky shortwave \n flux at TOA",expression(rsutcs~(W~m-2)))
+    rsdt_plot <- plot_species(rsdt_experiment, region, "incident shortwave flux \n at TOA",expression(rsdt~(W~m-2)))
+    net_rad_plot <- plot_species(net_rad, region, "net radiative flux \n at TOA",expression(rlut~+~rsut~(W~m^-2)))
+    net_rad_cs_plot <- plot_species(net_rad_cs, region, "clear-sky net radiative \n flux at TOA",expression(rlutcs~+~rsutcs~(W~m^-2)))
+    so2_plot <- plot_species(so2_experiment, region, "surface concentration \n of SO2",expression(so2~(kg~kg-1)))
+    drybc_plot <- plot_species(drybc_experiment, region, "dry deposition rate \n of BC",expression(drybc~(kg~m^-2~s^-1)))
+    wetbc_plot <- plot_species(wetbc_experiment, region, "wet deposition rate \n of BC",expression(wetbc~(kg~m^-2~s^-1)))
+    tot_bc_plot <- plot_species(tot_bc, region, "total deposition rate \n of BC", expression(drybc~+~wetbc~(kg~m^-2~s^-1)))
+    dryso2_plot <- plot_species(dryso2_experiment, region, "dry deposition rate \n of SO2", expression(dryso2~(kg~m^-2~s^-1)))
+    wetso2_plot <- plot_species(wetso2_experiment, region, "wet deposition rate \n of SO2", expression(wetso2~(kg~m^-2~s^-1)))
+    dryso4_plot <- plot_species(dryso4_experiment, region, "dry deposition rate \n of SO4", expression(dryso4~(kg~m^-2~s^-1)))
+    wetso4_plot <- plot_species(wetso4_experiment, region, "wet deposition rate \n of SO4", expression(wetso4~(kg~m^-2~s^-1)))
+    tot_s_plot <- plot_species(tot_s, region, "total deposition rate \n of S", expression(atop((dryso2~+~wetso2)/2~+~(dryso4~+~wetso4)/3, (kg~m^-2~s^-1))))
+    od550aer_plot <- plot_species(od550aer_experiment, region, "ambient aerosol optical \n thickness at 550nm", expression(od550aer))
+    clt_plot <- plot_species(clt_experiment, region, "total cloud cover \n percentage", "expression clt (%)")
+    cltc_plot <- plot_species(cltc_experiment, region, "convective cloud cover \n percentage", "expression cltc (%)")
+    imp_cld_plot <- plot_species(imp_cld, region, "implied cloud response \n at TOA", expression(rlut~+~rsut~-~rlutcs~-~rsutcs~(W~m^-2)))
   }
   
   if (sort_by == "experiment"){
     #Generate plots
-    emibc_plot <- plot_species(emibc_experiment, pert, "surface flux \n of BC", "emibc (kg m-2 s-1)")
-    emiso2_plot <- plot_species(emiso2_experiment, pert, "surface flux \n of SO2","emibc (kg m-2 s-1)")
-    mmrbc_plot <- plot_species(mmrbc_experiment, pert, "surface concentration \n of BC","mmrbc (kg kg-1)")
-    mmrso4_plot <- plot_species(mmrso4_experiment, pert, "surface concentration \n of SO4","mmrso4 (kg kg-1)")
-    rlut_plot <- plot_species(rlut_experiment, pert, "upwelling longwave flux \n at TOA","rlut (W m-2)")
-    rlutcs_plot <- plot_species(rlutcs_experiment, pert, "upwelling clear-sky longwave \n flux at TOA","rlutcs (W m-2)")
-    rsut_plot <- plot_species(rsut_experiment, pert, "upwelling shortwave flux \n at TOA","rsut (W m-2)")
-    rsutcs_plot <- plot_species(rsutcs_experiment, pert, "upwelling clear-sky shortwave \n flux at TOA","rsutcs (W m-2)")
-    rsdt_plot <- plot_species(rsdt_experiment, pert, "incident shortwave flux \n at TOA","rsdt (W m-2)")
-    net_rad_plot <- plot_species(net_rad, pert, "net radiative flux \n at TOA","rlut + rsut (W m-2)")
-    net_rad_cs_plot <- plot_species(net_rad_cs, pert, "clear-sky net radiative \n flux at TOA","rlutcs + rsutcs (W m-2)")
-    so2_plot <- plot_species(so2_experiment, pert, "surface concentration \n of SO2","so2 (kg kg-1)")
-    drybc_plot <- plot_species(drybc_experiment, pert, "dry deposition rate \n of BC","drybc (kg m-2 s-1)")
-    wetbc_plot <- plot_species(wetbc_experiment, pert, "wet deposition rate \n of BC","wetbc (kg m-2 s-1)")
-    tot_bc_plot <- plot_species(tot_bc, pert, "total deposition rate \n of BC", "drybc + wetbc (kg m-2 s-1)")
-    dryso2_plot <- plot_species(dryso2_experiment, pert, "dry deposition rate \n of SO2", "dryso2 (kg m-2 s-1)")
-    wetso2_plot <- plot_species(wetso2_experiment, pert, "wet deposition rate \n of SO2", "wetso2 (kg m-2 s-1)")
-    dryso4_plot <- plot_species(dryso4_experiment, pert, "dry deposition rate \n of SO4", "dryso4 (kg m-2 s-1)")
-    wetso4_plot <- plot_species(wetso4_experiment, pert, "wet deposition rate \n of SO4", "wetso4 (kg m-2 s-1)")
-    tot_s_plot <- plot_species(tot_s, pert, "total deposition rate \n of S", "(dryso2 + wetso2)/2 + (dryso4 + wetso4)/3 (kg m-2 s-1)")
-    od550aer_plot <- plot_species(od550aer_experiment, pert, "ambient aerosol optical \n thickness at 550nm", "od550aer")
-    clt_plot <- plot_species(clt_experiment, pert, "total cloud cover \n percentage", "clt (%)")
-    cltc_plot <- plot_species(cltc_experiment, pert, "convective cloud cover \n percentage", "cltc (%)")
-    imp_cld_plot <- plot_species(imp_cld, pert, "implied cloud response \n at TOA", "rlut+rsut-rlutcs-rsutcs(W~m^-2)")
+    emibc_plot <- plot_species(emibc_experiment, pert, "surface flux \n of BC", expression(emibc~(kg~m^-2~s^-1)))
+    emiso2_plot <- plot_species(emiso2_experiment, pert, "surface flux \n of SO2",expression(emiso2~(kg~m^-2~s^-1)))
+    mmrbc_plot <- plot_species(mmrbc_experiment, pert, "surface concentration \n of BC",expression(mmrbc~(kg~kg-1)))
+    mmrso4_plot <- plot_species(mmrso4_experiment, pert, "surface concentration \n of SO4",expression(mmrso4~(kg~kg-1)))
+    rlut_plot <- plot_species(rlut_experiment, pert, "upwelling longwave flux \n at TOA",expression(rlut~(W~m-2)))
+    rlutcs_plot <- plot_species(rlutcs_experiment, pert, "upwelling clear-sky longwave \n flux at TOA",expression(rlutcs~(W~m-2)))
+    rsut_plot <- plot_species(rsut_experiment, pert, "upwelling shortwave flux \n at TOA",expression(rsut~(W~m-2)))
+    rsutcs_plot <- plot_species(rsutcs_experiment, pert, "upwelling clear-sky shortwave \n flux at TOA",expression(rsutcs~(W~m-2)))
+    rsdt_plot <- plot_species(rsdt_experiment, pert, "incident shortwave flux \n at TOA",expression(rsdt~(W~m-2)))
+    net_rad_plot <- plot_species(net_rad, pert, "net radiative flux \n at TOA",expression(rlut~+~rsut~(W~m^-2)))
+    net_rad_cs_plot <- plot_species(net_rad_cs, pert, "clear-sky net radiative \n flux at TOA",expression(rlutcs~+~rsutcs~(W~m^-2)))
+    so2_plot <- plot_species(so2_experiment, pert, "surface concentration \n of SO2",expression(so2~(kg~kg-1)))
+    drybc_plot <- plot_species(drybc_experiment, pert, "dry deposition rate \n of BC",expression(drybc~(kg~m^-2~s^-1)))
+    wetbc_plot <- plot_species(wetbc_experiment, pert, "wet deposition rate \n of BC",expression(wetbc~(kg~m^-2~s^-1)))
+    tot_bc_plot <- plot_species(tot_bc, pert, "total deposition rate \n of BC", expression(drybc~+~wetbc~(kg~m^-2~s^-1)))
+    dryso2_plot <- plot_species(dryso2_experiment, pert, "dry deposition rate \n of SO2", expression(dryso2~(kg~m^-2~s^-1)))
+    wetso2_plot <- plot_species(wetso2_experiment, pert, "wet deposition rate \n of SO2", expression(wetso2~(kg~m^-2~s^-1)))
+    dryso4_plot <- plot_species(dryso4_experiment, pert, "dry deposition rate \n of SO4", expression(dryso4~(kg~m^-2~s^-1)))
+    wetso4_plot <- plot_species(wetso4_experiment, pert, "wet deposition rate \n of SO4", expression(wetso4~(kg~m^-2~s^-1)))
+    tot_s_plot <- plot_species(tot_s, pert, "total deposition rate \n of S", expression(atop((dryso2~+~wetso2)/2~+~(dryso4~+~wetso4)/3, (kg~m^-2~s^-1))))
+    od550aer_plot <- plot_species(od550aer_experiment, pert, "ambient aerosol optical \n thickness at 550nm", expression(od550aer))
+    clt_plot <- plot_species(clt_experiment, pert, "total cloud cover \n percentage", "expression(clt~(%)")
+    cltc_plot <- plot_species(cltc_experiment, pert, "convective cloud cover \n percentage", "cltc~(%)")
+    imp_cld_plot <- plot_species(imp_cld, pert, "implied cloud response \n at TOA", expression(rlut~+~rsut~-~rlutcs~-~rsutcs~(W~m^-2)))
   }
   
   # Function from stack exchange to generate a shared legend
