@@ -18,10 +18,10 @@ library(gridExtra)
 library(grid)
 
 #set the working directory to the code directory
-setwd('C:/Users/ahsa361/Documents/Emissions-MIP_Data')
+setwd('C:/Users/such559/Documents/Emissions-MIP_Data')
 
 # Specify location of Emissions-MIP directory
-emi_dir <- paste0('C:/Users/ahsa361/Documents/Emissions-MIP_Data')
+emi_dir <- paste0('C:/Users/such559/Documents/Emissions-MIP_Data')
 
 # Specify what you are sorting by and either the region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, SH-sea) or experiment (i.e., bc-no-season, high-so4, no-so4, reference, so2-at-height, so2-no-season)
 #The command line would look like: rscript <rscript>.r <"experiment" or "region"> <specific experiment or region you are sorting by>

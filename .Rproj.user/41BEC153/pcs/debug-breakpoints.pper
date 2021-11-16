@@ -17,32 +17,17 @@
                 "package_name": ""
             },
             {
-                "id": 4,
+                "id": 5,
                 "path": "~/Emissions-MIP_Data/code/timeseries_diff.R",
-                "line_number": 28,
+                "line_number": 21,
                 "function_steps": "",
                 "function_name": "toplevel",
                 "state": 1,
                 "editor_state": 1,
-                "editor_line_number": 28,
+                "editor_line_number": 21,
                 "is_pending_debug_completion": false,
                 "needs_updated_steps": false,
                 "type": 1,
-                "is_package_breakpoint": false,
-                "package_name": ""
-            },
-            {
-                "id": 5,
-                "path": "~/Emissions-MIP_Data/code/timeseries_diff.R",
-                "line_number": 35,
-                "function_steps": "",
-                "function_name": "gg_color_hue",
-                "state": 2,
-                "editor_state": 2,
-                "editor_line_number": 35,
-                "is_pending_debug_completion": false,
-                "needs_updated_steps": false,
-                "type": 0,
                 "is_package_breakpoint": false,
                 "package_name": ""
             }
