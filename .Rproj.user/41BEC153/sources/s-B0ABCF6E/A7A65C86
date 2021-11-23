@@ -1,0 +1,26 @@
+{
+    "id": "A7A65C86",
+    "path": "~/Emissions-MIP_Data/code/summary_plots_diff.R",
+    "project_path": "code/summary_plots_diff.R",
+    "type": "r_source",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1637685270086.0,
+    "source_on_save": false,
+    "relative_order": 1,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "14,14",
+        "scrollLine": "4"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1637685900,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1637685900080,
+    "read_only": false,
+    "read_only_alternatives": []
+}

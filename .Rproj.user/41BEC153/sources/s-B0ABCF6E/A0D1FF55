@@ -1,0 +1,26 @@
+{
+    "id": "A0D1FF55",
+    "path": "~/Emissions-MIP_Data/code/timeseries_diff.R",
+    "project_path": "code/timeseries_diff.R",
+    "type": "r_source",
+    "hash": "3813116805",
+    "contents": "",
+    "dirty": false,
+    "created": 1637688241177.0,
+    "source_on_save": false,
+    "relative_order": 3,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "44,99",
+        "scrollLine": "38"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1637688270,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1637688270839,
+    "read_only": false,
+    "read_only_alternatives": []
+}
