@@ -43,7 +43,7 @@ model_colors <- c(CESM1 = cbPalette[1], E3SM = cbPalette[2], GISS = cbPalette[3]
 # ------------------------------------------------------------------------------
 # Iterate over the different perturbation/regional experiments
 if (sort_by == "region"){scenarios <- c('bc-no-season', 'high-so4', 'no-so4', 'so2-at-height', 'so2-no-season')}
-if (sort_by == "experiment"){scenarios <- c("arctic", "global", "land", "NH-atlantic", "NH-land", "NH-pacific", "NH-sea", "sea", "SH-land", "SH-sea")}
+if (sort_by == "experiment"){scenarios <- c("arctic", "global", "land", "NH-atlantic", "NH-indian", "NH-land", "NH-pacific", "NH-sea", "sea", "SH-land", "SH-sea")}
 #-------------------------------------------------------------------------------
 #reads in csv file specifying which models to exclude from the data
 excluded_models <- read.csv(file = paste0(emi_dir, '/input', '/excluded_data.csv'), fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
