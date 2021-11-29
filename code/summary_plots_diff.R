@@ -18,7 +18,6 @@ library(gridExtra)
 library(grid)
 
 # Specify location of Emissions-MIP directory
-<<<<<<< HEAD
 emi_dir <- paste0('C:/Users/such559/Documents/Emissions-MIP_Data')
 
 # Specify region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land,
@@ -36,26 +35,15 @@ gg_color_hue <- function(n) {
 }
 
 cols = gg_color_hue(10)
-=======
-emi_dir <- paste0('C:/Users/ahsa361/Documents/Emissions-MIP_Data')
 
-# Specify region by command line
-region <- commandArgs(trailingOnly = TRUE) #pulling region from command line
-region <- region[1] #replaces regions with the first trailing string in the command line
-
-# Specify region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, SH-sea,
-# NH-pacific, NH-atlantic, NH-indian)
-region <- "NH-indian"
->>>>>>> main
-
-# Define colorblind-friendly palette colors and associate with models (in case a  
+# Define colorblind-friendly palette colors and associate with models (in case a
 # plot is missing a model, the color scheme will remain consistent)
 cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#920000",
                "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#490092")
 
-model_colors <- c(CESM1 = cbPalette[1], E3SM = cbPalette[2], GISS = cbPalette[3], 
-                  CESM2 = cbPalette[4], MIROC = cbPalette[5], NorESM2 = cbPalette[6], 
-                  GFDL = cbPalette[7], OsloCTM3 = cbPalette[8], UKESM = cbPalette[9], 
+model_colors <- c(CESM1 = cbPalette[1], E3SM = cbPalette[2], GISS = cbPalette[3],
+                  CESM2 = cbPalette[4], MIROC = cbPalette[5], NorESM2 = cbPalette[6],
+                  GFDL = cbPalette[7], OsloCTM3 = cbPalette[8], UKESM = cbPalette[9],
                   GEOS = cbPalette[10])
 
 model_symbols <- c(CESM1 = 15, E3SM = 15, GISS = 17, CESM2 = 19, MIROC = 15,
@@ -82,7 +70,6 @@ models <- sapply(strsplit(target_filename, "[-.]+"),function(x) x[5])
 rep_models <- rep(models, each = 4) # four years
 bc_no_seas$model <- rep_models
 
-<<<<<<< HEAD
 # Invert sign of CESM2 wet deposition variables
 bc_no_seas$value[which(bc_no_seas$model == "CESM2" & bc_no_seas$variable == "wetbc")] <-
   -1 * bc_no_seas$value[which(bc_no_seas$model == "CESM2" & bc_no_seas$variable == "wetbc")]
@@ -103,19 +90,6 @@ bc_no_seas_summary$bc_no_seas[which(bc_no_seas_summary$variable == "so2")] <-
 bc_no_seas_summary$bc_no_seas_sd[which(bc_no_seas_summary$variable == "so2")] <-
   bc_no_seas_summary$bc_no_seas_sd[which(bc_no_seas_summary$variable == "so2")] * 64.066 / 28.96
 
-=======
-# Convert SO2 volume mixing ratio to mass mixing ratio by multiplying by molar
-# mass of SO2 and dividing by molar mass of air, invert sign of forcing variables 
-# to be consistent with convention (i.e. positive value denotes a heating effect),
-# then take the average over all years for each variable and calculate std dev
-bc_no_seas_summary <- bc_no_seas %>%
-  dplyr::group_by(variable, model) %>%
-  within(value <- ifelse(variable == "so2", 64.066 / 28.96, 1) * value) %>%
-  within(value <- ifelse(variable %in% c("rlut", "rsut", "rlutcs", "rsutcs"), -1, 1) * value) %>%
-  within(value <- ifelse(variable %in% c("wetbc", "wetso2", "wetso4") & model == "CESM2", -1, 1) * value) %>%
-  dplyr::summarise(bc_no_seas = mean(value), bc_no_seas_sd = sd(value))
-
->>>>>>> main
 #---------------------------------------------------
 
 # Setup directory for high-SO4 difference data
@@ -132,7 +106,6 @@ models <- sapply(strsplit(target_filename, "[-.]+"),function(x) x[5])
 rep_models <- rep(models, each = 4) # four years
 high_so4$model <- rep_models
 
-<<<<<<< HEAD
 # Invert sign of CESM2 wet deposition variables
 high_so4$value[which(high_so4$model == "CESM2" & high_so4$variable == "wetbc")] <-
   -1 * high_so4$value[which(high_so4$model == "CESM2" & high_so4$variable == "wetbc")]
@@ -153,19 +126,6 @@ high_so4_summary$high_so4[which(high_so4_summary$variable == "so2")] <-
 high_so4_summary$high_so4_sd[which(high_so4_summary$variable == "so2")] <-
   high_so4_summary$high_so4_sd[which(high_so4_summary$variable == "so2")] * 64.066 / 28.96
 
-=======
-# Convert SO2 volume mixing ratio to mass mixing ratio by multiplying by molar
-# mass of SO2 and dividing by molar mass of air, invert sign of forcing variables 
-# to be consistent with convention (i.e. positive value denotes a heating effect),
-# then take the average over all years for each variable and calculate std dev
-high_so4_summary <- high_so4 %>%
-  dplyr::group_by(variable, model) %>%
-  within(value <- ifelse(variable == "so2", 64.066 / 28.96, 1) * value) %>%
-  within(value <- ifelse(variable %in% c("rlut", "rsut", "rlutcs", "rsutcs"), -1, 1) * value) %>%
-  within(value <- ifelse(variable %in% c("wetbc", "wetso2", "wetso4") & model == "CESM2", -1, 1) * value) %>%
-  dplyr::summarise(high_so4 = mean(value), high_so4_sd = sd(value))
-
->>>>>>> main
 #---------------------------------------------------
 
 # Setup directory for no-SO4 difference data
@@ -182,7 +142,6 @@ models <- sapply(strsplit(target_filename, "[-.]+"),function(x) x[5])
 rep_models <- rep(models, each = 4) # four years
 no_so4$model <- rep_models
 
-<<<<<<< HEAD
 # Invert sign of CESM2 wet deposition variables
 no_so4$value[which(no_so4$model == "CESM2" & no_so4$variable == "wetbc")] <-
   -1 * no_so4$value[which(no_so4$model == "CESM2" & no_so4$variable == "wetbc")]
@@ -203,19 +162,6 @@ no_so4_summary$no_so4[which(no_so4_summary$variable == "so2")] <-
 no_so4_summary$no_so4_sd[which(no_so4_summary$variable == "so2")] <-
   no_so4_summary$no_so4_sd[which(no_so4_summary$variable == "so2")] * 64.066 / 28.96
 
-=======
-# Convert SO2 volume mixing ratio to mass mixing ratio by multiplying by molar
-# mass of SO2 and dividing by molar mass of air, invert sign of forcing variables 
-# to be consistent with convention (i.e. positive value denotes a heating effect),
-# then take the average over all years for each variable and calculate std dev
-no_so4_summary <- no_so4 %>%
-  dplyr::group_by(variable, model) %>%
-  within(value <- ifelse(variable == "so2", 64.066 / 28.96, 1) * value) %>%
-  within(value <- ifelse(variable %in% c("rlut", "rsut", "rlutcs", "rsutcs"), -1, 1) * value) %>%
-  within(value <- ifelse(variable %in% c("wetbc", "wetso2", "wetso4") & model == "CESM2", -1, 1) * value) %>%
-  dplyr::summarise(no_so4 = mean(value), no_so4_sd = sd(value))
-
->>>>>>> main
 #---------------------------------------------------
 
 # Setup directory for SO2-at-height difference data
@@ -233,7 +179,7 @@ rep_models <- rep(models, each = 4) # four years
 so2_at_hgt$model <- rep_models
 
 # Convert SO2 volume mixing ratio to mass mixing ratio by multiplying by molar
-# mass of SO2 and dividing by molar mass of air, invert sign of forcing variables 
+# mass of SO2 and dividing by molar mass of air, invert sign of forcing variables
 # to be consistent with convention (i.e. positive value denotes a heating effect),
 # then take the average over all years for each variable and calculate std dev
 so2_at_hgt_summary <- so2_at_hgt %>%
@@ -243,7 +189,6 @@ so2_at_hgt_summary <- so2_at_hgt %>%
   within(value <- ifelse(variable %in% c("wetbc", "wetso2", "wetso4") & model == "CESM2", -1, 1) * value) %>%
   dplyr::summarise(so2_at_hgt = mean(value), so2_at_hgt_sd = sd(value))
 
-<<<<<<< HEAD
 # Convert SO2 volume mixing ratio to mass mixing ratio by multiplying by molar mass
 # of SO2 and dividing by molar mass of air
 so2_at_hgt_summary$so2_at_hgt[which(so2_at_hgt_summary$variable == "so2")] <-
@@ -252,8 +197,6 @@ so2_at_hgt_summary$so2_at_hgt[which(so2_at_hgt_summary$variable == "so2")] <-
 so2_at_hgt_summary$so2_at_hgt_sd[which(so2_at_hgt_summary$variable == "so2")] <-
   so2_at_hgt_summary$so2_at_hgt_sd[which(so2_at_hgt_summary$variable == "so2")] * 64.066 / 28.96
 
-=======
->>>>>>> main
 #---------------------------------------------------
 
 # Setup directory for SO2-no-season difference data
@@ -270,7 +213,6 @@ models <- sapply(strsplit(target_filename, "[-.]+"),function(x) x[5])
 rep_models <- rep(models, each = 4) # four years
 so2_no_seas$model <- rep_models
 
-<<<<<<< HEAD
 # Invert sign of CESM2 wet deposition variables
 so2_no_seas$value[which(so2_no_seas$model == "CESM2" & so2_no_seas$variable == "wetbc")] <-
   -1 * so2_no_seas$value[which(so2_no_seas$model == "CESM2" & so2_no_seas$variable == "wetbc")]
@@ -291,34 +233,20 @@ so2_no_seas_summary$so2_no_seas[which(so2_no_seas_summary$variable == "so2")] <-
 so2_no_seas_summary$so2_no_seas_sd[which(so2_no_seas_summary$variable == "so2")] <-
   so2_no_seas_summary$so2_no_seas_sd[which(so2_no_seas_summary$variable == "so2")] * 64.066 / 28.96
 
-=======
-# Convert SO2 volume mixing ratio to mass mixing ratio by multiplying by molar
-# mass of SO2 and dividing by molar mass of air, invert sign of forcing variables 
-# to be consistent with convention (i.e. positive value denotes a heating effect),
-# then take the average over all years for each variable and calculate std dev
-so2_no_seas_summary <- so2_no_seas %>%
-  dplyr::group_by(variable, model) %>%
-  within(value <- ifelse(variable == "so2", 64.066 / 28.96, 1) * value) %>%
-  within(value <- ifelse(variable %in% c("rlut", "rsut", "rlutcs", "rsutcs"), -1, 1) * value) %>%
-  within(value <- ifelse(variable %in% c("wetbc", "wetso2", "wetso4") & model == "CESM2", -1, 1) * value) %>%
-  dplyr::summarise(so2_no_seas = mean(value), so2_no_seas_sd = sd(value))
-
->>>>>>> main
 #---------------------------------------------------
 
 # Bind data together
-summary_data <- list(bc_no_seas_summary, 
-                     high_so4_summary, 
-                     no_so4_summary, 
-                     so2_at_hgt_summary, 
-                     so2_no_seas_summary) %>% 
+summary_data <- list(bc_no_seas_summary,
+                     high_so4_summary,
+                     no_so4_summary,
+                     so2_at_hgt_summary,
+                     so2_no_seas_summary) %>%
   reduce(left_join, by = c("variable", "model"))
 
 # Correct model names for CESM and CESM2
 summary_data$model[which(summary_data$model == "CESM")] <- "CESM1"
 
 # Change to long format
-<<<<<<< HEAD
 summary_long_exp <- summary_data %>%
   gather(experiment, value, -c(model, variable, bc_no_seas_sd, high_so4_sd, no_so4_sd, so2_at_hgt_sd, so2_no_seas_sd)) %>%
   select(variable, model, experiment, value) %>%
@@ -326,39 +254,16 @@ summary_long_exp <- summary_data %>%
 
 summary_long_sd <- summary_data %>%
   gather(experiment, sd, -c(model, variable, bc_no_seas, high_so4, no_so4, so2_at_hgt, so2_no_seas)) %>%
-=======
-summary_long_exp <- summary_data %>% 
-  gather(experiment, value, -c(model, 
-                               variable, 
-                               bc_no_seas_sd, 
-                               high_so4_sd, 
-                               no_so4_sd, 
-                               so2_at_hgt_sd, 
-                               so2_no_seas_sd)) %>%
-  select(variable, model, experiment, value) %>%
-  drop_na()
-
-summary_long_sd <- summary_data %>% 
-  gather(experiment, sd, -c(model, 
-                            variable, 
-                            bc_no_seas, 
-                            high_so4, 
-                            no_so4, 
-                            so2_at_hgt, 
-                            so2_no_seas)) %>%
->>>>>>> main
   select(variable, model, experiment, sd) %>%
   drop_na()
-  
-summary_long_sd$experiment <- gsub("_sd", "", summary_long_sd$experiment)
-
-summary_long <- dplyr::left_join(summary_long_exp, summary_long_sd)
 
 summary_long_sd$experiment <- gsub("_sd", "", summary_long_sd$experiment)
 
 summary_long <- dplyr::left_join(summary_long_exp, summary_long_sd)
 
-<<<<<<< HEAD
+summary_long_sd$experiment <- gsub("_sd", "", summary_long_sd$experiment)
+
+summary_long <- dplyr::left_join(summary_long_exp, summary_long_sd)
 
 #Define the necessary variables for the following cumulative functions
 rlut <- dplyr::filter(summary_long, variable == "rlut")
@@ -452,9 +357,6 @@ if (min(net_rad_cs$value) < wm2_min){
 }
 
 #runs through each excluded model pair and filters them out of summary_long
-=======
-# Runs through each excluded model pair and filters them out of summary_long
->>>>>>> main
 if(nrow(excluded_models) != 0) { #only runs if the data frame is not empty
   for (val in 1:nrow(excluded_models)) {
     summary_long <- filter(summary_long, experiment != excluded_models$Scenario[val] | model != excluded_models$Model[val])
@@ -638,28 +540,6 @@ rsutcs_plot <- ggplot(rsutcs, aes(x = experiment, y = value, color = model, shap
   geom_point( position=position_dodge(width=0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
   ylim(wm2_min, wm2_max)
-
-<<<<<<< HEAD
-=======
-# Define normal and clear-sky net radiative flux (incident shortwave + incident longwave + shortwave + longwave, 
-# but the incidents cancel out)
-net_rad <- dplyr::left_join(rlut, rsut, by = c("model", "experiment"))
-net_rad <- dplyr::mutate(net_rad, value = value.x + value.y) %>%
-  dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
-  dplyr::select(c(model, experiment, value, sd))
-
-net_rad_cs <- dplyr::left_join(rlutcs, rsutcs, by = c("model", "experiment"))
-net_rad_cs <- dplyr::mutate(net_rad_cs, value = value.x + value.y) %>%
-  dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
-  dplyr::select(c(model, experiment, value, sd))
-
-# Define implied cloud response (net - clearsky) as a new variable to plot
-imp_cld <- dplyr::left_join(net_rad, net_rad_cs, by = c("model", "experiment"))
-imp_cld <- dplyr::mutate(imp_cld, value = value.x - value.y) %>%
-  dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
-  dplyr::select(c(model, experiment, value, sd))
->>>>>>> main
-
 
 net_rad_plot <- ggplot(net_rad, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +

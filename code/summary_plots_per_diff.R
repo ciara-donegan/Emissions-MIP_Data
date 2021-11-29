@@ -28,17 +28,17 @@ region <- region[1] #replaces regions with the first trailing string in the comm
 # NH-pacific, NH-atlantic, NH-indian)
 region <- "NH-indian"
 
-# Define colorblind-friendly palette colors and associate with models (in case a  
+# Define colorblind-friendly palette colors and associate with models (in case a
 # plot is missing a model, the color scheme will remain consistent)
 cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#920000",
                "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#490092")
 
-model_colors <- c(CESM1 = cbPalette[1], E3SM = cbPalette[2], GISS = cbPalette[3], 
-                  CESM2 = cbPalette[4], MIROC = cbPalette[5], NorESM2 = cbPalette[6], 
-                  GFDL = cbPalette[7], OsloCTM3 = cbPalette[8], UKESM = cbPalette[9], 
+model_colors <- c(CESM1 = cbPalette[1], E3SM = cbPalette[2], GISS = cbPalette[3],
+                  CESM2 = cbPalette[4], MIROC = cbPalette[5], NorESM2 = cbPalette[6],
+                  GFDL = cbPalette[7], OsloCTM3 = cbPalette[8], UKESM = cbPalette[9],
                   GEOS = cbPalette[10])
-				  
-model_symbols <- c(CESM1 = 15, E3SM = 15, GISS = 17, CESM2 = 19, MIROC = 15, 
+
+model_symbols <- c(CESM1 = 15, E3SM = 15, GISS = 17, CESM2 = 19, MIROC = 15,
                    NorESM2 = 17, GFDL = 19, OsloCTM3 = 19, UKESM = 15, GEOS = 17)
 
 # ------------------------------------------------------------------------------
@@ -149,39 +149,39 @@ so2_no_seas_summary <- so2_no_seas %>% dplyr::group_by(variable, model) %>%
 #---------------------------------------------------
 
 # Bind data together
-summary_data <- list(bc_no_seas_summary, 
-                     high_so4_summary, 
-                     no_so4_summary, 
-                     so2_at_hgt_summary, 
-                     so2_no_seas_summary) %>% 
+summary_data <- list(bc_no_seas_summary,
+                     high_so4_summary,
+                     no_so4_summary,
+                     so2_at_hgt_summary,
+                     so2_no_seas_summary) %>%
   reduce(left_join, by = c("variable", "model"))
 
 # Correct model names for CESM and CESM2
 summary_data$model[which(summary_data$model == "CESM")] <- "CESM1"
 
 # Change to long format
-summary_long_exp <- summary_data %>% 
-  gather(experiment, value, -c(model, 
-                               variable, 
-                               bc_no_seas_sd, 
-                               high_so4_sd, 
-                               no_so4_sd, 
-                               so2_at_hgt_sd, 
+summary_long_exp <- summary_data %>%
+  gather(experiment, value, -c(model,
+                               variable,
+                               bc_no_seas_sd,
+                               high_so4_sd,
+                               no_so4_sd,
+                               so2_at_hgt_sd,
                                so2_no_seas_sd)) %>%
   select(variable, model, experiment, value) %>%
   drop_na()
 
-summary_long_sd <- summary_data %>% 
-  gather(experiment, sd, -c(model, 
-                            variable, 
-                            bc_no_seas, 
-                            high_so4, 
-                            no_so4, 
-                            so2_at_hgt, 
+summary_long_sd <- summary_data %>%
+  gather(experiment, sd, -c(model,
+                            variable,
+                            bc_no_seas,
+                            high_so4,
+                            no_so4,
+                            so2_at_hgt,
                             so2_no_seas)) %>%
   select(variable, model, experiment, sd) %>%
   drop_na()
-  
+
   summary_long_sd$experiment <- gsub("_sd", "", summary_long_sd$experiment)
 
   summary_long <- dplyr::left_join(summary_long_exp, summary_long_sd)
@@ -247,35 +247,35 @@ tot_s <- dplyr::mutate(tot_s, value = value.x + value.y) %>%
   dplyr::select(c(model, experiment, value, sd))
 
 #if the combined values are larger/smaller, they will replace the max or min value on the y axis of the output plots
-if (max(tot_s$value) > axes_max){  
+if (max(tot_s$value) > axes_max){
   axes_max <- max(tot_s)
 }
 
-if (max(tot_bc$value) > axes_max){  
+if (max(tot_bc$value) > axes_max){
   axes_max <- max(tot_bc)
 }
 
-if (min(tot_s$value) < axes_min){  
+if (min(tot_s$value) < axes_min){
   axes_min <- min(tot_s)
 }
 
-if (min(tot_bc$value) < axes_min){  
+if (min(tot_bc$value) < axes_min){
   axes_min <- min(tot_bc)
 }
 
-if (max(net_rad$value) > axes_max){  
+if (max(net_rad$value) > axes_max){
   axes_max <- max(net_rad)
 }
 
-if (max(net_rad_cs$value) > axes_max){  
+if (max(net_rad_cs$value) > axes_max){
   axes_max <- max(net_rad_cs)
 }
 
-if (min(net_rad$value) < axes_min){  
+if (min(net_rad$value) < axes_min){
   axes_min <- min(net_rad)
 }
 
-if (min(net_rad_cs$value) < axes_min){  
+if (min(net_rad_cs$value) < axes_min){
   axes_min <- min(net_rad_cs)
 }
 
@@ -461,27 +461,6 @@ rsutcs_plot <- ggplot(rsutcs, aes(x = experiment, y = value, color = model, shap
   geom_point( position=position_dodge(width = 0.4), size = 1.5) +
   geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
   ylim(axes_min,axes_max)
-
-<<<<<<< HEAD
-=======
-# Define normal and clear-sky net radiative flux (incident shortwave + incident longwave - shortwave - longwave, 
-# but the incidents cancel out)
-net_rad <- dplyr::left_join(rlut, rsut, by = c("model", "experiment"))
-net_rad <- dplyr::mutate(net_rad, value = value.x + value.y) %>%
-  dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
-  dplyr::select(c(model, experiment, value, sd))
-
-net_rad_cs <- dplyr::left_join(rlutcs, rsutcs, by = c("model", "experiment"))
-net_rad_cs <- dplyr::mutate(net_rad_cs, value = value.x + value.y) %>%
-  dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
-  dplyr::select(c(model, experiment, value, sd))
-
-# Define implied cloud response (net - clearsky) as a new variable to plot
-imp_cld <- dplyr::left_join(net_rad, net_rad_cs, by = c("model", "experiment"))
-imp_cld <- dplyr::mutate(imp_cld, value = value.x - value.y) %>%
-  dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
-  dplyr::select(c(model, experiment, value, sd))
->>>>>>> main
 
 net_rad_plot <- ggplot(net_rad, aes(x = experiment, y = value, color = model, shape = model)) +
   theme_bw() +

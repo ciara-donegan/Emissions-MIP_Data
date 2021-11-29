@@ -21,27 +21,26 @@ library(grid)
 region <- commandArgs(trailingOnly = TRUE) #pulling region from command line
 region <- region[1] #replaces regions with the first trailing string in the command line
 
-<<<<<<< HEAD
 # Specify region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land,
 # SH-sea, NH-atlantic, NH-pacific)
 region <- "NH-pacific"
-=======
+
 # Specify location of Emissions-MIP directory
 emi_dir <- paste0('C:/Users/ahsa361/Documents/Emissions-MIP_Data')
->>>>>>> main
+
 
 # Specify region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, SH-sea,
 # NH-pacific, NH-atlantic, NH-indian)
 region <- "NH-indian"
 
-# Define colorblind-friendly palette colors and associate with models (in case a  
+# Define colorblind-friendly palette colors and associate with models (in case a
 # plot is missing a model, the color scheme will remain consistent)
 cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#920000",
                "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#490092")
 
-model_colors <- c(CESM1 = cbPalette[1], E3SM = cbPalette[2], GISS = cbPalette[3], 
-                  CESM2 = cbPalette[4], MIROC = cbPalette[5], NorESM2 = cbPalette[6], 
-                  GFDL = cbPalette[7], OsloCTM3 = cbPalette[8], UKESM = cbPalette[9], 
+model_colors <- c(CESM1 = cbPalette[1], E3SM = cbPalette[2], GISS = cbPalette[3],
+                  CESM2 = cbPalette[4], MIROC = cbPalette[5], NorESM2 = cbPalette[6],
+                  GFDL = cbPalette[7], OsloCTM3 = cbPalette[8], UKESM = cbPalette[9],
                   GEOS = cbPalette[10])
 
 # -----------------------------------------------------------------------------
@@ -81,29 +80,16 @@ for(pert in perts){
     -1 * experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetso2")]
   experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetso4")] <-
     -1 * experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetso4")]
-=======
-  
-  # Invert sign of forcing variables to be consistent with convention (i.e. positive
-  # value denotes a heating effect)
-  experiment <- within(experiment, value <- ifelse(variable %in% c("rlut", "rsut", "rlutcs", "rsutcs"), -1, 1) * value)
-  
-  # Invert sign of CESM2 wet deposition variables (i.e., CESM2 wetbc, wetso2, wetso4)
-  experiment <- within(experiment, value <- ifelse(variable %in% c("wetbc", "wetso2", "wetso4") & model == "CESM2", -1, 1) * value)
->>>>>>> main
 
   # Rearrange data frame by years descending
   experiment <- dplyr::arrange(experiment, year)
 
-<<<<<<< HEAD
 
   #set min and max axes for graphing later on
   axes_max <- max(experiment$value)
   axes_min <- min(experiment$value)
 
   #runs through each excluded model pair and filters them out of summary_long
-=======
-  # Runs through each excluded model pair and filters them out of summary_long
->>>>>>> main
   if(nrow(excluded_models) != 0) { #only runs if the data frame is not empty
     for (val in 1:nrow(excluded_models)) {
       experiment <- filter(experiment, pert != excluded_models$Scenario[val] | experiment$model != excluded_models$Model[val])
@@ -147,7 +133,7 @@ for(pert in perts){
   net_rad_cs <- dplyr::left_join(rlutcs_experiment, rsutcs_experiment, by = c("year", "model"))
   net_rad_cs <- dplyr::mutate(net_rad_cs, value = value.x + value.y) %>%
     dplyr::select(c(year, model, value))
-  
+
   # Define implied cloud response (net - clearsky) as a new variable to plot
   imp_cld <- dplyr::left_join(net_rad, net_rad_cs, by = c("year", "model"))
   imp_cld <- dplyr::mutate(imp_cld, value = value.x - value.y) %>%
@@ -174,11 +160,11 @@ for(pert in perts){
   #find the maximum and minimum value for all experiments with units kg/kg
   kgkg_max <- max(mmrbc_experiment$value, mmrso4_experiment$value, so2_experiment$new_value)
   kgkg_min <- min(mmrbc_experiment$value, mmrso4_experiment$value, so2_experiment$new_value)
-  
+
   #find maximum and minimum value for all experiments with units kg/m^2*s
   kgm2s_max <- max(emibc_experiment$value,emiso2_experiment$value,drybc_experiment$value,wetbc_experiment$value,drybc_experiment$value,dryso2_experiment$value,wetso2_experiment$value,dryso4_experiment$value,wetso4_experiment$value,tot_bc$value,tot_s$value)
   kgm2s_min <- min(emibc_experiment$value,emiso2_experiment$value,drybc_experiment$value,wetbc_experiment$value,drybc_experiment$value,dryso2_experiment$value,wetso2_experiment$value,dryso4_experiment$value,wetso4_experiment$value,tot_bc$value,tot_s$value)
-  
+
   #find maximum and minimum value for all experiments with units W/m^2
   wm2_max <- max(rlut_experiment$value,rsut_experiment$value,net_rad$value,rsdt_experiment$value,rlutcs_experiment$value,rsutcs_experiment$value,net_rad_cs$value)
   wm2_min <- min(rlut_experiment$value,rsut_experiment$value,net_rad$value,rsdt_experiment$value,rlutcs_experiment$value,rsutcs_experiment$value,net_rad_cs$value)
@@ -310,7 +296,7 @@ for(pert in perts){
           axis.title = element_text(size = axis_title_font)) +
     scale_colour_manual(values = model_colors) +
     geom_line()
-  
+
   imp_cld_plot <- ggplot(imp_cld, aes(x = year, y = value, color = model)) +
     labs(title=paste0('implied cloud response \n at TOA - ', region), y=expression(rlut~+~rsut~-~rlutcs~-~rsutcs~(W~m^-2)), x="Year") +
     theme_bw() +
