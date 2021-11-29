@@ -1,7 +1,7 @@
 # ------------------------------------------------------------------------------
 # Program Name: timeseries_per_diff.R
 # Authors: Hamza Ahsan
-# Date Last Modified: July 6, 2021
+# Date Last Modified: November 5, 2021
 # Program Purpose: Produces time series line plots of the percent difference
 # between the perturbations and the reference case
 # Input Files: ~Emissions-MIP/input/
@@ -17,28 +17,35 @@ library(ggplot2)
 library(gridExtra)
 library(grid)
 
-# Specify location of Emissions-MIP directory
-emi_dir <- paste0('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP-Phase1a')
+# Specify region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, SH-sea)
+region <- commandArgs(trailingOnly = TRUE) #pulling region from command line
+region <- region[1] #replaces regions with the first trailing string in the command line
 
+<<<<<<< HEAD
 # Specify region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land,
 # SH-sea, NH-atlantic, NH-pacific)
 region <- "NH-pacific"
+=======
+# Specify location of Emissions-MIP directory
+emi_dir <- paste0('C:/Users/ahsa361/Documents/Emissions-MIP_Data')
+>>>>>>> main
 
-# Define default ggplot colors and associate with models (in case a plot is
-# missing a model, the color scheme will remain consistent)
-gg_color_hue <- function(n) {
-  hues = seq(15, 375, length = n + 1)
-  hcl(h = hues, l = 65, c = 100)[1:n]
-}
+# Specify region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, SH-sea,
+# NH-pacific, NH-atlantic, NH-indian)
+region <- "NH-indian"
 
-cols = gg_color_hue(10)
+# Define colorblind-friendly palette colors and associate with models (in case a  
+# plot is missing a model, the color scheme will remain consistent)
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#920000",
+               "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#490092")
 
-model_colors <- c(CESM1 = cols[1], E3SM = cols[2], GISS = cols[3], CESM2 = cols[4],
-                  MIROC = cols[5], NorESM2 = cols[6], GFDL = cols[7], OsloCTM3 = cols[8],
-                  UKESM = cols[9], GEOS = cols[10])
+model_colors <- c(CESM1 = cbPalette[1], E3SM = cbPalette[2], GISS = cbPalette[3], 
+                  CESM2 = cbPalette[4], MIROC = cbPalette[5], NorESM2 = cbPalette[6], 
+                  GFDL = cbPalette[7], OsloCTM3 = cbPalette[8], UKESM = cbPalette[9], 
+                  GEOS = cbPalette[10])
 
 # ------------------------------------------------------------------------------
-#reads in csv file specifying which models to exclude from the data
+# Reads in csv file specifying which models to exclude from the data
 excluded_models <- read.csv(file = paste0(emi_dir, '/input', '/excluded_data.csv'), fileEncoding="UTF-8-BOM")
 excluded_models %>% drop_na() #gets rid of any empty spaces
 
@@ -62,8 +69,9 @@ for(pert in perts){
   rep_models <- rep(models, each = 4) # four years
   experiment$model <- rep_models
 
-  # Correct model names for CESM and CESM2
+  # Correct model names
   experiment$model[which(experiment$model == "CESM")] <- "CESM1"
+<<<<<<< HEAD
 
   # Change any negative value to positive (i.e., CESM2 wetbc, wetso2, wetso4)
   # Invert sign of CESM2 wet deposition variables
@@ -74,6 +82,9 @@ for(pert in perts){
   experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetso4")] <-
     -1 * experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetso4")]
 
+=======
+  
+>>>>>>> main
   # Rearrange data frame by years descending
   experiment <- dplyr::arrange(experiment, year)
 
@@ -113,6 +124,11 @@ for(pert in perts){
   net_rad_cs <- dplyr::left_join(rlutcs_experiment, rsutcs_experiment, by = c("year", "model"))
   net_rad_cs <- dplyr::mutate(net_rad_cs, value = value.x + value.y) %>%
     dplyr::select(c(year, model, value))
+  
+  # Define implied cloud response (net - clearsky) as a new variable to plot
+  imp_cld <- dplyr::left_join(net_rad, net_rad_cs, by = c("year", "model"))
+  imp_cld <- dplyr::mutate(imp_cld, value = value.x - value.y) %>%
+    dplyr::select(c(year, model, value))
 
   # Define total BC deposition rate (sum of dry BC and wet BC deposition)
   tot_bc <- dplyr::left_join(drybc_experiment, wetbc_experiment, by = c("year", "model"))
@@ -143,7 +159,7 @@ for(pert in perts){
 
   # Generate plots
   emibc_plot <- ggplot(emibc_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('surface flux \n of BC - ', region), y="Percent", x="Year") +
+    labs(title=paste0('surface flux \n of BC - ', region), y=expression(Delta*~emibc), x="Year") +
     theme_bw() +
     theme(plot.title = element_text(hjust = 0.5, size = title_font),
           axis.text = element_text(size = axis_font),
@@ -155,7 +171,7 @@ for(pert in perts){
 
 
   emiso2_plot <- ggplot(emiso2_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('surface flux \n of SO2 - ', region), y="Percent", x="Year") +
+    labs(title=paste0('surface flux \n of SO2 - ', region), y=expression(Delta*~emiso2), x="Year") +
     theme_bw() +
     theme(plot.title = element_text(hjust = 0.5, size = title_font),
           axis.text = element_text(size = axis_font),
@@ -167,7 +183,7 @@ for(pert in perts){
 
 
   mmrbc_plot <- ggplot(mmrbc_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('surface concentration \n of BC - ', region), y="Percent", x="Year") +
+    labs(title=paste0('surface concentration \n of BC - ', region), y=expression(Delta*~mmrbc), x="Year") +
     theme_bw() +
     theme(plot.title = element_text(hjust = 0.5, size = title_font),
           axis.text = element_text(size = axis_font),
@@ -179,7 +195,7 @@ for(pert in perts){
 
 
   mmrso4_plot <- ggplot(mmrso4_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('surface concentration \n of SO4 - ', region), y="Percent", x="Year") +
+    labs(title=paste0('surface concentration \n of SO4 - ', region), y=expression(Delta*~mmrso4), x="Year") +
     theme_bw() +
     theme(plot.title = element_text(hjust = 0.5, size = title_font),
           axis.text = element_text(size = axis_font),
@@ -191,7 +207,7 @@ for(pert in perts){
 
 
   rlut_plot <- ggplot(rlut_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('upwelling longwave flux \n at TOA - ', region), y="Percent", x="Year") +
+    labs(title=paste0('longwave flux at TOA - \n', region), y=expression(Delta*~rlut), x="Year") +
     theme_bw() +
     theme(plot.title = element_text(hjust = 0.5, size = title_font),
           axis.text = element_text(size = axis_font),
@@ -203,7 +219,7 @@ for(pert in perts){
 
 
   rlutcs_plot <- ggplot(rlutcs_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('upwelling clear-sky longwave \n flux at TOA - ', region), y="Percent", x="Year") +
+    labs(title=paste0('clear-sky longwave flux \n at TOA - ', region), y=expression(Delta*~rlutcs), x="Year") +
     theme_bw() +
     theme(plot.title = element_text(hjust = 0.5, size = title_font),
           axis.text = element_text(size = axis_font),
@@ -215,7 +231,7 @@ for(pert in perts){
 
 
   rsut_plot <- ggplot(rsut_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('upwelling shortwave flux \n at TOA - ', region), y="Percent", x="Year") +
+    labs(title=paste0('shortwave flux at TOA - \n', region), y=expression(Delta*~rsut), x="Year") +
     theme_bw() +
     theme(plot.title = element_text(hjust = 0.5, size = title_font),
           axis.text = element_text(size = axis_font),
@@ -227,7 +243,7 @@ for(pert in perts){
 
 
   rsutcs_plot <- ggplot(rsutcs_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('upwelling clear-sky shortwave \n flux at TOA - ', region), y="Percent", x="Year") +
+    labs(title=paste0('clear-sky shortwaveflux \n at TOA - ', region), y=expression(Delta*~rsutcs), x="Year") +
     theme_bw() +
     theme(plot.title = element_text(hjust = 0.5, size = title_font),
           axis.text = element_text(size = axis_font),
@@ -239,7 +255,7 @@ for(pert in perts){
 
 
   rsdt_plot <- ggplot(rsdt_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('incident shortwave flux \n at TOA - ', region), y="Percent", x="Year") +
+    labs(title=paste0('incident shortwave flux \n at TOA - ', region), y=expression(Delta*~rsdt), x="Year") +
     theme_bw() +
     theme(plot.title = element_text(hjust = 0.5, size = title_font),
           axis.text = element_text(size = axis_font),
@@ -251,7 +267,7 @@ for(pert in perts){
 
 
   net_rad_plot <- ggplot(net_rad, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('net radiative flux \n at TOA - ', region), y="Percent", x="Year") +
+    labs(title=paste0('net radiative flux \n at TOA - ', region), y=expression(Delta*~(rlut~+~rsut)), x="Year") +
     theme_bw() +
     theme(plot.title = element_text(hjust = 0.5, size = title_font),
           axis.text = element_text(size = axis_font),
@@ -263,7 +279,17 @@ for(pert in perts){
 
 
   net_rad_cs_plot <- ggplot(net_rad_cs, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('clear-sky net radiative \n flux at TOA - ', region), y="Percent", x="Year") +
+    labs(title=paste0('clear-sky net radiative \n flux at TOA - ', region), y=expression(Delta*~(rlutcs~+~rsutcs)), x="Year") +
+    theme_bw() +
+    theme(plot.title = element_text(hjust = 0.5, size = title_font),
+          axis.text = element_text(size = axis_font),
+          axis.title = element_text(size = axis_title_font)) +
+    scale_y_continuous(labels = function(x) paste0(x, "%")) +
+    scale_colour_manual(values = model_colors) +
+    geom_line()
+  
+  imp_cld_plot <- ggplot(imp_cld, aes(x = year, y = value, color = model)) +
+    labs(title=paste0('implied cloud response \n at TOA - ', region), y=expression(Delta*~(rlut~+~rsut~-~rlutcs~-~rsutcs)), x="Year") +
     theme_bw() +
     theme(plot.title = element_text(hjust = 0.5, size = title_font),
           axis.text = element_text(size = axis_font),
@@ -275,7 +301,7 @@ for(pert in perts){
 
 
   so2_plot <- ggplot(so2_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('surface concentration \n of SO2 - ', region), y="Percent", x="Year") +
+    labs(title=paste0('surface concentration \n of SO2 - ', region), y=expression(Delta*~so2), x="Year") +
     theme_bw() +
     theme(plot.title = element_text(hjust = 0.5, size = title_font),
           axis.text = element_text(size = axis_font),
@@ -287,7 +313,7 @@ for(pert in perts){
 
 
   drybc_plot <- ggplot(drybc_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('dry deposition rate \n of BC - ', region), y="Percent", x="Year") +
+    labs(title=paste0('dry deposition rate \n of BC - ', region), y=expression(Delta*~drybc), x="Year") +
     theme_bw() +
     theme(plot.title = element_text(hjust = 0.5, size = title_font),
           axis.text = element_text(size = axis_font),
@@ -299,7 +325,7 @@ for(pert in perts){
 
 
   wetbc_plot <- ggplot(wetbc_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('wet deposition rate \n of BC - ', region), y="Percent", x="Year") +
+    labs(title=paste0('wet deposition rate \n of BC - ', region), y=expression(Delta*~wetbc), x="Year") +
     theme_bw() +
     theme(plot.title = element_text(hjust = 0.5, size = title_font),
           axis.text = element_text(size = axis_font),
@@ -311,7 +337,7 @@ for(pert in perts){
 
 
   tot_bc_plot <- ggplot(tot_bc, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('total deposition rate \n of BC - ', region), y="Percent", x="Year") +
+    labs(title=paste0('total deposition rate \n of BC - ', region), y=expression(Delta*~(drybc~+~wetbc)), x="Year") +
     theme_bw() +
     theme(plot.title = element_text(hjust = 0.5, size = title_font),
           axis.text = element_text(size = axis_font),
@@ -323,7 +349,7 @@ for(pert in perts){
 
 
   dryso2_plot <- ggplot(dryso2_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('dry deposition rate \n of SO2 - ', region), y="Percent", x="Year") +
+    labs(title=paste0('dry deposition rate \n of SO2 - ', region), y=expression(Delta*~dryso2), x="Year") +
     theme_bw() +
     theme(plot.title = element_text(hjust = 0.5, size = title_font),
           axis.text = element_text(size = axis_font),
@@ -335,7 +361,7 @@ for(pert in perts){
 
 
   wetso2_plot <- ggplot(wetso2_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('wet deposition rate \n of SO2 - ', region), y="Percent", x="Year") +
+    labs(title=paste0('wet deposition rate \n of SO2 - ', region), y=expression(Delta*~wetso2), x="Year") +
     theme_bw() +
     theme(plot.title = element_text(hjust = 0.5, size = title_font),
           axis.text = element_text(size = axis_font),
@@ -347,7 +373,7 @@ for(pert in perts){
 
 
   dryso4_plot <- ggplot(dryso4_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('dry deposition rate \n of SO4 - ', region), y="Percent", x="Year") +
+    labs(title=paste0('dry deposition rate \n of SO4 - ', region), y=expression(Delta*~dryso4), x="Year") +
     theme_bw() +
     theme(plot.title = element_text(hjust = 0.5, size = title_font),
           axis.text = element_text(size = axis_font),
@@ -359,7 +385,7 @@ for(pert in perts){
 
 
   wetso4_plot <- ggplot(wetso4_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('wet deposition rate \n of SO4 - ', region), y="Percent", x="Year") +
+    labs(title=paste0('wet deposition rate \n of SO4 - ', region), y=expression(Delta*~wetso4), x="Year") +
     theme_bw() +
     theme(plot.title = element_text(hjust = 0.5, size = title_font),
           axis.text = element_text(size = axis_font),
@@ -371,7 +397,7 @@ for(pert in perts){
 
 
   tot_s_plot <- ggplot(tot_s, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('total deposition rate \n of S - ', region), y="Percent", x="Year") +
+    labs(title=paste0('total deposition rate \n of S - ', region), y=expression(Delta*~(dryso2~+~wetso2)/2~+~(dryso4~+~wetso4)/3), x="Year") +
     theme_bw() +
     theme(plot.title = element_text(hjust = 0.5, size = title_font),
           axis.text = element_text(size = axis_font),
@@ -383,7 +409,7 @@ for(pert in perts){
 
 
   od550aer_plot <- ggplot(od550aer_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('ambient aerosol optical \n thickness at 550nm - ', region), y="Percent", x="Year") +
+    labs(title=paste0('ambient aerosol optical \n thickness at 550nm - ', region), y=expression(Delta*~od550aer), x="Year") +
     theme_bw() +
     theme(plot.title = element_text(hjust = 0.5, size = title_font),
           axis.text = element_text(size = axis_font),
@@ -394,7 +420,7 @@ for(pert in perts){
     ylim(axes_min,axes_max)
 
   clt_plot <- ggplot(clt_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('total cloud cover \n percentage - ', region), y="Percent", x="Year") +
+    labs(title=paste0('total cloud cover \n percentage - ', region), y=expression(Delta*~clt), x="Year") +
     theme_bw() +
     theme(plot.title = element_text(hjust = 0.5, size = title_font),
           axis.text = element_text(size = axis_font),
@@ -406,7 +432,7 @@ for(pert in perts){
 
 
   cltc_plot <- ggplot(cltc_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('convective cloud cover \n percentage - ', region), y="Percent", x="Year") +
+    labs(title=paste0('convective cloud cover \n percentage - ', region), y=expression(Delta*~cltc), x="Year") +
     theme_bw() +
     theme(plot.title = element_text(hjust = 0.5, size = title_font),
           axis.text = element_text(size = axis_font),
@@ -447,6 +473,7 @@ for(pert in perts){
                                            rlutcs_plot,
                                            rsutcs_plot,
                                            net_rad_cs_plot,
+                                           imp_cld_plot,
                                            drybc_plot,
                                            wetbc_plot,
                                            tot_bc_plot,
