@@ -1,0 +1,3 @@
+﻿net_rad,net_rad_cs,tot_bc,wet_s,dry_s,tot_s,imp_cld
+rlut,rlutcs,drybc,wetso2,dryso2,wet_s,net_rad
+rsut,rsutcs,wetbc,wetso4,dryso4,dry_s,net_rad_cs
