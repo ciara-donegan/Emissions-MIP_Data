@@ -27,23 +27,15 @@ region <- "NH-pacific"
 # Specify location of Emissions-MIP directory
 emi_dir <- paste0('C:/Users/such559/Documents/Emissions-MIP_Data')
 
-<<<<<<< HEAD
-
-# Specify region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, SH-sea,
-# NH-pacific, NH-atlantic, NH-indian)
-region <- "NH-indian"
-
-# Define colorblind-friendly palette colors and associate with models (in case a
-# plot is missing a model, the color scheme will remain consistent)
-=======
 # Specify what you are sorting by and either the region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, SH-sea) or experiment (i.e., bc-no-season, high-so4, no-so4, reference, so2-at-height, so2-no-season)
 #The command line would look like: rscript <rscript>.r <"experiment" or "region"> <specific experiment or region you are sorting by>
-sorting <- commandArgs(trailingOnly = TRUE) #pulling region from command line
-sort_by <- sorting[1]
-if (sort_by == "region"){region <- sorting[2]}
-if (sort_by == "experiment"){pert <- sorting[2]}
+#sorting <- commandArgs(trailingOnly = TRUE) #pulling region from command line
+#sort_by <- sorting[1]
+#if (sort_by == "region"){region <- sorting[2]}
+#if (sort_by == "experiment"){pert <- sorting[2]}
+sort_by <- "region"
+region <- 'arctic'
 
->>>>>>> main
 cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#920000",
                "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#490092")
 
@@ -71,60 +63,31 @@ for(scenario in scenarios){
   if (sort_by == "experiment"){
     setwd(paste0(emi_dir, '/input/', scenario, '/', pert, '/diff'))
   }
-  
+
   # Read in csv files and bind into single data frame
   target_filename <- list.files(getwd(), "*.csv")
   experiment <- rbind(map(target_filename, read.csv))
   experiment <- lapply(experiment, function(x) {x["unit"] <- NULL; x})
   experiment <- bind_rows(experiment)
-  
+
   # Extract model from file names (fifth segment) and bind to experiment data frame
   models <- sapply(strsplit(target_filename, "[-.]+"),function(x) x[5])
   rep_models <- rep(models, each = 4) # four years
   experiment$model <- rep_models
-  
+
   # Correct model names for CESM1
   experiment$model[which(experiment$model == "CESM")] <- "CESM1"
-<<<<<<< HEAD
-<<<<<<< HEAD
 
-  # Change any negative value to positive (i.e., CESM2 wetbc, wetso2, wetso4)
-  # Invert sign of CESM2 wet deposition variables
-  experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetbc")] <-
-    -1 * experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetbc")]
-  experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetso2")] <-
-    -1 * experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetso2")]
-  experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetso4")] <-
-    -1 * experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetso4")]
-
-  # Rearrange data frame by years descending
-  experiment <- dplyr::arrange(experiment, year)
-
-
-  #set min and max axes for graphing later on
-  axes_max <- max(experiment$value)
-  axes_min <- min(experiment$value)
-
-  #runs through each excluded model pair and filters them out of summary_long
-  if(nrow(excluded_models) != 0) { #only runs if the data frame is not empty
-    for (val in 1:nrow(excluded_models)) {
-      experiment <- filter(experiment, pert != excluded_models$Scenario[val] | experiment$model != excluded_models$Model[val])
-    }
-  }
-
-
-=======
-  
   # Invert sign of forcing variables to be consistent with convention (i.e. positive
   # value denotes a heating effect)
   experiment <- within(experiment, value <- ifelse(variable %in% c("rlut", "rsut", "rlutcs", "rsutcs"), -1, 1) * value)
-  
+
   # Invert sign of CESM2 wet deposition variables (i.e., CESM2 wetbc, wetso2, wetso4)
   experiment <- within(experiment, value <- ifelse(variable %in% c("wetbc", "wetso2", "wetso4") & model == "CESM2", -1, 1) * value)
-  
+
   # Rearrange data frame by years descending
   experiment <- dplyr::arrange(experiment, year)
-  
+
   #only runs excluded models if sorting by region
   if (sort_by == "region"){
     #runs through each excluded model pair and filters them out of experiment
@@ -134,16 +97,15 @@ for(scenario in scenarios){
       }
     }
   }
-  
->>>>>>> main
+
   # Convert volume mixing ratio to mass mixing ratio by multiplying by molar mass
   # of SO2 and dividing by molar mass of air
   so2_experiment <- dplyr::filter(experiment, variable == 'so2') %>%
     dplyr::mutate(new_value = value * 64.066 / 28.96)
-  
+
   # Change units from mol/mol to kg/kg
   so2_experiment$unit <- 'kg kg-1'
-  
+
   # Define remaining experiments
   emibc_experiment    <- dplyr::filter(experiment, variable == 'emibc')
   emiso2_experiment   <- dplyr::filter(experiment, variable == 'emiso2')
@@ -163,12 +125,12 @@ for(scenario in scenarios){
   od550aer_experiment <- dplyr::filter(experiment, variable == 'od550aer')
   clt_experiment      <- dplyr::filter(experiment, variable == 'clt')
   cltc_experiment     <- dplyr::filter(experiment, variable == 'cltc')
-  
+
   # Define normal and clear-sky net radiative flux and  (sum of longwave and shortwave radiation)
   net_rad <- dplyr::left_join(rlut_experiment, rsut_experiment, by = c("year", "model"))
   net_rad <- dplyr::mutate(net_rad, value = value.x + value.y) %>%
     dplyr::select(c(year, model, value))
-  
+
   net_rad_cs <- dplyr::left_join(rlutcs_experiment, rsutcs_experiment, by = c("year", "model"))
   net_rad_cs <- dplyr::mutate(net_rad_cs, value = value.x + value.y) %>%
     dplyr::select(c(year, model, value))
@@ -182,311 +144,25 @@ for(scenario in scenarios){
   tot_bc <- dplyr::left_join(drybc_experiment, wetbc_experiment, by = c("year", "model"))
   tot_bc <- dplyr::mutate(tot_bc, value = value.x + value.y) %>%
     dplyr::select(c(year, model, value))
-  
+
   #Define total S deposition rate (sum of dry SO2/SO4 and wet SO2/SO4 deposition)
   dry_s <- dplyr::left_join(dryso2_experiment, dryso4_experiment, by = c("year", "model"))
   dry_s <- dplyr::mutate(dry_s, value = (32.065/64.066)*value.x + (32.065/96.06)*value.y) %>%
     dplyr::select(c(year, model, value))
-  
+
   wet_s <- dplyr::left_join(wetso2_experiment, wetso4_experiment, by = c("year", "model"))
   wet_s <- dplyr::mutate(wet_s, value = (32.065/64.066)*value.x + (32.065/96.06)*value.y) %>%
     dplyr::select(c(year, model, value))
-  
+
   tot_s <- dplyr::left_join(dry_s, wet_s, by = c("year", "model"))
   tot_s <- dplyr::mutate(tot_s, value = value.x + value.y) %>%
     dplyr::select(c(year, model, value))
-<<<<<<< HEAD
 
-  #find the maximum and minimum value for all experiments with units kg/kg
-  kgkg_max <- max(mmrbc_experiment$value, mmrso4_experiment$value, so2_experiment$new_value)
-  kgkg_min <- min(mmrbc_experiment$value, mmrso4_experiment$value, so2_experiment$new_value)
-
-  #find maximum and minimum value for all experiments with units kg/m^2*s
-  kgm2s_max <- max(emibc_experiment$value,emiso2_experiment$value,drybc_experiment$value,wetbc_experiment$value,drybc_experiment$value,dryso2_experiment$value,wetso2_experiment$value,dryso4_experiment$value,wetso4_experiment$value,tot_bc$value,tot_s$value)
-  kgm2s_min <- min(emibc_experiment$value,emiso2_experiment$value,drybc_experiment$value,wetbc_experiment$value,drybc_experiment$value,dryso2_experiment$value,wetso2_experiment$value,dryso4_experiment$value,wetso4_experiment$value,tot_bc$value,tot_s$value)
-
-  #find maximum and minimum value for all experiments with units W/m^2
-  wm2_max <- max(rlut_experiment$value,rsut_experiment$value,net_rad$value,rsdt_experiment$value,rlutcs_experiment$value,rsutcs_experiment$value,net_rad_cs$value)
-  wm2_min <- min(rlut_experiment$value,rsut_experiment$value,net_rad$value,rsdt_experiment$value,rlutcs_experiment$value,rsutcs_experiment$value,net_rad_cs$value)
-
-
-=======
-  
->>>>>>> main
   # Pre-define plot font sizes
   title_font <- 7
   axis_font <- 6
   axis_title_font <- 7
 
-<<<<<<< HEAD
-  # Generate plots
-  emibc_plot <- ggplot(emibc_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('surface flux of BC - \n', region), y=expression(emibc~(kg~m^-2~s^-1)), x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_y_continuous(labels = scales::scientific_format(digits = 2)) +
-    scale_colour_manual(values = model_colors) +
-    geom_line()+
-    ylim(kgm2s_min,kgm2s_max)
-
-
-  emiso2_plot <- ggplot(emiso2_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('surface flux of SO2 - \n', region), y=expression(emiso2~(kg~m^-2~s^-1)), x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_y_continuous(labels = scales::scientific_format(digits = 2)) +
-    scale_colour_manual(values = model_colors) +
-    geom_line()+
-    ylim(kgm2s_min,kgm2s_max)
-
-
-  mmrbc_plot <- ggplot(mmrbc_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('surface concentration \n of BC - ', region), y=expression(mmrbc~(kg~kg^-1)), x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_colour_manual(values = model_colors) +
-    geom_line() +
-    ylim(kgkg_min,kgkg_max)
-
-
-  mmrso4_plot <- ggplot(mmrso4_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('surface concentration \n of SO4 - ', region), y=expression(mmrso4~(kg~kg^-1)), x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_colour_manual(values = model_colors) +
-    geom_line() +
-    ylim(kgkg_min,kgkg_max)
-
-
-  rlut_plot <- ggplot(rlut_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('longwave flux at TOA - \n', region), y=expression(rlut~(W~m^-2)), x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_colour_manual(values = model_colors) +
-    geom_line() +
-    ylim(wm2_min,wm2_max)
-
-
-  rlutcs_plot <- ggplot(rlutcs_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('clear-sky longwave \n flux at TOA - ', region), y=expression(rlutcs~(W~m^-2)), x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_colour_manual(values = model_colors) +
-    geom_line() +
-    ylim(wm2_min,wm2_max)
-
-
-  rsut_plot <- ggplot(rsut_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('shortwave flux at TOA - \n', region), y=expression(rsut~(W~m^-2)), x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_colour_manual(values = model_colors) +
-    geom_line() +
-    ylim(wm2_min,wm2_max)
-
-
-  rsutcs_plot <- ggplot(rsutcs_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('clear-sky shortwave \n flux at TOA - ', region), y=expression(rsutcs~(W~m^-2)), x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_colour_manual(values = model_colors) +
-    geom_line() +
-    ylim(wm2_min,wm2_max)
-
-
-  rsdt_plot <- ggplot(rsdt_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('incident shortwave flux \n at TOA - ', region), y=expression(rsdt~(W~m^-2)), x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_colour_manual(values = model_colors) +
-    geom_line() +
-    ylim(wm2_min,wm2_max)
-
-
-  net_rad_plot <- ggplot(net_rad, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('net radiative flux \n at TOA - ', region), y=expression(rlut~+~rsut~(W~m^-2)), x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_colour_manual(values = model_colors) +
-    geom_line() +
-    ylim(wm2_min,wm2_max)
-
-
-  net_rad_cs_plot <- ggplot(net_rad_cs, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('clear-sky net radiative \n flux at TOA - ', region), y=expression(rlutcs~+~rsutcs~(W~m^-2)), x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_colour_manual(values = model_colors) +
-    geom_line()
-
-  imp_cld_plot <- ggplot(imp_cld, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('implied cloud response \n at TOA - ', region), y=expression(rlut~+~rsut~-~rlutcs~-~rsutcs~(W~m^-2)), x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_colour_manual(values = model_colors) +
-    geom_line() +
-    ylim(wm2_min,wm2_max)
-
-
-  so2_plot <- ggplot(so2_experiment, aes(x = year, y = new_value, color = model)) +
-    labs(title=paste0('surface concentration \n of SO2 - ', region), y=expression(so2~(kg~kg^-1)), x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_colour_manual(values = model_colors) +
-    geom_line() +
-    ylim(kgkg_min,kgkg_max)
-
-
-  drybc_plot <- ggplot(drybc_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('dry deposition rate \n of BC - ', region), y=expression(drybc~(kg~m^-2~s^-1)), x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_y_continuous(labels = scales::scientific_format(digits = 2)) +
-    scale_colour_manual(values = model_colors) +
-    geom_line() +
-    ylim(kgm2s_min,kgm2s_max)
-
-
-  wetbc_plot <- ggplot(wetbc_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('wet deposition rate \n of BC - ', region), y=expression(wetbc~(kg~m^-2~s^-1)), x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_y_continuous(labels = scales::scientific_format(digits = 2)) +
-    scale_colour_manual(values = model_colors) +
-    geom_line() +
-    ylim(kgm2s_min,kgm2s_max)
-
-
-  tot_bc_plot <- ggplot(tot_bc, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('total deposition rate \n of BC - ', region), y=expression(drybc~+~wetbc~(kg~m^-2~s^-1)), x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_y_continuous(labels = scales::scientific_format(digits = 2)) +
-    scale_colour_manual(values = model_colors) +
-    geom_line() +
-    ylim(kgm2s_min,kgm2s_max)
-
-
-  dryso2_plot <- ggplot(dryso2_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('dry deposition rate \n of SO2 - ', region), y=expression(dryso2~(kg~m^-2~s^-1)), x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_y_continuous(labels = scales::scientific_format(digits = 2)) +
-    scale_colour_manual(values = model_colors) +
-    geom_line() +
-    ylim(kgm2s_min,kgm2s_max)
-
-
-  wetso2_plot <- ggplot(wetso2_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('wet deposition rate \n of SO2 - ', region), y=expression(wetso2~(kg~m^-2~s^-1)), x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_y_continuous(labels = scales::scientific_format(digits = 2)) +
-    scale_colour_manual(values = model_colors) +
-    geom_line() +
-    ylim(kgm2s_min,kgm2s_max)
-
-
-  dryso4_plot <- ggplot(dryso4_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('dry deposition rate \n of SO4 - ', region), y=expression(dryso4~(kg~m^-2~s^-1)), x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_y_continuous(labels = scales::scientific_format(digits = 2)) +
-    scale_colour_manual(values = model_colors) +
-    geom_line() +
-    ylim(kgm2s_min,kgm2s_max)
-
-
-  wetso4_plot <- ggplot(wetso4_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('wet deposition rate \n of SO4 - ', region), y=expression(wetso4~(kg~m^-2~s^-1)), x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_y_continuous(labels = scales::scientific_format(digits = 2)) +
-    scale_colour_manual(values = model_colors) +
-    geom_line() +
-    ylim(kgm2s_min,kgm2s_max)
-
-
-  tot_s_plot <- ggplot(tot_s, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('total deposition rate \n of S - ', region), y=expression(atop((dryso2~+~wetso2)/2~+~(dryso4~+~wetso4)/3, (kg~m^-2~s^-1))), x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_y_continuous(labels = scales::scientific_format(digits = 2)) +
-    scale_colour_manual(values = model_colors) +
-    geom_line() +
-    ylim(kgm2s_min,kgm2s_max)
-
-
-  od550aer_plot <- ggplot(od550aer_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('ambient aerosol optical \n thickness at 550nm - ', region), y="od550aer", x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_colour_manual(values = model_colors) +
-    geom_line()
-
-  clt_plot <- ggplot(clt_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('total cloud cover \n percentage - ', region), y="clt (%)", x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_colour_manual(values = model_colors) +
-    geom_line()
-
-  cltc_plot <- ggplot(cltc_experiment, aes(x = year, y = value, color = model)) +
-    labs(title=paste0('convective cloud cover \n percentage - ', region), y="cltc (%)", x="Year") +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5, size = title_font),
-          axis.text = element_text(size = axis_font),
-          axis.title = element_text(size = axis_title_font)) +
-    scale_colour_manual(values = model_colors) +
-    geom_line()
-
-=======
   plot_species <- function(experiment, reg_or_exper,title, units){
     species_plot <- ggplot(experiment, aes(x = year, y = value, color = model)) +
       labs(title=paste0(title, ' - ', reg_or_exper), y=units, x="Year") +
@@ -497,7 +173,7 @@ for(scenario in scenarios){
       scale_y_continuous(labels = scales::scientific_format(digits = 2)) +
       scale_colour_manual(values = model_colors) +
       geom_line()
-    
+
     return(species_plot)
   }
   if (sort_by == "region"){
@@ -527,7 +203,7 @@ for(scenario in scenarios){
     cltc_plot <- plot_species(cltc_experiment, region, "convective cloud cover \n percentage", "expression cltc (%)")
     imp_cld_plot <- plot_species(imp_cld, region, "implied cloud response \n at TOA", expression(rlut~+~rsut~-~rlutcs~-~rsutcs~(W~m^-2)))
   }
-  
+
   if (sort_by == "experiment"){
     #Generate plots
     emibc_plot <- plot_species(emibc_experiment, pert, "surface flux \n of BC", expression(emibc~(kg~m^-2~s^-1)))
@@ -555,8 +231,7 @@ for(scenario in scenarios){
     cltc_plot <- plot_species(cltc_experiment, pert, "convective cloud cover \n percentage", "cltc~(%)")
     imp_cld_plot <- plot_species(imp_cld, pert, "implied cloud response \n at TOA", expression(rlut~+~rsut~-~rlutcs~-~rsutcs~(W~m^-2)))
   }
-  
->>>>>>> main
+
   # Function from stack exchange to generate a shared legend
   grid_arrange_shared_legend <- function(...) {
     plots <- list(...)
@@ -574,7 +249,7 @@ for(scenario in scenarios){
       heights = unit.c(unit(1, "npc") - 1.5 * lheight, lheight), # the "1.5" adds room for title
       top = textGrob(paste0(scenario, ': absolute difference'), gp = gpar(fontsize = 12)))
   }
-  
+
   final_plot <- grid_arrange_shared_legend(emibc_plot,
                                            emiso2_plot,
                                            mmrbc_plot,
@@ -599,10 +274,10 @@ for(scenario in scenarios){
                                            od550aer_plot,
                                            clt_plot,
                                            cltc_plot)
-  
+
   # Print plots
-  
-  if (sort_by == "region"){ 
+
+  if (sort_by == "region"){
     setwd(paste0('../../../../output/', region, '/timeseries'))
     # To save to file on A4 paper
     ggsave(paste0(region, '_', scenario ,'_diff.pdf'), final_plot, width = 21, height = 29.7, units = "cm")
