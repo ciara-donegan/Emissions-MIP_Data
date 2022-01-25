@@ -24,10 +24,12 @@ setwd(paste0(emi_dir))
 
 # Specify what you are sorting by and either the region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, SH-sea) or experiment (i.e., bc-no-season, high-so4, no-so4, reference, so2-at-height, so2-no-season)
 #The command line would look like: rscript <rscript>.r <"experiment" or "region"> <specific experiment or region you are sorting by>
-sorting <- commandArgs(trailingOnly = TRUE) #pulling region from command line
-sort_by <- sorting[1]
-if (sort_by == "region"){region <- sorting[2]}
-if (sort_by == "experiment"){exper <- sorting[2]}
+#sorting <- commandArgs(trailingOnly = TRUE) #pulling region from command line
+#sort_by <- sorting[1]
+#if (sort_by == "region"){region <- sorting[2]}
+#if (sort_by == "experiment"){exper <- sorting[2]}
+sort_by <- 'region'
+region <- 'global'
 
 #-------------------------------------------------------------------------------
 #Read in variable, region, and experiment names and sort them into their own lists
@@ -102,9 +104,6 @@ data_accumulation <- function(emi_dir, reg_name, exper){
     # then take the average over all years for each variable and calculate std dev
     regional_data_summary <- regional_data %>%
         dplyr::group_by(variable, model) %>%
-        within(value <- ifelse(variable == "so2", 64.066 / 28.96, 1) * value) %>%
-        within(value <- ifelse(variable %in% c("rlut", "rsut", "rlutcs", "rsutcs"), -1, 1) * value) %>%
-        within(value <- ifelse(variable %in% c("wetbc", "wetso2", "wetso4") & model == "CESM2", -1, 1) * value) %>%
         dplyr::summarise(regional_data = mean(value), regional_data_sd = sd(value))
 
     return(regional_data_summary)
