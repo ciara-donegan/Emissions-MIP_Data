@@ -24,13 +24,11 @@ setwd(paste0(emi_dir))
 
 # Specify what you are sorting by and either the region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, SH-sea) or experiment (i.e., bc-no-season, high-so4, no-so4, reference, so2-at-height, so2-no-season)
 #The command line would look like: rscript <rscript>.r <"experiment" or "region"> <specific experiment or region you are sorting by>
-#sorting <- commandArgs(trailingOnly = TRUE) #pulling region from command line
-#sort_by <- sorting[1]
-#if (sort_by == "region"){region <- sorting[2]}
-#if (sort_by == "experiment"){exper <- sorting[2]}
-sort_by <- 'experiment'
-region <- 'arctic'
-exper <- 'bc-no-season'
+sorting <- commandArgs(trailingOnly = TRUE) #pulling region from command line
+sort_by <- sorting[1]
+if (sort_by == "region"){region <- sorting[2]}
+if (sort_by == "experiment"){exper <- sorting[2]}
+
 #-------------------------------------------------------------------------------
 #Read in variable, region, and experiment names and sort them into their own lists
 var_master_list <- read.csv(file = paste0(emi_dir, '/input/var_master_list.csv'), fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
@@ -81,6 +79,7 @@ model_colors <- c(CESM1 = cbPalette[1], E3SM = cbPalette[2], GISS = cbPalette[3]
 
 model_symbols <- c(CESM1 = 15, E3SM = 15, GISS = 17, CESM2 = 19, MIROC = 15,
                    NorESM2 = 17, GFDL = 19, OsloCTM3 = 19, UKESM = 15, GEOS = 17)
+
 #-------------------------------------------------------------------------------
 #extracts data for each perturbation experiment from csv files
 data_accumulation <- function(emi_dir, reg_name, exper){
@@ -135,22 +134,44 @@ group_max <- function(dataframe_column, variables){
 #-------------------------------------------------------------------------------
 #Creates a function that combines singular variables into a combined variable
 if(sort_by == 'region'){
-    make_combined_var <- function(var1,var2){
+    make_combined_var <- function(var1,var2,add_or_subtract){
+        if(add_or_subtract == "add"){
         output <- dplyr::left_join(var1, var2, by = c("model", "experiment"))
         output <- dplyr::mutate(output, value = value.x + value.y) %>%
             dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
             dplyr::select(c(model, experiment, value, sd))
         return(output)
+        }
+        
+        if(add_or_subtract == "subtract"){
+            output <- dplyr::left_join(var1, var2, by = c("model", "experiment"))
+            output <- dplyr::mutate(output, value = value.x - value.y) %>%
+                dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
+                dplyr::select(c(model, experiment, value, sd))
+            return(output)
+        }
     }
+    
+    
 }
 
 if(sort_by == 'experiment'){
-    make_combined_var <- function(var1,var2){
+    make_combined_var <- function(var1,var2, add_or_subtract){
+        if (add_or_subtract == "add"){
         output <- dplyr::left_join(var1, var2, by = c("model", "region"))
         output <- dplyr::mutate(output, value = value.x + value.y) %>%
             dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
             dplyr::select(c(model, region, value, sd))
         return(output)
+        }
+        if (add_or_subtract == "subtract"){
+            output <- dplyr::left_join(var1, var2, by = c("model", "region"))
+            output <- dplyr::mutate(output, value = value.x - value.y) %>%
+                dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
+                dplyr::select(c(model, region, value, sd))
+            return(output)
+        }
+        
     }
 }
 #-------------------------------------------------------------------------------
@@ -179,6 +200,7 @@ if(sort_by == "region"){
     create_summary_long <- function(region, directory){
 
         summary_data_list <- list()
+        print('data list works')
 
         for (i in 1:length(master_exp)){
             summary_data_list[[i]] <- assign(paste0(master_exp[i], '_summary'), data_accum_and_rename_region(directory,region,master_exp[i]))
@@ -261,13 +283,9 @@ if(sort_by == "experiment"){
 #Creates a function that finds min and max values
 find_max_min <- function(variable_data, variable, varname){
 
-    print(variable_data[varname, 'Max'])
-    print(max(variable$value))
     #replace max and min if current variable data is more or less than the current max/min
     if(max(variable$value) > variable_data[varname, 'Max']){variable_data[varname, 'Max'] <- max(variable$value)}
     if(min(variable$value) < variable_data[varname, 'Min']){variable_data[varname, 'Min'] <- min(variable$value)}
-
-    print(print(variable_data[varname, 'Max']))
 
     return(variable_data)
 }
@@ -301,8 +319,9 @@ if (sort_by == "region"){
                 name <- colnames(combined_vars)[i]
                 var1 <- combined_vars[1,i]
                 var2 <- combined_vars[2,i]
+                operator <- combined_cars[3,i]
                 #Adds these variables to total vars directly under where it left off
-                list_vars[[i + length(master_vars)]] <- assign(name, make_combined_var(eval(parse(text = var1)),eval(parse(text = var2))))
+                list_vars[[i + length(master_vars)]] <- assign(name, make_combined_var(eval(parse(text = var1)),eval(parse(text = var2)),operator))
             }
             #creates an arbitrary counter variable
             j <- 1
@@ -332,8 +351,9 @@ if (sort_by == "region"){
             name <- colnames(combined_vars)[i]
             var1 <- combined_vars[1,i]
             var2 <- combined_vars[2,i]
+            operator <- combined_vars[3,1]
             #Adds these variables to total vars directly under where it left off
-            list_vars[[i + length(master_vars)]] <- assign(name, make_combined_var(eval(parse(text = var1)),eval(parse(text = var2))))
+            list_vars[[i + length(master_vars)]] <- assign(name, make_combined_var(eval(parse(text = var1)),eval(parse(text = var2)),operator))
         }
         #establishes a j term used for indexing later on
         j <- 1
@@ -390,8 +410,14 @@ if (sort_by == "experiment"){
                 name <- colnames(combined_vars)[i]
                 var1 <- combined_vars[1,i]
                 var2 <- combined_vars[2,i]
+                operator <- combined_vars[3,i]
                 #Adds these variables to total vars directly under where it left off
-                list_vars[[i + length(master_vars)]] <- assign(name, make_combined_var(eval(parse(text = var1)),eval(parse(text = var2))))
+                list_vars[[i + length(master_vars)]] <- assign(name, make_combined_var(eval(parse(text = var1)),eval(parse(text = var2)),operator))
+                if (any(is.na(list_vars[[i + length(master_vars)]])) == TRUE){
+                    #If there are NA values, this sets them to zero and puts an error message
+                    print(paste0('NA in ', master_vars[i + length(master_vars)], ' setting NA to zero'))
+                    list_vars[[i + length(master_vars)]][is.na(list_vars[[i + length(master_vars)]])] <- 0
+                }
             }
             #establishes a j term used for indexing later on
             j <- 1
@@ -422,8 +448,14 @@ if (sort_by == "experiment"){
             name <- colnames(combined_vars)[i]
             var1 <- combined_vars[1,i]
             var2 <- combined_vars[2,i]
+            operator <- combined_vars[3,1]
             #Adds these variables to total vars directly under where it left off
-            list_vars[[i + length(master_vars)]] <- assign(name, make_combined_var(eval(parse(text = var1)),eval(parse(text = var2))))
+            list_vars[[i + length(master_vars)]] <- assign(name, make_combined_var(eval(parse(text = var1)),eval(parse(text = var2)),operator))
+            if (any(is.na(list_vars[[i + length(master_vars)]])) == TRUE){
+                #If there are NA values, this sets them to zero and puts an error message
+                print(paste0('NA in ', master_vars[i + length(master_vars)], ' setting NA to zero'))
+                list_vars[[i + length(master_vars)]][is.na(list_vars[[i + length(master_vars)]])] <- 0
+            }
         }
 
         #establishes a j term used for indexing later on
@@ -453,7 +485,7 @@ if (sort_by == "experiment"){
 #-------------------------------------------------------------------------------
 
 # Generate plots
-title_font <- 9.5
+title_font <- 7
 axis_font <- 9
 axis_title_font <- 9
 
@@ -469,10 +501,10 @@ for(i in 1:ncol(combined_vars)){
     name <- colnames(combined_vars)[i]
     var1 <- combined_vars[1,i]
     var2 <- combined_vars[2,i]
+    operator <- combined_vars[3,i]
     #Adds these variables to total vars directly under where it left off
-    total_vars[[i + length(master_vars)]] <- assign(name, make_combined_var(eval(parse(text = var1)),eval(parse(text = var2))))
+    total_vars[[i + length(master_vars)]] <- assign(name, make_combined_var(eval(parse(text = var1)),eval(parse(text = var2)),operator))
 }
-
 
 #Creates a function that creates plots for the data based on each species
 if (sort_by == "region"){
@@ -587,7 +619,6 @@ if (sort_by == "experiment"){
 
 }
 
-
 # Function from stack exchange to generate a shared legend
 grid_arrange_shared_legend <- function(...) {
     plots <- list(...)
@@ -605,6 +636,7 @@ grid_arrange_shared_legend <- function(...) {
         heights = unit.c(unit(1, "npc") - 1.5 * lheight, lheight), # the "1.5" adds room for title
         top = textGrob("Summary - absolute difference", gp = gpar(fontsize = 12)))
 }
+
 
 emissions_plot <- grid_arrange_shared_legend(emibc_plot,
                                              emiso2_plot,
