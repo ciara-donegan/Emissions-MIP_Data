@@ -24,12 +24,10 @@ setwd(paste0(emi_dir))
 
 # Specify what you are sorting by and either the region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, SH-sea) or experiment (i.e., bc-no-season, high-so4, no-so4, reference, so2-at-height, so2-no-season)
 #The command line would look like: rscript <rscript>.r <"experiment" or "region"> <specific experiment or region you are sorting by>
-#sorting <- commandArgs(trailingOnly = TRUE) #pulling region from command line
-#sort_by <- sorting[1]
-#if (sort_by == "region"){region <- sorting[2]}
-#if (sort_by == "experiment"){exper <- sorting[2]}
-sort_by <- 'region'
-region <- 'global'
+sorting <- commandArgs(trailingOnly = TRUE) #pulling region from command line
+sort_by <- sorting[1]
+if (sort_by == "region"){region <- sorting[2]}
+if (sort_by == "experiment"){exper <- sorting[2]}
 
 #-------------------------------------------------------------------------------
 #Read in variable, region, and experiment names and sort them into their own lists
@@ -97,14 +95,21 @@ data_accumulation <- function(emi_dir, reg_name, exper){
     models <- sapply(strsplit(target_filename, "[-.]+"),function(x) x[5])
     rep_models <- rep(models, each = 4) # four years
     regional_data$model <- rep_models
+    
+    # Invert sign of CESM2 wet deposition variables
+    regional_data$value[which(regional_data$model == "CESM2" & regional_data$variable == "wetbc")] <- 
+      -1 * regional_data$value[which(regional_data$model == "CESM2" & regional_data$variable == "wetbc")]
+    regional_data$value[which(regional_data$model == "CESM2" & regional_data$variable == "wetso2")] <- 
+      -1 * regional_data$value[which(regional_data$model == "CESM2" & regional_data$variable == "wetso2")]
+    regional_data$value[which(regional_data$model == "CESM2" & regional_data$variable == "wetso4")] <- 
+      -1 * regional_data$value[which(regional_data$model == "CESM2" & regional_data$variable == "wetso4")]
 
-    # Convert SO2 volume mixing ratio to mass mixing ratio by multiplying by molar
-    # mass of SO2 and dividing by molar mass of air, invert sign of forcing variables
-    # to be consistent with convention (i.e. positive value denotes a heating effect),
-    # then take the average over all years for each variable and calculate std dev
+    #take the average over all years for each variable and calculate std dev
     regional_data_summary <- regional_data %>%
         dplyr::group_by(variable, model) %>%
         dplyr::summarise(regional_data = mean(value), regional_data_sd = sd(value))
+    
+    
 
     return(regional_data_summary)
 }
