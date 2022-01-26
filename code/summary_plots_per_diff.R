@@ -54,6 +54,19 @@ rownames(variables) <- variables$Variable
 variables <- subset(variables, select = -c(Variable))
 #creates a list of all the variables as strings
 list_of_variable_strings <- rownames(variables)
+#-------------------------------------------------------------------------------
+#Checks to see if data was entered into csv files correctly
+
+#Checks if total variables are consistent between variables.csv and var_master_list.csv
+#Add 2 for the wet and dry s variables that would not appear in the master lists
+if(nrow(variables) != length(master_vars) + length(master_com_var) + 2){
+    stop('discrepancy between variables.csv and var_master_list.csv files')
+}
+#checks if the number of combined vars in combined_variables.csv added to the 
+#master list of variables is equivalent to the number of vars in variables
+if(nrow(variables) != length(master_vars) + ncol(combined_vars)){
+    stop('missing combined variables in combined_variables.csv')
+}
 # ------------------------------------------------------------------------------
 # Reads in csv file specifying which models to exclude from the data
 excluded_models <- read.csv(file = paste0(emi_dir, '/input/excluded_data.csv'), fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
