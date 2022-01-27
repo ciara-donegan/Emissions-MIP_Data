@@ -332,7 +332,7 @@ if (sort_by == "region"){
                 name <- colnames(combined_vars)[i]
                 var1 <- combined_vars[1,i]
                 var2 <- combined_vars[2,i]
-                operator <- combined_cars[3,i]
+                operator <- combined_vars[3,i]
                 #Adds these variables to total vars directly under where it left off
                 list_vars[[i + length(master_vars)]] <- assign(name, make_combined_var(eval(parse(text = var1)),eval(parse(text = var2)),operator))
             }

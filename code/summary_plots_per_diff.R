@@ -109,14 +109,6 @@ data_accumulation <- function(emi_dir, reg_name, exper){
     rep_models <- rep(models, each = 4) # four years
     regional_data$model <- rep_models
     
-    # Invert sign of CESM2 wet deposition variables
-    regional_data$value[which(regional_data$model == "CESM2" & regional_data$variable == "wetbc")] <- 
-      -1 * regional_data$value[which(regional_data$model == "CESM2" & regional_data$variable == "wetbc")]
-    regional_data$value[which(regional_data$model == "CESM2" & regional_data$variable == "wetso2")] <- 
-      -1 * regional_data$value[which(regional_data$model == "CESM2" & regional_data$variable == "wetso2")]
-    regional_data$value[which(regional_data$model == "CESM2" & regional_data$variable == "wetso4")] <- 
-      -1 * regional_data$value[which(regional_data$model == "CESM2" & regional_data$variable == "wetso4")]
-
     #take the average over all years for each variable and calculate std dev
     regional_data_summary <- regional_data %>%
         dplyr::group_by(variable, model) %>%
@@ -628,27 +620,6 @@ if (sort_by == "experiment"){
 
 }
 
-# if (sort_by == "region"){
-#     # Define implied cloud response (net - clearsky) as a new variable to plot
-#     imp_cld <- dplyr::left_join(net_rad, net_rad_cs, by = c("model", "experiment"))
-#     imp_cld <- dplyr::mutate(imp_cld, value = value.x - value.y) %>%
-#         dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
-#         dplyr::select(c(model, experiment, value, sd))
-#     
-#     imp_cld_plot <- plot_species(imp_cld, region, value, 'implied cloud response at TOA - \n', expression(Delta*~rlut~+~rsut~-~rlutcs~-~rsutcs~(W~m^-2)), region, model_colors, model_symbols,variables['imp_cld','Max'],variables['imp_cld','Min'])
-# }
-# 
-# if (sort_by == "experiment"){
-#     # Define implied cloud response (net - clearsky) as a new variable to plot
-#     imp_cld <- dplyr::left_join(net_rad, net_rad_cs, by = c("model", "region"))
-#     imp_cld <- dplyr::mutate(imp_cld, value = value.x - value.y) %>%
-#         dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
-#         dplyr::select(c(model, region, value, sd))
-#     
-#     imp_cld_plot <- plot_species(imp_cld, region, value, 'implied cloud response at TOA - \n', expression(Delta*~rlut~+~rsut~-~rlutcs~-~rsutcs~(W~m^-2)),exper, model_colors, model_symbols, variables['imp_cld','Max'],variables['imp_cld','Min'])
-# }
-
-
 # Function from stack exchange to generate a shared legend
 grid_arrange_shared_legend <- function(...) {
     plots <- list(...)
@@ -664,7 +635,7 @@ grid_arrange_shared_legend <- function(...) {
         legend,
         ncol = 1,
         heights = unit.c(unit(1, "npc") - 1.5 * lheight, lheight), # the "1.5" adds room for title
-        top = textGrob("Summary - absolute difference", gp = gpar(fontsize = 12)))
+        top = textGrob("Summary - percent difference", gp = gpar(fontsize = 12)))
 }
 
 emissions_plot <- grid_arrange_shared_legend(emibc_plot,

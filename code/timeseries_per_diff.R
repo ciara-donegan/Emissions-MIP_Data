@@ -72,25 +72,8 @@ for(scenario in scenarios){
   # Correct model names
   experiment$model[which(experiment$model == "CESM")] <- "CESM1"
 
-  # Change any negative value to positive (i.e., CESM2 wetbc, wetso2, wetso4)
-  # Invert sign of CESM2 wet deposition variables
-  experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetbc")] <-
-    -1 * experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetbc")]
-  experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetso2")] <-
-    -1 * experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetso2")]
-  experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetso4")] <-
-    -1 * experiment$value[which(experiment$model == "CESM2" & experiment$variable == "wetso4")]
-
   # Rearrange data frame by years descending
   experiment <- dplyr::arrange(experiment, year)
-
-  # Convert volume mixing ratio to mass mixing ratio by multiplying by molar mass
-  # of SO2 and dividing by molar mass of air
-  so2_experiment <- dplyr::filter(experiment, variable == 'so2') %>%
-    dplyr::mutate(new_value = value * 64.066 / 28.96)
-
-  # Change units from mol/mol to kg/kg
-  so2_experiment$unit <- 'kg kg-1'
 
   #only runs excluded models if sorting by region
   if (sort_by == "region"){

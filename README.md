@@ -16,5 +16,37 @@ The perturbation and reference data are included for each region (*e.g.*, global
 ### output
 Two types of plots are generated - timeseries and summary plots. The timeseries plots include the reference (base) case, the absolute difference between the perturbations and the reference case, and the percent difference between the perturbations and the reference case. The summary plots exhibit the absolute and percent differences averaged over all years for each perturbation.
 
+### instructions
+
+summary/timeseries plots
+
+  These are run from the command line so you need to run Rscript <name of script> <experiment or region (no quotes)> <the specific experiment or region you are running (also no quotes)>
+  
+  Make sure that the experiments you are running are consistent with what is in the var_master_list.csv file
+
+fixed_axes.csv:
+	-For the first column, enter in the first row which method you want to use in order to determine y axes 
+	in the ouput file. The choices are:
+
+	1. group
+	-If set to group then you must create a group name in the first row of a column and add the variables in
+	that group below it. The script will then make sure each variable in a group is plotted with the same y 
+	axes. NOTE: do not put a variable in more than one group as it will default to the axes of the last group
+	it is listed in. You can have as many groups as you want
+
+	2. fixed
+	-If set to fixed then the script will determine the min and max values across all regions or experiments
+	(depending on what you are sorting each run by) and set the output y axes to those values
+
+	3. neither
+	-The script runs as normal
+
+NOTE: make sure the order of the variables under 'vars' in var_master_list.csv and 'Variable' in           variables.csv are are in the same order. All stand-alone variables (ie mmrbc, emibc...) should       be listed before any combined variables (ie net_rad, tot_s...) in variables.csv
+
+combined_variables.csv
+	-The column headers are the name of the ocmbined variable and the values below are the variables     joined in
+	 order to make the combined variable. You can only join two at a time, so if you wanted to combine    four 
+	 variables you would need some intermediate steps and put them to the left of the final column (see    for example tot_s, which is a combination of dry_s and wet_s. Make sure to add these intermediates    to variables.csv too).
+
 
 **Note:** Please alert us if you come across any issues or if you would like to make recommendations for improvements.
