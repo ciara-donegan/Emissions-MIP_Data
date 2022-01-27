@@ -23,12 +23,19 @@ setwd('C:/Users/such559/Documents/Emissions-MIP_Data')
 # Specify location of Emissions-MIP directory
 emi_dir <- paste0('C:/Users/such559/Documents/Emissions-MIP_Data')
 
+#determines whether the script sorts by region or experiment if nothing is put into command line
+sort_by <- 'region'
+
+#determines which region or experiment is sorted by
+region <- 'arctic'
+exper <- 'bc-no-season'
+
 # Specify what you are sorting by and either the region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, SH-sea) or experiment (i.e., bc-no-season, high-so4, no-so4, reference, so2-at-height, so2-no-season)
 #The command line would look like: rscript <rscript>.r <"experiment" or "region"> <specific experiment or region you are sorting by>
 sorting <- commandArgs(trailingOnly = TRUE) #pulling region from command line
-sort_by <- sorting[1]
-if (sort_by == "region"){region <- sorting[2]}
-if (sort_by == "experiment"){pert <- sorting[2]}
+if (!is_empty(sorting)){sort_by <- sorting[1]}
+if (!is_empty(sorting) & sort_by == "region"){region <- sorting[2]}
+if (!is_empty(sorting) & sort_by == "experiment"){experiment <- sorting[2]}
 
 # Define colorblind-friendly palette colors and associate with models (in case a
 # plot is missing a model, the color scheme will remain consistent)

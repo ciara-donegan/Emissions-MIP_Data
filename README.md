@@ -23,6 +23,8 @@ summary/timeseries plots
   These are run from the command line so you need to run Rscript <name of script> <experiment or region (no quotes)> <the specific experiment or region you are running (also no quotes)>
   
   Make sure that the experiments you are running are consistent with what is in the var_master_list.csv file
+  
+  You can also run straight from the R script file, just update the sort_by, region, and exper variables
 
 fixed_axes.csv:
 	-For the first column, enter in the first row which method you want to use in order to determine y axes 
