@@ -305,9 +305,13 @@ if(sort_by == "experiment"){
 find_max_min <- function(variable_data, variable, varname){
 
     #replace max and min if current variable data is more or less than the current max/min
-    if(max(variable$value) > variable_data[varname, 'Max']){variable_data[varname, 'Max'] <- max(variable$value)}
-    if(min(variable$value) < variable_data[varname, 'Min']){variable_data[varname, 'Min'] <- min(variable$value)}
-
+    if(max(variable$value) > variable_data[varname, 'Max']){
+      variable_data[varname, 'Max'] <- max(variable$value) + max(variable$sd)
+      }
+    if(min(variable$value) < variable_data[varname, 'Min']){
+      variable_data[varname, 'Min'] <- min(variable$value) - max(variable$sd)
+     }
+     
     return(variable_data)
 }
 #-------------------------------------------------------------------------------
@@ -546,7 +550,7 @@ if (sort_by == "region"){
                 scale_shape_manual(values = model_symbols) +
                 geom_point( position=position_dodge(width=0.4), size = 1.5) +
                 geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
-                ylim(ymin, ymax)
+                ylim(ymax, ymin)
 
             return(species_plot)
         }
