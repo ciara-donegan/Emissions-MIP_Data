@@ -498,7 +498,7 @@ if (sort_by == "experiment"){
 }
 #-------------------------------------------------------------------------------
 # Generate plots
-title_font <- 7
+title_font <- 9
 axis_font <- 9
 axis_title_font <- 9
 
@@ -523,11 +523,11 @@ for(i in 1:ncol(combined_vars)){
 if (sort_by == "region"){
     #plots only take max and min into account if fixing or grouping
     if (fixed_data[1, 'fixed_by'] == 'fixed' || fixed_data[1, 'fixed_by'] == 'group'){
-    plot_species <- function(variable, x, y, title, units, region_or_exper, model_colors, model_symbols, ymin, ymax){
+    plot_species <- function(variable, x, y, title1, title2, units, region_or_exper, model_colors, model_symbols, ymin, ymax){
         species <- variable
         species_plot <- ggplot(species, aes(x = experiment, y = value, color = model, shape = model))+
             theme_bw()+
-            labs(title=paste0(title,' - ', region_or_exper), y="Percent") +
+            labs(title=paste0(title1,"\n",title2,' - ', region_or_exper), y="Percent (%)") +
             theme(plot.title = element_text(hjust = 0.5, size = title_font),
                   axis.text = element_text(size = axis_font),
                   axis.title = element_text(size = axis_title_font),
@@ -543,11 +543,11 @@ if (sort_by == "region"){
             return(species_plot)
     }
     }else{
-        plot_species <- function(variable, x, y, title, units, region_or_exper, model_colors, model_symbols, ymin, ymax){
+        plot_species <- function(variable, x, y, title1,title2, units, region_or_exper, model_colors, model_symbols, ymin, ymax){
             species <- variable
             species_plot <- ggplot(species, aes(x = experiment, y = value, color = model, shape = model))+
                 theme_bw()+
-                labs(title=paste0(title,' - ', region_or_exper), y="Percent") +
+                labs(title=paste0(title1,"\n",title2,' - ', region_or_exper), y="Percent (%)") +
                 theme(plot.title = element_text(hjust = 0.5, size = title_font),
                       axis.text = element_text(size = axis_font),
                       axis.title = element_text(size = axis_title_font),
@@ -568,7 +568,7 @@ if (sort_by == "region"){
         #number of the row in the variables column to access
         #rownum <- which(rownames(variables) == master_vars[k])
         all_vars <- rownames(variables)
-        assign(paste0(all_vars[k],'_plot'), plot_species(var,region,value,variables[k,'plot_names'],eval(parse( text = paste(variables[k,'description_diff']))),region,model_colors,model_symbols,variables[k,'Max'],variables[k,'Min'] ))
+        assign(paste0(all_vars[k],'_plot'), plot_species(var,region,value,variables[k,'plot_names'],variables[k,'plot_names_line_2'],eval(parse( text = paste(variables[k,'description_diff']))),region,model_colors,model_symbols,variables[k,'Max'],variables[k,'Min'] ))
 
         k <- k + 1
     }
@@ -579,11 +579,11 @@ if (sort_by == "region"){
 if (sort_by == "experiment"){
     #plots only take min or max into account if grouping
     if (fixed_data[1, 'fixed_by'] == 'fixed' || fixed_data[1, 'fixed_by'] == 'group'){
-    plot_species <- function(variable, x, y, title, units, region_or_exper, model_colors, model_symbols, ymin, ymax){
+    plot_species <- function(variable, x, y, title1,title2, units, region_or_exper, model_colors, model_symbols, ymin, ymax){
         species <- variable
         species_plot <- ggplot(species, aes(x = region, y = value, color = model, shape = model))+
             theme_bw()+
-            labs(title=paste0(title,' - ', region_or_exper), y="Percent") +
+            labs(title=paste0(title1,"\n", title2,' - ', region_or_exper), y="Percent (%)") +
             theme(plot.title = element_text(hjust = 0.5, size = title_font),
                   axis.text = element_text(size = axis_font),
                   axis.title = element_text(size = axis_title_font),
@@ -599,11 +599,11 @@ if (sort_by == "experiment"){
         return(species_plot)
     }
     } else{
-        plot_species <- function(variable, x, y, title, units, region_or_exper, model_colors, model_symbols, ymin, ymax){
+        plot_species <- function(variable, x, y, title1,title2, units, region_or_exper, model_colors, model_symbols, ymin, ymax){
             species <- variable
             species_plot <- ggplot(species, aes(x = region, y = value, color = model, shape = model))+
                 theme_bw()+
-                labs(title=paste0(title,' - ', region_or_exper), y="Percent") +
+                labs(title=paste0(title1,"\n",title2,' - ', region_or_exper), y="Percent (%)") +
                 theme(plot.title = element_text(hjust = 0.5, size = title_font),
                       axis.text = element_text(size = axis_font),
                       axis.title = element_text(size = axis_title_font),
@@ -624,7 +624,7 @@ if (sort_by == "experiment"){
         #number of the row in the variables column to access
         #rownum <- which(rownames(variables) == master_vars[k])
         all_vars <- rownames(variables)
-        assign(paste0(all_vars[k],'_plot'), plot_species(var,region,value,variables[k,'plot_names'],eval(parse(text = paste(variables[k,'description_diff']))),exper,model_colors,model_symbols,variables[k,'Max'],variables[k,'Min'] ))
+        assign(paste0(all_vars[k],'_plot'), plot_species(var,region,value,variables[k,'plot_names'],variables[k,'plot_names_line_2'],eval(parse(text = paste(variables[k,'description_diff']))),exper,model_colors,model_symbols,variables[k,'Max'],variables[k,'Min'] ))
 
         k <- k + 1
     }
