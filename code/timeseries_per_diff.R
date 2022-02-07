@@ -23,21 +23,28 @@ setwd('C:/Users/such559/Documents/Emissions-MIP_Data')
 # Specify location of Emissions-MIP directory
 emi_dir <- paste0('C:/Users/such559/Documents/Emissions-MIP_Data')
 
+#determines whether the script sorts by region or experiment if nothing is put into command line
+sort_by <- 'region'
+
+#determines which region or experiment is sorted by
+region <- 'arctic'
+exper <- 'bc-no-season'
+
 # Specify what you are sorting by and either the region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, SH-sea) or experiment (i.e., bc-no-season, high-so4, no-so4, reference, so2-at-height, so2-no-season)
 #The command line would look like: rscript <rscript>.r <"experiment" or "region"> <specific experiment or region you are sorting by>
 sorting <- commandArgs(trailingOnly = TRUE) #pulling region from command line
-sort_by <- sorting[1]
-if (sort_by == "region"){region <- sorting[2]}
-if (sort_by == "experiment"){pert <- sorting[2]}
+if (!is_empty(sorting)){sort_by <- sorting[1]}
+if (!is_empty(sorting) & sort_by == "region"){region <- sorting[2]}
+if (!is_empty(sorting) & sort_by == "experiment"){experiment <- sorting[2]}
 
-# Define colorblind-friendly palette colors and associate with models (in case a  
+# Define colorblind-friendly palette colors and associate with models (in case a
 # plot is missing a model, the color scheme will remain consistent)
 cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#920000",
                "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#490092")
 
-model_colors <- c(CESM1 = cbPalette[1], E3SM = cbPalette[2], GISS = cbPalette[3], 
-                  CESM2 = cbPalette[4], MIROC = cbPalette[5], NorESM2 = cbPalette[6], 
-                  GFDL = cbPalette[7], OsloCTM3 = cbPalette[8], UKESM = cbPalette[9], 
+model_colors <- c(CESM1 = cbPalette[1], E3SM = cbPalette[2], GISS = cbPalette[3],
+                  CESM2 = cbPalette[4], MIROC = cbPalette[5], NorESM2 = cbPalette[6],
+                  GFDL = cbPalette[7], OsloCTM3 = cbPalette[8], UKESM = cbPalette[9],
                   GEOS = cbPalette[10])
 
 # ------------------------------------------------------------------------------
@@ -63,7 +70,7 @@ for(scenario in scenarios){
   experiment <- rbind(map(target_filename, read.csv))
   experiment <- lapply(experiment, function(x) {x["unit"] <- NULL; x})
   experiment <- bind_rows(experiment)
-  
+
   # Extract model from file names (fifth segment) and bind to experiment data frame
   models <- sapply(strsplit(target_filename, "[-.]+"),function(x) x[5])
   rep_models <- rep(models, each = 4) # four years
@@ -71,18 +78,10 @@ for(scenario in scenarios){
 
   # Correct model names
   experiment$model[which(experiment$model == "CESM")] <- "CESM1"
-  
+
   # Rearrange data frame by years descending
   experiment <- dplyr::arrange(experiment, year)
-  
-  # Convert volume mixing ratio to mass mixing ratio by multiplying by molar mass
-  # of SO2 and dividing by molar mass of air
-  so2_experiment <- dplyr::filter(experiment, variable == 'so2') %>%
-    dplyr::mutate(new_value = value * 64.066 / 28.96)
-  
-  # Change units from mol/mol to kg/kg
-  so2_experiment$unit <- 'kg kg-1'
-  
+
   #only runs excluded models if sorting by region
   if (sort_by == "region"){
     #runs through each excluded model pair and filters them out of experiment
@@ -92,7 +91,7 @@ for(scenario in scenarios){
       }
     }
   }
-  
+
   # Define remaining experiments
   emibc_experiment    <- dplyr::filter(experiment, variable == 'emibc')
   emiso2_experiment   <- dplyr::filter(experiment, variable == 'emiso2')
@@ -112,16 +111,16 @@ for(scenario in scenarios){
   od550aer_experiment <- dplyr::filter(experiment, variable == 'od550aer')
   clt_experiment      <- dplyr::filter(experiment, variable == 'clt')
   cltc_experiment     <- dplyr::filter(experiment, variable == 'cltc')
-  
+
   # Define normal and clear-sky net radiative flux and  (sum of longwave and shortwave radiation)
   net_rad <- dplyr::left_join(rlut_experiment, rsut_experiment, by = c("year", "model"))
   net_rad <- dplyr::mutate(net_rad, value = value.x + value.y) %>%
     dplyr::select(c(year, model, value))
-  
+
   net_rad_cs <- dplyr::left_join(rlutcs_experiment, rsutcs_experiment, by = c("year", "model"))
   net_rad_cs <- dplyr::mutate(net_rad_cs, value = value.x + value.y) %>%
     dplyr::select(c(year, model, value))
-  
+
   # Define implied cloud response (net - clearsky) as a new variable to plot
   imp_cld <- dplyr::left_join(net_rad, net_rad_cs, by = c("year", "model"))
   imp_cld <- dplyr::mutate(imp_cld, value = value.x - value.y) %>%
@@ -131,25 +130,29 @@ for(scenario in scenarios){
   tot_bc <- dplyr::left_join(drybc_experiment, wetbc_experiment, by = c("year", "model"))
   tot_bc <- dplyr::mutate(tot_bc, value = value.x + value.y) %>%
     dplyr::select(c(year, model, value))
-  
+
   #Define total S deposition rate (sum of dry SO2/SO4 and wet SO2/SO4 deposition)
   dry_s <- dplyr::left_join(dryso2_experiment, dryso4_experiment, by = c("year", "model"))
   dry_s <- dplyr::mutate(dry_s, value = (32.065/64.066)*value.x + (32.065/96.06)*value.y) %>%
     dplyr::select(c(year, model, value))
-  
+
   wet_s <- dplyr::left_join(wetso2_experiment, wetso4_experiment, by = c("year", "model"))
   wet_s <- dplyr::mutate(wet_s, value = (32.065/64.066)*value.x + (32.065/96.06)*value.y) %>%
     dplyr::select(c(year, model, value))
-  
+
   tot_s <- dplyr::left_join(dry_s, wet_s, by = c("year", "model"))
   tot_s <- dplyr::mutate(tot_s, value = value.x + value.y) %>%
     dplyr::select(c(year, model, value))
-  
+
+  #find the min and max percentage differences
+  #axes_max <- max(mmrbc_experiment$value, mmrso4_experiment$value, so2_experiment$new_value,emibc_experiment$value,emiso2_experiment$value,drybc_experiment$value,wetbc_experiment$value,drybc_experiment$value,dryso2_experiment$value,wetso2_experiment$value,dryso4_experiment$value,wetso4_experiment$value,tot_bc$value,tot_s$value,rlut_experiment$value,rsut_experiment$value,net_rad$value,rsdt_experiment$value,rlutcs_experiment$value,rsutcs_experiment$value,net_rad_cs$value,od550aer_experiment$value,clt_experiment$value,cltc_experiment$value, na.rm = TRUE)
+  #axes_min <- min(mmrbc_experiment$value, mmrso4_experiment$value, so2_experiment$new_value,emibc_experiment$value,emiso2_experiment$value,drybc_experiment$value,wetbc_experiment$value,drybc_experiment$value,dryso2_experiment$value,wetso2_experiment$value,dryso4_experiment$value,wetso4_experiment$value,tot_bc$value,tot_s$value,rlut_experiment$value,rsut_experiment$value,net_rad$value,rsdt_experiment$value,rlutcs_experiment$value,rsutcs_experiment$value,net_rad_cs$value,od550aer_experiment$value,clt_experiment$value,cltc_experiment$value, na.rm = TRUE)
+
   # Pre-define plot font sizes
   title_font <- 7
   axis_font <- 6
   axis_title_font <- 7
-  
+
   plot_species <- function(experiment, reg_or_exper,title, units){
     species_plot <- ggplot(experiment, aes(x = year, y = value, color = model)) +
       labs(title=paste0(title, ' - ', reg_or_exper), y=units, x="Year") +
@@ -160,7 +163,7 @@ for(scenario in scenarios){
       scale_y_continuous(labels = scales::scientific_format(digits = 2)) +
       scale_colour_manual(values = model_colors) +
       geom_line()
-    
+
     return(species_plot)
   }
   if (sort_by == "region"){
@@ -190,7 +193,7 @@ for(scenario in scenarios){
     cltc_plot <- plot_species(cltc_experiment, region, "convective cloud cover \n percentage", expression(Delta*~cltc))
     imp_cld_plot <- plot_species(imp_cld, region, "implied cloud response \n at TOA", expression(Delta*~(rlut~+~rsut~-~rlutcs~-~rsutcs)))
   }
-  
+
   if (sort_by == "experiment"){
     #Generate plots
     emibc_plot <- plot_species(emibc_experiment, pert, "surface flux \n of BC", expression(Delta*~emibc))
@@ -218,7 +221,7 @@ for(scenario in scenarios){
     cltc_plot <- plot_species(cltc_experiment, pert, "convective cloud cover \n percentage", expression(Delta*~cltc))
     imp_cld_plot <- plot_species(imp_cld, pert, "implied cloud response \n at TOA", expression(Delta*~(rlut~+~rsut~-~rlutcs~-~rsutcs)))
   }
-  
+
   # Function from stack exchange to generate a shared legend
   grid_arrange_shared_legend <- function(...) {
     plots <- list(...)
@@ -236,7 +239,7 @@ for(scenario in scenarios){
       heights = unit.c(unit(1, "npc") - 1.5 * lheight, lheight), # the "1.5" adds room for title
       top = textGrob(paste0(scenario, ': absolute difference'), gp = gpar(fontsize = 12)))
   }
-  
+
   final_plot <- grid_arrange_shared_legend(emibc_plot,
                                            emiso2_plot,
                                            mmrbc_plot,
@@ -261,9 +264,9 @@ for(scenario in scenarios){
                                            od550aer_plot,
                                            clt_plot,
                                            cltc_plot)
-  
+
   # Print plots
-  if (sort_by == "region"){ 
+  if (sort_by == "region"){
     setwd(paste0('../../../../output/', region, '/timeseries'))
     # To save to file on A4 paper
     ggsave(paste0(region, '_', scenario ,'_per_diff.pdf'), final_plot, width = 21, height = 29.7, units = "cm")
