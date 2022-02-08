@@ -1,4 +1,5 @@
 variable,year,value,unit
+wetbc,2000,0.0,kg m-2 s-1
 wetbc,2001,-0.00099931522825603,kg m-2 s-1
 wetbc,2002,-0.0020699410050623425,kg m-2 s-1
 wetbc,2003,0.013904912534520277,kg m-2 s-1
