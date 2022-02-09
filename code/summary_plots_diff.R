@@ -26,7 +26,7 @@ setwd(paste0(emi_dir))
 sort_by <- 'region'
 
 #determines which region or experiment is sorted by
-region <- 'arctic'
+region <- 'global'
 exper <- 'bc-no-season'
 
 # Specify what you are sorting by and either the region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, SH-sea) or experiment (i.e., bc-no-season, high-so4, no-so4, reference, so2-at-height, so2-no-season)
@@ -39,7 +39,7 @@ if (!is_empty(sorting) & sort_by == "experiment"){experiment <- sorting[2]}
 
 #-------------------------------------------------------------------------------
 #Read in variable, region, and experiment names and sort them into their own lists
-var_master_list <- read.csv(file = paste0(emi_dir, '/input/var_master_list.csv'), fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
+var_master_list <- read.csv(file = paste0(emi_dir, '/code/var_master_list.csv'), fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
 master_vars <- var_master_list$vars
 master_com_var <- var_master_list$com_vars
 master_region <- var_master_list$reg
@@ -51,13 +51,13 @@ master_region <- master_region[master_region != ""]
 master_exp <- master_exp[master_exp != ""]
 #-------------------------------------------------------------------------------
 #Read in csv responsible for organizing combined variable outputs
-combined_vars <- read.csv(file=paste0(emi_dir,'/input/combined_variables.csv'), fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
+combined_vars <- read.csv(file=paste0(emi_dir,'/code/combined_variables.csv'), fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
 #-------------------------------------------------------------------------------
 #Read in fixed data to determine whether the axes should be fixed or grouped
-fixed_data <- read.csv(file = paste0(emi_dir, '/input/fixed_axes.csv'), fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
+fixed_data <- read.csv(file = paste0(emi_dir, '/code/fixed_axes.csv'), fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
 #-------------------------------------------------------------------------------
 #Read in the variable min/max data
-variables <- read.csv(file = paste0(emi_dir, '/input/variables.csv'), fileEncoding="UTF-8-BOM")
+variables <- read.csv(file = paste0(emi_dir, '/code/variables.csv'), fileEncoding="UTF-8-BOM")
 rownames(variables) <- variables$Variable
 variables <- subset(variables, select = -c(Variable))
 #creates a list of all the variables as strings
@@ -78,7 +78,7 @@ if(nrow(variables) != length(master_vars) + ncol(combined_vars)){
 
 # ------------------------------------------------------------------------------
 # Reads in csv file specifying which models to exclude from the data
-excluded_models <- read.csv(file = paste0(emi_dir, '/input/excluded_data.csv'), fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
+excluded_models <- read.csv(file = paste0(emi_dir, '/code/excluded_data.csv'), fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
 excluded_models %>% drop_na() #gets rid of any empty spaces
 #-------------------------------------------------------------------------------
 # Define colorblind-friendly palette colors and associate with models (in case a
@@ -89,12 +89,11 @@ cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#920000", "#F0E442",
 model_colors <- c(CESM1 = cbPalette[1], E3SM = cbPalette[2], GISS = cbPalette[3],
                   CESM2 = cbPalette[4], MIROC = cbPalette[5], NorESM2 = cbPalette[6],
                   GFDL = cbPalette[7], OsloCTM3 = cbPalette[8], UKESM = cbPalette[9],
-                  GEOS = cbPalette[10], CAM5ATRAS = cbPalette[11])
+                  GEOS = cbPalette[10], CAM5 = cbPalette[11])
 
 model_symbols <- c(CESM1 = 15, E3SM = 15, GISS = 17, CESM2 = 19, MIROC = 15,
                    NorESM2 = 17, GFDL = 19, OsloCTM3 = 19, UKESM = 15, GEOS = 17,
-                   CAM5ATRAS = 17)
-
+                   CAM5 = 17)
 #-------------------------------------------------------------------------------
 #extracts data for each perturbation experiment from csv files
 data_accumulation <- function(emi_dir, reg_name, exper){

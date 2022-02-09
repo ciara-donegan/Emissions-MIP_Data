@@ -38,7 +38,7 @@ if (!is_empty(sorting) & sort_by == "experiment"){experiment <- sorting[2]}
 
 #-------------------------------------------------------------------------------
 #Read in variable, region, and experiment names and sort them into their own lists
-var_master_list <- read.csv(file = paste0(emi_dir, '/input/var_master_list.csv'), fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
+var_master_list <- read.csv(file = paste0(emi_dir, '/code/var_master_list.csv'), fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
 master_vars <- var_master_list$vars
 master_com_var <- var_master_list$com_vars
 master_region <- var_master_list$reg
@@ -50,13 +50,13 @@ master_region <- master_region[master_region != ""]
 master_exp <- master_exp[master_exp != ""]
 #-------------------------------------------------------------------------------
 #Read in csv responsible for organizing combined variable outputs
-combined_vars <- read.csv(file=paste0(emi_dir,'/input/combined_variables.csv'), fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
+combined_vars <- read.csv(file=paste0(emi_dir,'/code/combined_variables.csv'), fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
 #-------------------------------------------------------------------------------
 #Read in fixed data to determine whether the axes should be fixed or grouped
-fixed_data <- read.csv(file = paste0(emi_dir, '/input/fixed_axes.csv'), fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
+fixed_data <- read.csv(file = paste0(emi_dir, '/code/fixed_axes.csv'), fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
 #-------------------------------------------------------------------------------
 #Read in the variable min/max data
-variables <- read.csv(file = paste0(emi_dir, '/input/variables.csv'), fileEncoding="UTF-8-BOM")
+variables <- read.csv(file = paste0(emi_dir, '/code/variables.csv'), fileEncoding="UTF-8-BOM")
 rownames(variables) <- variables$Variable
 variables <- subset(variables, select = -c(Variable))
 #creates a list of all the variables as strings
@@ -69,36 +69,29 @@ list_of_variable_strings <- rownames(variables)
 if(nrow(variables) != length(master_vars) + length(master_com_var) + 2){
     stop('discrepancy between variables.csv and var_master_list.csv files')
 }
-#checks if the number of combined vars in combined_variables.csv added to the 
+#checks if the number of combined vars in combined_variables.csv added to the
 #master list of variables is equivalent to the number of vars in variables
 if(nrow(variables) != length(master_vars) + ncol(combined_vars)){
     stop('missing combined variables in combined_variables.csv')
 }
 # ------------------------------------------------------------------------------
 # Reads in csv file specifying which models to exclude from the data
-excluded_models <- read.csv(file = paste0(emi_dir, '/input/excluded_data.csv'), fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
+excluded_models <- read.csv(file = paste0(emi_dir, '/code/excluded_data.csv'), fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
 excluded_models %>% drop_na() #gets rid of any empty spaces
 #-------------------------------------------------------------------------------
-# Define default ggplot colors and associate with models (in case a plot is
-# missing a model, the color scheme will remain consistent)
-gg_color_hue <- function(n) {
-    hues = seq(15, 375, length = n + 1)
-    hcl(h = hues, l = 65, c = 100)[1:n]
-}
-
-cols = gg_color_hue(10)
 # Define colorblind-friendly palette colors and associate with models (in case a
 # plot is missing a model, the color scheme will remain consistent)
-cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#920000",
-               "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#490092")
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#920000", "#F0E442",
+               "#0072B2", "#D55E00", "#CC79A7", "#490092", "#117733")
 
 model_colors <- c(CESM1 = cbPalette[1], E3SM = cbPalette[2], GISS = cbPalette[3],
                   CESM2 = cbPalette[4], MIROC = cbPalette[5], NorESM2 = cbPalette[6],
                   GFDL = cbPalette[7], OsloCTM3 = cbPalette[8], UKESM = cbPalette[9],
-                  GEOS = cbPalette[10])
+                  GEOS = cbPalette[10], CAM5 = cbPalette[11])
 
 model_symbols <- c(CESM1 = 15, E3SM = 15, GISS = 17, CESM2 = 19, MIROC = 15,
-                   NorESM2 = 17, GFDL = 19, OsloCTM3 = 19, UKESM = 15, GEOS = 17)
+                   NorESM2 = 17, GFDL = 19, OsloCTM3 = 19, UKESM = 15, GEOS = 17,
+                   CAM5 = 17)
 #-------------------------------------------------------------------------------
 #extracts data for each perturbation experiment from csv files
 data_accumulation <- function(emi_dir, reg_name, exper){
@@ -113,15 +106,15 @@ data_accumulation <- function(emi_dir, reg_name, exper){
 
     # Extract model from file names (fifth segment) and bind to experiment data frame
     models <- sapply(strsplit(target_filename, "[-.]+"),function(x) x[5])
-    rep_models <- rep(models, each = 4) # four years
+    rep_models <- rep(models, each = 5) # five years
     regional_data$model <- rep_models
-    
+
     #take the average over all years for each variable and calculate std dev
     regional_data_summary <- regional_data %>%
         dplyr::group_by(variable, model) %>%
         dplyr::summarise(regional_data = mean(value), regional_data_sd = sd(value))
-    
-    
+
+
 
     return(regional_data_summary)
 }
@@ -300,7 +293,7 @@ find_max_min <- function(variable_data, variable, varname){
     if(min(variable$value) < variable_data[varname, 'Min']){
         variable_data[varname, 'Min'] <- min(variable$value) - max(variable$sd)
     }
-    
+
     return(variable_data)
 }
 #-------------------------------------------------------------------------------
