@@ -23,7 +23,7 @@ net_rad_cs,0,0,clear-sky net radiative flux,at TOA,expression(Delta*~rlutcs~+~rs
 tot_bc,0,0,total deposition rate,of BC,expression(Delta*~drybc~+~wetbc~(kg~m-2~s-1))
 wet_s,0,0,wet deposition rate,of S,expression(Delta*~wetso2~+~wetso4~(kg~m-2~s-1))
 dry_s,0,0,dry deposition rate,of S,expression(Delta*~dryso2~+~dryso4~(kg~m-2~s-1))
-tot_s,0,0,total deposition rate,of S,"expression(atop((dryso2~+~wetso2)/2~+~(dryso4~+~wetso4)/3, (kg~m^-2~s^-1)))"
+tot_s,0,0,total deposition rate,of S,"expression(atop(Delta*~(dryso2~+~wetso2)/2~+~(dryso4~+~wetso4)/3, (kg~m^-2~s^-1)))"
 imp_cld,0,0,implied cloud response ,at TOA,expression(Delta*~rlut~+~rsut~-~rlutcs~-~rsutcs~(W~m^-2))
 cl,0,0,surface cloud cover,,expression(Delta*~cl~(percent))
 clivi,0,0,ice water path,,expression(Delta*~clivi~(kg~m^-2))
