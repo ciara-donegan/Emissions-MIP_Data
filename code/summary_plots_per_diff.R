@@ -38,7 +38,7 @@ if (!is_empty(sorting) & sort_by == "experiment"){experiment <- sorting[2]}
 
 #-------------------------------------------------------------------------------
 #Read in variable, region, and experiment names and sort them into their own lists
-var_master_list <- read.csv(file = paste0(emi_dir, '/code/var_master_list.csv'), fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
+var_master_list <- read.csv(file = paste0(emi_dir, '/input/var_master_list.csv'), fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
 master_vars <- var_master_list$vars
 master_com_var <- var_master_list$com_vars
 master_region <- var_master_list$reg
@@ -50,13 +50,13 @@ master_region <- master_region[master_region != ""]
 master_exp <- master_exp[master_exp != ""]
 #-------------------------------------------------------------------------------
 #Read in csv responsible for organizing combined variable outputs
-combined_vars <- read.csv(file=paste0(emi_dir,'/code/combined_variables.csv'), fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
+combined_vars <- read.csv(file=paste0(emi_dir,'/input/combined_variables.csv'), fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
 #-------------------------------------------------------------------------------
 #Read in fixed data to determine whether the axes should be fixed or grouped
-fixed_data <- read.csv(file = paste0(emi_dir, '/code/fixed_axes.csv'), fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
+fixed_data <- read.csv(file = paste0(emi_dir, '/input/fixed_axes.csv'), fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
 #-------------------------------------------------------------------------------
 #Read in the variable min/max data
-variables <- read.csv(file = paste0(emi_dir, '/code/variables.csv'), fileEncoding="UTF-8-BOM")
+variables <- read.csv(file = paste0(emi_dir, '/input/variables.csv'), fileEncoding="UTF-8-BOM")
 rownames(variables) <- variables$Variable
 variables <- subset(variables, select = -c(Variable))
 #creates a list of all the variables as strings
@@ -66,7 +66,7 @@ list_of_variable_strings <- rownames(variables)
 
 #Checks if total variables are consistent between variables.csv and var_master_list.csv
 #Add 2 for the wet and dry s variables that would not appear in the master lists
-if(nrow(variables) != length(master_vars) + length(master_com_var) + 2){
+if(nrow(variables) != length(master_vars) + length(master_com_var) + 3){
     stop('discrepancy between variables.csv and var_master_list.csv files')
 }
 #checks if the number of combined vars in combined_variables.csv added to the
@@ -76,13 +76,22 @@ if(nrow(variables) != length(master_vars) + ncol(combined_vars)){
 }
 # ------------------------------------------------------------------------------
 # Reads in csv file specifying which models to exclude from the data
-excluded_models <- read.csv(file = paste0(emi_dir, '/code/excluded_data.csv'), fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
+excluded_models <- read.csv(file = paste0(emi_dir, '/input/excluded_data.csv'), fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
 excluded_models %>% drop_na() #gets rid of any empty spaces
 #-------------------------------------------------------------------------------
+# Define default ggplot colors and associate with models (in case a plot is
+# missing a model, the color scheme will remain consistent)
+gg_color_hue <- function(n) {
+    hues = seq(15, 375, length = n + 1)
+    hcl(h = hues, l = 65, c = 100)[1:n]
+}
+
+cols = gg_color_hue(10)
 # Define colorblind-friendly palette colors and associate with models (in case a
 # plot is missing a model, the color scheme will remain consistent)
-cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#920000", "#F0E442",
-               "#0072B2", "#D55E00", "#CC79A7", "#490092", "#117733")
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#920000",
+               "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#490092",
+               "#000000")
 
 model_colors <- c(CESM1 = cbPalette[1], E3SM = cbPalette[2], GISS = cbPalette[3],
                   CESM2 = cbPalette[4], MIROC = cbPalette[5], NorESM2 = cbPalette[6],
@@ -91,7 +100,7 @@ model_colors <- c(CESM1 = cbPalette[1], E3SM = cbPalette[2], GISS = cbPalette[3]
 
 model_symbols <- c(CESM1 = 15, E3SM = 15, GISS = 17, CESM2 = 19, MIROC = 15,
                    NorESM2 = 17, GFDL = 19, OsloCTM3 = 19, UKESM = 15, GEOS = 17,
-                   CAM5 = 17)
+                   CAM5 = 15)
 #-------------------------------------------------------------------------------
 #extracts data for each perturbation experiment from csv files
 data_accumulation <- function(emi_dir, reg_name, exper){
@@ -150,6 +159,7 @@ if(sort_by == 'region'){
                 dplyr::select(c(model, experiment, value, sd))
             return(output)
         }
+
         if(add_or_subtract == "subtract"){
             output <- dplyr::left_join(var1, var2, by = c("model", "experiment"))
             output <- dplyr::mutate(output, value = value.x - value.y) %>%
@@ -157,7 +167,17 @@ if(sort_by == 'region'){
                 dplyr::select(c(model, experiment, value, sd))
             return(output)
         }
+
+        if(add_or_subtract == "divide"){
+            output <- dplyr::left_join(var1, var2, by = c("model", "experiment"))
+            output <- dplyr::mutate(output, value = value.x / value.y) %>%
+                dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
+                dplyr::select(c(model, experiment, value, sd))
+            return(output)
+        }
     }
+
+
 }
 
 if(sort_by == 'experiment'){
@@ -176,6 +196,14 @@ if(sort_by == 'experiment'){
                 dplyr::select(c(model, region, value, sd))
             return(output)
         }
+        if(add_or_subtract == "divide"){
+            output <- dplyr::left_join(var1, var2, by = c("model", "region"))
+            output <- dplyr::mutate(output, value = value.x / value.y) %>%
+                dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
+                dplyr::select(c(model, experiment, value, sd))
+            return(output)
+        }
+
     }
 }
 #-------------------------------------------------------------------------------
@@ -361,6 +389,10 @@ if (sort_by == "region"){
             operator <- combined_vars[3,1]
             #Adds these variables to total vars directly under where it left off
             list_vars[[i + length(master_vars)]] <- assign(name, make_combined_var(eval(parse(text = var1)),eval(parse(text = var2)),operator))
+            #creates an intermediate dataframe for editing meant to be overwritten each loop
+            intermediate_df <- list_vars[[i + length(master_vars)]]
+            #Gets rid of infinite, NA, and NaN values
+            list_vars[[i + length(master_vars)]] <- dplyr::filter(intermediate_df,is.infinite(intermediate_df$value) == FALSE) %>% na.omit()
         }
         #establishes a j term used for indexing later on
         j <- 1
@@ -420,21 +452,20 @@ if (sort_by == "experiment"){
                 operator <- combined_vars[3,i]
                 #Adds these variables to total vars directly under where it left off
                 list_vars[[i + length(master_vars)]] <- assign(name, make_combined_var(eval(parse(text = var1)),eval(parse(text = var2)),operator))
-                if (any(is.na(list_vars[[i + length(master_vars)]])) == TRUE){
-                    #If there are NA values, this sets them to zero and puts an error message
-                    print(paste0('NA in ', master_vars[i + length(master_vars)], ' setting NA to zero'))
-                    list_vars[[i + length(master_vars)]][is.na(list_vars[[i + length(master_vars)]])] <- 0
-                }
+                #creates an intermediate dataframe for editing meant to be overwritten each loop
+                intermediate_df <- list_vars[[i + length(master_vars)]]
+                #Gets rid of infinite, NA, and NaN values
+                list_vars[[i + length(master_vars)]] <- dplyr::filter(intermediate_df,is.infinite(intermediate_df$value) == FALSE) %>% na.omit()
             }
-            #establishes a j term used for indexing later on
-            j <- 1
+        }
+        #establishes a j term used for indexing later on
+        j <- 1
 
-            for (var in list_vars){
+        for (var in list_vars){
 
-                variables <- find_max_min(variables, var, list_of_variable_strings[j])
+            variables <- find_max_min(variables, var, list_of_variable_strings[j])
 
-                j <- j + 1
-            }
+            j <- j + 1
         }
     }
     #-----------------------------------------------------------------------------
@@ -458,11 +489,10 @@ if (sort_by == "experiment"){
             operator <- combined_vars[3,i]
             #Adds these variables to total vars directly under where it left off
             list_vars[[i + length(master_vars)]] <- assign(name, make_combined_var(eval(parse(text = var1)),eval(parse(text = var2)),operator))
-            if (any(is.na(list_vars[[i + length(master_vars)]])) == TRUE){
-                #If there are NA values, this sets them to zero and puts an error message
-                print(paste0('NA in ', master_vars[i + length(master_vars)], ' setting NA to zero'))
-                list_vars[[i + length(master_vars)]][is.na(list_vars[[i + length(master_vars)]])] <- 0
-            }
+            #creates an intermediate dataframe for editing meant to be overwritten each loop
+            intermediate_df <- list_vars[[i + length(master_vars)]]
+            #Gets rid of infinite, NA, and NaN values
+            list_vars[[i + length(master_vars)]] <- dplyr::filter(intermediate_df,is.infinite(intermediate_df$value) == FALSE) %>% na.omit()
         }
 
         #establishes a j term used for indexing later on
@@ -509,6 +539,10 @@ for(i in 1:ncol(combined_vars)){
     operator <- combined_vars[3,i]
     #Adds these variables to total vars directly under where it left off
     total_vars[[i + length(master_vars)]] <- assign(name, make_combined_var(eval(parse(text = var1)),eval(parse(text = var2)),operator))
+    #creates an intermediate dataframe for editing meant to be overwritten each loop
+    intermediate_df <- total_vars[[i + length(master_vars)]]
+    #Gets rid of infinite, NA, and NaN values
+    total_vars[[i + length(master_vars)]] <- dplyr::filter(intermediate_df,is.infinite(intermediate_df$value) == FALSE) %>% na.omit()
 }
 
 
@@ -516,25 +550,25 @@ for(i in 1:ncol(combined_vars)){
 if (sort_by == "region"){
     #plots only take max and min into account if fixing or grouping
     if (fixed_data[1, 'fixed_by'] == 'fixed' || fixed_data[1, 'fixed_by'] == 'group'){
-    plot_species <- function(variable, x, y, title1, title2, units, region_or_exper, model_colors, model_symbols, ymin, ymax){
-        species <- variable
-        species_plot <- ggplot(species, aes(x = experiment, y = value, color = model, shape = model))+
-            theme_bw()+
-            labs(title=paste0(title1,"\n",title2,' - ', region_or_exper), y="Percent (%)") +
-            theme(plot.title = element_text(hjust = 0.5, size = title_font),
-                  axis.text = element_text(size = axis_font),
-                  axis.title = element_text(size = axis_title_font),
-                  axis.text.x = element_text(angle = 45, hjust = 1),
-                  axis.title.x = element_blank()) +
-            scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(species$value))-max(abs(species$sd)), max(abs(species$value))+max(abs(species$sd)))) +
-            scale_colour_manual(values = model_colors) +
-            scale_shape_manual(values = model_symbols) +
-            geom_point( position=position_dodge(width = 0.4), size = 1.5) +
-            geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
-            ylim(ymax, ymin)
+        plot_species <- function(variable, x, y, title1, title2, units, region_or_exper, model_colors, model_symbols, ymin, ymax){
+            species <- variable
+            species_plot <- ggplot(species, aes(x = experiment, y = value, color = model, shape = model))+
+                theme_bw()+
+                labs(title=paste0(title1,"\n",title2,' - ', region_or_exper), y="Percent (%)") +
+                theme(plot.title = element_text(hjust = 0.5, size = title_font),
+                      axis.text = element_text(size = axis_font),
+                      axis.title = element_text(size = axis_title_font),
+                      axis.text.x = element_text(angle = 45, hjust = 1),
+                      axis.title.x = element_blank()) +
+                scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(species$value))-max(abs(species$sd)), max(abs(species$value))+max(abs(species$sd)))) +
+                scale_colour_manual(values = model_colors) +
+                scale_shape_manual(values = model_symbols) +
+                geom_point( position=position_dodge(width = 0.4), size = 1.5) +
+                geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
+                ylim(ymax, ymin)
 
             return(species_plot)
-    }
+        }
     }else{
         plot_species <- function(variable, x, y, title1,title2, units, region_or_exper, model_colors, model_symbols, ymin, ymax){
             species <- variable
@@ -572,25 +606,25 @@ if (sort_by == "region"){
 if (sort_by == "experiment"){
     #plots only take min or max into account if grouping
     if (fixed_data[1, 'fixed_by'] == 'fixed' || fixed_data[1, 'fixed_by'] == 'group'){
-    plot_species <- function(variable, x, y, title1,title2, units, region_or_exper, model_colors, model_symbols, ymin, ymax){
-        species <- variable
-        species_plot <- ggplot(species, aes(x = region, y = value, color = model, shape = model))+
-            theme_bw()+
-            labs(title=paste0(title1,"\n", title2,' - ', region_or_exper), y="Percent (%)") +
-            theme(plot.title = element_text(hjust = 0.5, size = title_font),
-                  axis.text = element_text(size = axis_font),
-                  axis.title = element_text(size = axis_title_font),
-                  axis.text.x = element_text(angle = 45, hjust = 1),
-                  axis.title.x = element_blank()) +
-            scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(species$value))-max(abs(species$sd)), max(abs(species$value))+max(abs(species$sd)))) +
-            scale_colour_manual(values = model_colors) +
-            scale_shape_manual(values = model_symbols) +
-            geom_point( position=position_dodge(width = 0.4), size = 1.5) +
-            geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
-            ylim(ymax, ymin)
+        plot_species <- function(variable, x, y, title1,title2, units, region_or_exper, model_colors, model_symbols, ymin, ymax){
+            species <- variable
+            species_plot <- ggplot(species, aes(x = region, y = value, color = model, shape = model))+
+                theme_bw()+
+                labs(title=paste0(title1,"\n", title2,' - ', region_or_exper), y="Percent (%)") +
+                theme(plot.title = element_text(hjust = 0.5, size = title_font),
+                      axis.text = element_text(size = axis_font),
+                      axis.title = element_text(size = axis_title_font),
+                      axis.text.x = element_text(angle = 45, hjust = 1),
+                      axis.title.x = element_blank()) +
+                scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(species$value))-max(abs(species$sd)), max(abs(species$value))+max(abs(species$sd)))) +
+                scale_colour_manual(values = model_colors) +
+                scale_shape_manual(values = model_symbols) +
+                geom_point( position=position_dodge(width = 0.4), size = 1.5) +
+                geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
+                ylim(ymax, ymin)
 
-        return(species_plot)
-    }
+            return(species_plot)
+        }
     } else{
         plot_species <- function(variable, x, y, title1,title2, units, region_or_exper, model_colors, model_symbols, ymin, ymax){
             species <- variable
@@ -607,7 +641,7 @@ if (sort_by == "experiment"){
                 scale_shape_manual(values = model_symbols) +
                 geom_point( position=position_dodge(width = 0.4), size = 1.5) +
                 geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
-        return(species_plot)
+            return(species_plot)
         }
     }
 
@@ -646,7 +680,8 @@ emissions_plot <- grid_arrange_shared_legend(emibc_plot,
                                              emiso2_plot,
                                              mmrbc_plot,
                                              mmrso4_plot,
-                                             so2_plot)
+                                             so2_plot,
+                                             dms_plot)
 
 forcing_plot <- grid_arrange_shared_legend(rlut_plot,
                                            rsut_plot,
@@ -659,7 +694,9 @@ forcing_plot <- grid_arrange_shared_legend(rlut_plot,
 
 cloud_plot <- grid_arrange_shared_legend(od550aer_plot,
                                          clt_plot,
-                                         cltc_plot)
+                                         cltc_plot,
+                                         cl_plot,
+                                         clivi_plot)
 
 deposition_plot <- grid_arrange_shared_legend(drybc_plot,
                                               wetbc_plot,
@@ -669,6 +706,12 @@ deposition_plot <- grid_arrange_shared_legend(drybc_plot,
                                               dryso4_plot,
                                               wetso4_plot,
                                               tot_s_plot)
+
+column_plot <- grid_arrange_shared_legend(loadbc_plot,
+                                          loadso2_plot,
+                                          loadso4_plot,
+                                          so4_lifetime_plot,
+                                          so2_timescale_plot)
 
 # Print plots
 if (sort_by == 'region'){
@@ -690,4 +733,6 @@ grid.newpage()
 grid.draw(cloud_plot)
 grid.newpage()
 grid.draw(deposition_plot)
+grid.newpage()
+grid.draw(column_plot)
 dev.off()

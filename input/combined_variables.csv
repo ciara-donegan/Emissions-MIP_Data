@@ -1,0 +1,4 @@
+﻿net_rad,net_rad_cs,tot_bc,wet_s,dry_s,tot_s,imp_cld,so2_timescale,tot_so4,so4_lifetime
+rlut,rlutcs,drybc,wetso2,dryso2,wet_s,net_rad,loadso2,dryso4,loadso4
+rsut,rsutcs,wetbc,wetso4,dryso4,dry_s,net_rad_cs,emiso2,wetso4,tot_so4
+add,add,add,add,add,add,subtract,divide,add,divide
