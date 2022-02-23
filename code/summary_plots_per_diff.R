@@ -69,7 +69,7 @@ list_of_variable_strings <- rownames(variables)
 if(nrow(variables) != length(master_vars) + length(master_com_var) + 3){
     stop('discrepancy between variables.csv and var_master_list.csv files')
 }
-#checks if the number of combined vars in combined_variables.csv added to the
+#checks if the number of combined vars in combined_variables.csv added to the 
 #master list of variables is equivalent to the number of vars in variables
 if(nrow(variables) != length(master_vars) + ncol(combined_vars)){
     stop('missing combined variables in combined_variables.csv')
@@ -117,13 +117,13 @@ data_accumulation <- function(emi_dir, reg_name, exper){
     models <- sapply(strsplit(target_filename, "[-.]+"),function(x) x[5])
     rep_models <- rep(models, each = 5) # five years
     regional_data$model <- rep_models
-
+    
     #take the average over all years for each variable and calculate std dev
     regional_data_summary <- regional_data %>%
         dplyr::group_by(variable, model) %>%
         dplyr::summarise(regional_data = mean(value), regional_data_sd = sd(value))
-
-
+    
+    
 
     return(regional_data_summary)
 }
@@ -151,60 +151,60 @@ group_max <- function(dataframe_column, variables){
 #-------------------------------------------------------------------------------
 #Creates a function that combines singular variables into a combined variable
 if(sort_by == 'region'){
-    make_combined_var <- function(var1,var2,add_or_subtract){
-        if(add_or_subtract == "add"){
-            output <- dplyr::left_join(var1, var2, by = c("model", "experiment"))
-            output <- dplyr::mutate(output, value = value.x + value.y) %>%
-                dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
-                dplyr::select(c(model, experiment, value, sd))
-            return(output)
-        }
-
-        if(add_or_subtract == "subtract"){
-            output <- dplyr::left_join(var1, var2, by = c("model", "experiment"))
-            output <- dplyr::mutate(output, value = value.x - value.y) %>%
-                dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
-                dplyr::select(c(model, experiment, value, sd))
-            return(output)
-        }
-
-        if(add_or_subtract == "divide"){
-            output <- dplyr::left_join(var1, var2, by = c("model", "experiment"))
-            output <- dplyr::mutate(output, value = value.x / value.y) %>%
-                dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
-                dplyr::select(c(model, experiment, value, sd))
-            return(output)
-        }
+  make_combined_var <- function(var1,var2,add_or_subtract){
+    if(add_or_subtract == "add" | add_or_subtract == "so2_and_so4_add"){
+      output <- dplyr::left_join(var1, var2, by = c("model", "experiment"))
+      output <- dplyr::mutate(output, value = value.x + value.y) %>%
+        dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
+        dplyr::select(c(model, experiment, value, sd))
+      return(output)
     }
-
-
+    
+    if(add_or_subtract == "subtract"){
+      output <- dplyr::left_join(var1, var2, by = c("model", "experiment"))
+      output <- dplyr::mutate(output, value = value.x - value.y) %>%
+        dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
+        dplyr::select(c(model, experiment, value, sd))
+      return(output)
+    }
+    
+    if(add_or_subtract == "divide"){
+      output <- dplyr::left_join(var1, var2, by = c("model", "experiment"))
+      output <- dplyr::mutate(output, value = value.x / value.y) %>%
+        dplyr::mutate(sd = value*sqrt((sd.x/value.x)^2 + (sd.y/value.y)^2)) %>%
+        dplyr::select(c(model, experiment, value, sd))
+      return(output)
+    }
+  }
+  
+  
 }
 
 if(sort_by == 'experiment'){
-    make_combined_var <- function(var1,var2, add_or_subtract){
-        if (add_or_subtract == "add"){
-            output <- dplyr::left_join(var1, var2, by = c("model", "region"))
-            output <- dplyr::mutate(output, value = value.x + value.y) %>%
-                dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
-                dplyr::select(c(model, region, value, sd))
-            return(output)
-        }
-        if (add_or_subtract == "subtract"){
-            output <- dplyr::left_join(var1, var2, by = c("model", "region"))
-            output <- dplyr::mutate(output, value = value.x - value.y) %>%
-                dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
-                dplyr::select(c(model, region, value, sd))
-            return(output)
-        }
-        if(add_or_subtract == "divide"){
-            output <- dplyr::left_join(var1, var2, by = c("model", "region"))
-            output <- dplyr::mutate(output, value = value.x / value.y) %>%
-                dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
-                dplyr::select(c(model, experiment, value, sd))
-            return(output)
-        }
-
+  make_combined_var <- function(var1,var2, add_or_subtract){
+    if (add_or_subtract == "add"){
+      output <- dplyr::left_join(var1, var2, by = c("model", "region"))
+      output <- dplyr::mutate(output, value = value.x + value.y) %>%
+        dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
+        dplyr::select(c(model, region, value, sd))
+      return(output)
     }
+    if (add_or_subtract == "subtract"){
+      output <- dplyr::left_join(var1, var2, by = c("model", "region"))
+      output <- dplyr::mutate(output, value = value.x - value.y) %>%
+        dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
+        dplyr::select(c(model, region, value, sd))
+      return(output)
+    }
+    if(add_or_subtract == "divide"){
+      output <- dplyr::left_join(var1, var2, by = c("model", "region"))
+      output <- dplyr::mutate(output, value = value.x / value.y) %>%
+        dplyr::mutate(sd = value*sqrt((sd.x/value.x)^2 + (sd.y/value.y)^2)) %>%
+        dplyr::select(c(model, experiment, value, sd))
+      return(output)
+    }
+    
+  }
 }
 #-------------------------------------------------------------------------------
 #Creates a function that accumulates (using data_accumulation) data and appropriately
@@ -321,7 +321,7 @@ find_max_min <- function(variable_data, variable, varname){
     if(min(variable$value) < variable_data[varname, 'Min']){
         variable_data[varname, 'Min'] <- min(variable$value) - max(variable$sd)
     }
-
+    
     return(variable_data)
 }
 #-------------------------------------------------------------------------------
@@ -456,19 +456,19 @@ if (sort_by == "experiment"){
                 intermediate_df <- list_vars[[i + length(master_vars)]]
                 #Gets rid of infinite, NA, and NaN values
                 list_vars[[i + length(master_vars)]] <- dplyr::filter(intermediate_df,is.infinite(intermediate_df$value) == FALSE) %>% na.omit()
+                }
+            }
+            #establishes a j term used for indexing later on
+            j <- 1
+
+            for (var in list_vars){
+
+                variables <- find_max_min(variables, var, list_of_variable_strings[j])
+
+                j <- j + 1
             }
         }
-        #establishes a j term used for indexing later on
-        j <- 1
-
-        for (var in list_vars){
-
-            variables <- find_max_min(variables, var, list_of_variable_strings[j])
-
-            j <- j + 1
-        }
-    }
-    #-----------------------------------------------------------------------------
+  #-----------------------------------------------------------------------------
     #Now can get data for experiment being studied
     #read in data for each region
     summary_long <- create_summary_long(exper, emi_dir)
@@ -545,30 +545,40 @@ for(i in 1:ncol(combined_vars)){
     total_vars[[i + length(master_vars)]] <- dplyr::filter(intermediate_df,is.infinite(intermediate_df$value) == FALSE) %>% na.omit()
 }
 
+#filter out excluded data again (previous filter step did not include combined variables)
+all_vars <- rownames(variables)
+if(nrow(excluded_models) !=0){  
+  for(Model_name in 1:nrow(excluded_models)){
+    #locates index number where excluded variable is located in total_vars
+    model_index <- which(all_vars == excluded_models[Model_name,3])
+    #filters out the experiment and model associated with the filtered variable
+    total_vars[[model_index]] <- filter(total_vars[[model_index]], experiment != excluded_models$Scenario[Model_name] | model != excluded_models$Model[Model_name]  )
+  }
+}
 
 #Creates a function that creates plots for the data based on each species
 if (sort_by == "region"){
     #plots only take max and min into account if fixing or grouping
     if (fixed_data[1, 'fixed_by'] == 'fixed' || fixed_data[1, 'fixed_by'] == 'group'){
-        plot_species <- function(variable, x, y, title1, title2, units, region_or_exper, model_colors, model_symbols, ymin, ymax){
-            species <- variable
-            species_plot <- ggplot(species, aes(x = experiment, y = value, color = model, shape = model))+
-                theme_bw()+
-                labs(title=paste0(title1,"\n",title2,' - ', region_or_exper), y="Percent (%)") +
-                theme(plot.title = element_text(hjust = 0.5, size = title_font),
-                      axis.text = element_text(size = axis_font),
-                      axis.title = element_text(size = axis_title_font),
-                      axis.text.x = element_text(angle = 45, hjust = 1),
-                      axis.title.x = element_blank()) +
-                scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(species$value))-max(abs(species$sd)), max(abs(species$value))+max(abs(species$sd)))) +
-                scale_colour_manual(values = model_colors) +
-                scale_shape_manual(values = model_symbols) +
-                geom_point( position=position_dodge(width = 0.4), size = 1.5) +
-                geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
-                ylim(ymax, ymin)
+    plot_species <- function(variable, x, y, title1, title2, units, region_or_exper, model_colors, model_symbols, ymin, ymax){
+        species <- variable
+        species_plot <- ggplot(species, aes(x = experiment, y = value, color = model, shape = model))+
+            theme_bw()+
+            labs(title=paste0(title1,"\n",title2,' - ', region_or_exper), y="Percent (%)") +
+            theme(plot.title = element_text(hjust = 0.5, size = title_font),
+                  axis.text = element_text(size = axis_font),
+                  axis.title = element_text(size = axis_title_font),
+                  axis.text.x = element_text(angle = 45, hjust = 1),
+                  axis.title.x = element_blank()) +
+            scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(species$value))-max(abs(species$sd)), max(abs(species$value))+max(abs(species$sd)))) +
+            scale_colour_manual(values = model_colors) +
+            scale_shape_manual(values = model_symbols) +
+            geom_point( position=position_dodge(width = 0.4), size = 1.5) +
+            geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
+            ylim(ymax, ymin)
 
             return(species_plot)
-        }
+    }
     }else{
         plot_species <- function(variable, x, y, title1,title2, units, region_or_exper, model_colors, model_symbols, ymin, ymax){
             species <- variable
@@ -606,25 +616,25 @@ if (sort_by == "region"){
 if (sort_by == "experiment"){
     #plots only take min or max into account if grouping
     if (fixed_data[1, 'fixed_by'] == 'fixed' || fixed_data[1, 'fixed_by'] == 'group'){
-        plot_species <- function(variable, x, y, title1,title2, units, region_or_exper, model_colors, model_symbols, ymin, ymax){
-            species <- variable
-            species_plot <- ggplot(species, aes(x = region, y = value, color = model, shape = model))+
-                theme_bw()+
-                labs(title=paste0(title1,"\n", title2,' - ', region_or_exper), y="Percent (%)") +
-                theme(plot.title = element_text(hjust = 0.5, size = title_font),
-                      axis.text = element_text(size = axis_font),
-                      axis.title = element_text(size = axis_title_font),
-                      axis.text.x = element_text(angle = 45, hjust = 1),
-                      axis.title.x = element_blank()) +
-                scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(species$value))-max(abs(species$sd)), max(abs(species$value))+max(abs(species$sd)))) +
-                scale_colour_manual(values = model_colors) +
-                scale_shape_manual(values = model_symbols) +
-                geom_point( position=position_dodge(width = 0.4), size = 1.5) +
-                geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
-                ylim(ymax, ymin)
+    plot_species <- function(variable, x, y, title1,title2, units, region_or_exper, model_colors, model_symbols, ymin, ymax){
+        species <- variable
+        species_plot <- ggplot(species, aes(x = region, y = value, color = model, shape = model))+
+            theme_bw()+
+            labs(title=paste0(title1,"\n", title2,' - ', region_or_exper), y="Percent (%)") +
+            theme(plot.title = element_text(hjust = 0.5, size = title_font),
+                  axis.text = element_text(size = axis_font),
+                  axis.title = element_text(size = axis_title_font),
+                  axis.text.x = element_text(angle = 45, hjust = 1),
+                  axis.title.x = element_blank()) +
+            scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(species$value))-max(abs(species$sd)), max(abs(species$value))+max(abs(species$sd)))) +
+            scale_colour_manual(values = model_colors) +
+            scale_shape_manual(values = model_symbols) +
+            geom_point( position=position_dodge(width = 0.4), size = 1.5) +
+            geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
+            ylim(ymax, ymin)
 
-            return(species_plot)
-        }
+        return(species_plot)
+    }
     } else{
         plot_species <- function(variable, x, y, title1,title2, units, region_or_exper, model_colors, model_symbols, ymin, ymax){
             species <- variable
@@ -641,7 +651,7 @@ if (sort_by == "experiment"){
                 scale_shape_manual(values = model_symbols) +
                 geom_point( position=position_dodge(width = 0.4), size = 1.5) +
                 geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
-            return(species_plot)
+        return(species_plot)
         }
     }
 

@@ -68,14 +68,14 @@ list_of_variable_strings <- rownames(variables)
 #Checks if total variables are consistent between variables.csv and var_master_list.csv
 #Add 2 for the wet and dry s variables that would not appear in the master lists
 if(nrow(variables) != length(master_vars) + length(master_com_var) + 3){
-    stop('discrepancy between variables.csv and var_master_list.csv files')
+  stop('discrepancy between variables.csv and var_master_list.csv files')
 }
-#checks if the number of combined vars in combined_variables.csv added to the
+#checks if the number of combined vars in combined_variables.csv added to the 
 #master list of variables is equivalent to the number of vars in variables
 if(nrow(variables) != length(master_vars) + ncol(combined_vars)){
-    stop('missing combined variables in combined_variables.csv')
+  stop('missing combined variables in combined_variables.csv')
 }
-
+  
 # ------------------------------------------------------------------------------
 # Reads in csv file specifying which models to exclude from the data
 excluded_models <- read.csv(file = paste0(emi_dir, '/input/excluded_data.csv'), fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
@@ -130,6 +130,7 @@ data_accumulation <- function(emi_dir, reg_name, exper){
         within(value <- ifelse(variable == "so2", 64.066 / 28.96, 1) * value) %>%
         within(value <- ifelse(variable %in% c("rlut", "rsut", "rlutcs", "rsutcs"), -1, 1) * value) %>%
         within(value <- ifelse(variable %in% c("wetbc", "wetso2", "wetso4") & model == "CESM2", -1, 1) * value) %>%
+        within(value <- ifelse(variable == "dms", 62.13 / 28.96, 1) * value) %>%
         dplyr::summarise(regional_data = mean(value), regional_data_sd = sd(value))
 
     return(regional_data_summary)
@@ -160,13 +161,19 @@ group_max <- function(dataframe_column, variables){
 if(sort_by == 'region'){
     make_combined_var <- function(var1,var2,add_or_subtract){
         if(add_or_subtract == "add"){
-            output <- dplyr::left_join(var1, var2, by = c("model", "experiment"))
-            output <- dplyr::mutate(output, value = value.x + value.y) %>%
-                dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
-                dplyr::select(c(model, experiment, value, sd))
-            return(output)
+        output <- dplyr::left_join(var1, var2, by = c("model", "experiment"))
+        output <- dplyr::mutate(output, value = value.x + value.y) %>%
+            dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
+            dplyr::select(c(model, experiment, value, sd))
+        return(output)
         }
-
+      if (add_or_subtract == "so2_and_so4_add"){
+        output <- dplyr::left_join(var1, var2, by = c("model", "region"))
+        output <- dplyr::mutate(output, value = (32.065/64.066)*value.x + (32.065/96.06)*value.y) %>%
+          dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
+          dplyr::select(c(model, region, value, sd))
+        return(output)
+      }
         if(add_or_subtract == "subtract"){
             output <- dplyr::left_join(var1, var2, by = c("model", "experiment"))
             output <- dplyr::mutate(output, value = value.x - value.y) %>%
@@ -174,28 +181,35 @@ if(sort_by == 'region'){
                 dplyr::select(c(model, experiment, value, sd))
             return(output)
         }
-
-        if(add_or_subtract == "divide"){
-            output <- dplyr::left_join(var1, var2, by = c("model", "experiment"))
-            output <- dplyr::mutate(output, value = value.x / value.y) %>%
-                dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
-                dplyr::select(c(model, experiment, value, sd))
-            return(output)
-        }
+      
+      if(add_or_subtract == "divide"){
+        output <- dplyr::left_join(var1, var2, by = c("model", "experiment"))
+        output <- dplyr::mutate(output, value = value.x / value.y) %>%
+          dplyr::mutate(sd = value*sqrt((sd.x/value.x)^2 + (sd.y/value.y)^2)) %>%
+          dplyr::select(c(model, experiment, value, sd))
+        return(output)
+      }
     }
-
-
+    
+    
 }
 
 if(sort_by == 'experiment'){
     make_combined_var <- function(var1,var2, add_or_subtract){
         if (add_or_subtract == "add"){
-            output <- dplyr::left_join(var1, var2, by = c("model", "region"))
-            output <- dplyr::mutate(output, value = value.x + value.y) %>%
-                dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
-                dplyr::select(c(model, region, value, sd))
-            return(output)
+        output <- dplyr::left_join(var1, var2, by = c("model", "region"))
+        output <- dplyr::mutate(output, value = value.x + value.y) %>%
+            dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
+            dplyr::select(c(model, region, value, sd))
+        return(output)
         }
+      if (add_or_subtract == "so2_and_so4_add"){
+        output <- dplyr::left_join(var1, var2, by = c("model", "region"))
+        output <- dplyr::mutate(output, value = (32.065/64.066)*value.x + (32.065/96.06)*value.y) %>%
+          dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
+          dplyr::select(c(model, region, value, sd))
+        return(output)
+      }
         if (add_or_subtract == "subtract"){
             output <- dplyr::left_join(var1, var2, by = c("model", "region"))
             output <- dplyr::mutate(output, value = value.x - value.y) %>%
@@ -203,26 +217,26 @@ if(sort_by == 'experiment'){
                 dplyr::select(c(model, region, value, sd))
             return(output)
         }
-        if(add_or_subtract == "divide"){
-            output <- dplyr::left_join(var1, var2, by = c("model", "region"))
-            output <- dplyr::mutate(output, value = value.x / value.y) %>%
-                dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
-                dplyr::select(c(model, experiment, value, sd))
-            return(output)
-        }
-
+      if(add_or_subtract == "divide"){
+        output <- dplyr::left_join(var1, var2, by = c("model", "region"))
+        output <- dplyr::mutate(output, value = value.x / value.y) %>%
+          dplyr::mutate(sd = value*sqrt((sd.x/value.x)^2 + (sd.y/value.y)^2)) %>%
+          dplyr::select(c(model, experiment, value, sd))
+        return(output)
+      }
+        
     }
 }
 #-------------------------------------------------------------------------------
 #Creates a function that accumulates (using data_accumulation) data and appropriately
 #renames specific columns (depending on what you are sorting by)
 data_accum_and_rename_region <- function(direc, reg, experiment){
-    experiment_subbed <- gsub('_','-',experiment)
-    output <- data_accumulation(direc, reg, experiment_subbed)
-    names(output)[names(output) == 'regional_data'] <- experiment
-    exper_sd <- paste0(experiment, '_sd')
-    names(output)[names(output) == 'regional_data_sd'] <- exper_sd
-    return(output)
+   experiment_subbed <- gsub('_','-',experiment)
+   output <- data_accumulation(direc, reg, experiment_subbed)
+   names(output)[names(output) == 'regional_data'] <- experiment
+   exper_sd <- paste0(experiment, '_sd')
+   names(output)[names(output) == 'regional_data_sd'] <- exper_sd
+   return(output)
 }
 
 data_accum_and_rename_experiment <- function(direc, reg, experiment){
@@ -271,9 +285,7 @@ if(sort_by == "region"){
         #runs through each excluded model pair and filters them out of summary_long
         if(nrow(excluded_models) != 0) { #only runs if the data frame is not empty
             for (val in 1:nrow(excluded_models)) {
-
                 summary_long <- filter(summary_long, experiment != excluded_models$Scenario[val] | model != excluded_models$Model[val] | variable != excluded_models$Variable[val])
-
             }
 
         }
@@ -323,12 +335,12 @@ find_max_min <- function(variable_data, variable, varname){
 
     #replace max and min if current variable data is more or less than the current max/min
     if(max(variable$value) > variable_data[varname, 'Max']){
-        variable_data[varname, 'Max'] <- max(variable$value) + max(variable$sd)
-    }
+      variable_data[varname, 'Max'] <- max(variable$value) + max(variable$sd)
+      }
     if(min(variable$value) < variable_data[varname, 'Min']){
-        variable_data[varname, 'Min'] <- min(variable$value) - max(variable$sd)
-    }
-
+      variable_data[varname, 'Min'] <- min(variable$value) - max(variable$sd)
+     }
+     
     return(variable_data)
 }
 #-------------------------------------------------------------------------------
@@ -424,7 +436,6 @@ if (sort_by == "region"){
                 variables <- group_max(current_vector, variables)
             }
         }
-
     }
 }
 
@@ -538,26 +549,44 @@ axis_title_font <- 9
 if(fixed_data[1, 'fixed_by'] == 'group'){ total_vars <- list_vars}
 
 if(fixed_data[1, 'fixed_by'] != 'group'){
-    #create a list of variable dataframes
-    total_vars <- list()
-    #filters each species from summary_long
-    for (i in 1:length(master_vars)){
-        total_vars[[i]] <- assign(master_vars[i], filter_species(summary_long,master_vars[i]))
-    }
+#create a list of variable dataframes
+total_vars <- list()
+#filters each species from summary_long
+  for (i in 1:length(master_vars)){
+      total_vars[[i]] <- assign(master_vars[i], filter_species(summary_long,master_vars[i]))
+  }
 
-    #creates the combined variables
-    for(i in 1:ncol(combined_vars)){
-        name <- colnames(combined_vars)[i]
-        var1 <- combined_vars[1,i]
-        var2 <- combined_vars[2,i]
-        operator <- combined_vars[3,i]
-        #Adds these variables to total vars directly under where it left off
-        total_vars[[i + length(master_vars)]] <- assign(name, make_combined_var(eval(parse(text = var1)),eval(parse(text = var2)),operator))
-        #creates an intermediate dataframe for editing meant to be overwritten each loop
-        intermediate_df <- total_vars[[i + length(master_vars)]]
-        total_vars[[i + length(master_vars)]] <- dplyr::filter(intermediate_df,is.infinite(intermediate_df$value) == FALSE) %>% na.omit()
-    }
+#creates the combined variables
+for(i in 1:ncol(combined_vars)){
+    name <- colnames(combined_vars)[i]
+    var1 <- combined_vars[1,i]
+    var2 <- combined_vars[2,i]
+    operator <- combined_vars[3,i]
+    #Adds these variables to total vars directly under where it left off
+    total_vars[[i + length(master_vars)]] <- assign(name, make_combined_var(eval(parse(text = var1)),eval(parse(text = var2)),operator))
+    #creates an intermediate dataframe for editing meant to be overwritten each loop
+    intermediate_df <- total_vars[[i + length(master_vars)]]
+    total_vars[[i + length(master_vars)]] <- dplyr::filter(intermediate_df,is.infinite(intermediate_df$value) == FALSE) %>% na.omit()
 }
+}
+
+#filter out excluded data again (previous filter step did not include combined variables)
+all_vars <- rownames(variables)
+if(nrow(excluded_models) !=0){  
+  for(Model_name in 1:nrow(excluded_models)){
+    #locates index number where excluded variable is located in total_vars
+    model_index <- which(all_vars == excluded_models[Model_name,3])
+    #filters out the experiment and model associated with the filtered variable
+    total_vars[[model_index]] <- filter(total_vars[[model_index]], experiment != excluded_models$Scenario[Model_name] | model != excluded_models$Model[Model_name]  )
+  }
+}
+#convert so2_timescale and so4_lifetime units from seconds to days
+so2_timescale_index <- which(all_vars == 'so2_timescale')
+so4_lifetime_index <- which(all_vars == 'so4_lifetime')
+so2_timescale_to_fix <- total_vars[[so2_timescale_index]]
+so4_lifetime_to_fix <- total_vars[[so4_lifetime_index]]
+total_vars[[so2_timescale_index]] <- mutate(so2_timescale_to_fix, value = value / 86400, sd = sd / 86400)
+total_vars[[so4_lifetime_index]] <- mutate(so4_lifetime_to_fix, value = value / 86400, sd = sd / 86400)
 
 #Creates a function that creates plots for the data based on each species
 if (sort_by == "region"){
@@ -576,8 +605,8 @@ if (sort_by == "region"){
                 scale_y_continuous(labels = scales::scientific_format(digits = 2), limits = c(-max(abs(species$value))-max(abs(species$sd)), max(abs(species$value))+max(abs(species$sd))))+
                 scale_colour_manual(values = model_colors) +
                 scale_shape_manual(values = model_symbols) +
-                geom_point( position=position_dodge(width=0.4), size = 1.5) +
-                geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
+                geom_point( position=position_dodge(width=0.5), size = 1.3) +
+                geom_errorbar(aes(ymin=value-sd, ymax=value+sd), size=0.1, width = 0, position=position_dodge(0.5), show.legend = F)
                 ylim(ymax, ymin)
 
             return(species_plot)
@@ -607,7 +636,6 @@ if (sort_by == "region"){
     for(var in total_vars){
         #number of the row in the variables column to access
         #rownum <- which(rownames(variables) == master_vars[k])
-        all_vars <- rownames(variables)
         assign(paste0(all_vars[k],'_plot'), plot_species(var,region,value,variables[k,'plot_names'],variables[k,'plot_names_line_2'],eval(parse( text = paste(variables[k,'description_diff']))),region,model_colors,model_symbols,variables[k,'Max'],variables[k,'Min'] ))
 
         k <- k + 1
@@ -669,7 +697,6 @@ if (sort_by == "experiment"){
 
         k <- k + 1
     }
-
 }
 
 # Function from stack exchange to generate a shared legend
@@ -732,13 +759,13 @@ column_plot <- grid_arrange_shared_legend(loadbc_plot,
 if (sort_by == 'region'){
     setwd(paste0('../../../../output/', region, '/summary'))
 
-    pdf(paste0(region, '_summary_plots_diff.pdf'), height = 11, width = 8.5, paper = "letter")
+    pdf(paste0(region, '_summary_plots_diff.pdf'), height = 11, width = 10)
 }
 
 if (sort_by == 'experiment'){
     setwd(paste0('../../../../output/', exper, '/summary'))
 
-    pdf(paste0(exper, '_summary_plots_diff.pdf'), height = 11, width = 8.5, paper = "letter")
+   pdf(paste0(exper, '_summary_plots_diff.pdf'), height = 11, width = 12)
 }
 
 grid.draw(emissions_plot)
