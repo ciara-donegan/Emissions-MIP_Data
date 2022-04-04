@@ -67,12 +67,12 @@ list_of_variable_strings <- rownames(variables)
 #Checks if total variables are consistent between variables.csv and var_master_list.csv
 #Add 2 for the wet and dry s variables that would not appear in the master lists
 if(nrow(variables) != length(master_vars) + length(master_com_var) + 3){
-    stop('discrepancy between variables.csv and var_master_list.csv files')
+  stop('discrepancy between variables.csv and var_master_list.csv files')
 }
-#checks if the number of combined vars in combined_variables.csv added to the 
+#checks if the number of combined vars in combined_variables.csv added to the
 #master list of variables is equivalent to the number of vars in variables
 if(nrow(variables) != length(master_vars) + ncol(combined_vars)){
-    stop('missing combined variables in combined_variables.csv')
+  stop('missing combined variables in combined_variables.csv')
 }
 # ------------------------------------------------------------------------------
 # Reads in csv file specifying which models to exclude from the data
@@ -82,8 +82,8 @@ excluded_models %>% drop_na() #gets rid of any empty spaces
 # Define default ggplot colors and associate with models (in case a plot is
 # missing a model, the color scheme will remain consistent)
 gg_color_hue <- function(n) {
-    hues = seq(15, 375, length = n + 1)
-    hcl(h = hues, l = 65, c = 100)[1:n]
+  hues = seq(15, 375, length = n + 1)
+  hcl(h = hues, l = 65, c = 100)[1:n]
 }
 
 cols = gg_color_hue(10)
@@ -91,7 +91,7 @@ cols = gg_color_hue(10)
 # plot is missing a model, the color scheme will remain consistent)
 cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#920000",
                "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#490092",
-               "#000000")
+               "#117733")
 
 model_colors <- c(CESM1 = cbPalette[1], E3SM = cbPalette[2], GISS = cbPalette[3],
                   CESM2 = cbPalette[4], MIROC = cbPalette[5], NorESM2 = cbPalette[6],
@@ -100,53 +100,53 @@ model_colors <- c(CESM1 = cbPalette[1], E3SM = cbPalette[2], GISS = cbPalette[3]
 
 model_symbols <- c(CESM1 = 15, E3SM = 15, GISS = 17, CESM2 = 19, MIROC = 15,
                    NorESM2 = 17, GFDL = 19, OsloCTM3 = 19, UKESM = 15, GEOS = 17,
-                   CAM5 = 15)
+                   CAM5 = 17)
 #-------------------------------------------------------------------------------
 #extracts data for each perturbation experiment from csv files
 data_accumulation <- function(emi_dir, reg_name, exper){
 
-    setwd(paste0(emi_dir,'/input/', reg_name,'/', exper, '/per-diff'))
+  setwd(paste0(emi_dir,'/input/', reg_name,'/', exper, '/per-diff'))
 
-    # Read in csv files and bind into single data frame
-    target_filename <- list.files(getwd(), "*.csv")
-    regional_data <- rbind(map(target_filename, read.csv))
-    regional_data <- lapply(regional_data, function(x) {x["unit"] <- NULL; x})
-    regional_data <- bind_rows(regional_data)
+  # Read in csv files and bind into single data frame
+  target_filename <- list.files(getwd(), "*.csv")
+  regional_data <- rbind(map(target_filename, read.csv))
+  regional_data <- lapply(regional_data, function(x) {x["unit"] <- NULL; x})
+  regional_data <- bind_rows(regional_data)
 
-    # Extract model from file names (fifth segment) and bind to experiment data frame
-    models <- sapply(strsplit(target_filename, "[-.]+"),function(x) x[5])
-    rep_models <- rep(models, each = 5) # five years
-    regional_data$model <- rep_models
-    
-    #take the average over all years for each variable and calculate std dev
-    regional_data_summary <- regional_data %>%
-        dplyr::group_by(variable, model) %>%
-        dplyr::summarise(regional_data = mean(value), regional_data_sd = sd(value))
-    
-    
+  # Extract model from file names (fifth segment) and bind to experiment data frame
+  models <- sapply(strsplit(target_filename, "[-.]+"),function(x) x[5])
+  rep_models <- rep(models, each = 5) # five years
+  regional_data$model <- rep_models
 
-    return(regional_data_summary)
+  #take the average over all years for each variable and calculate std dev
+  regional_data_summary <- regional_data %>%
+    dplyr::group_by(variable, model) %>%
+    dplyr::summarise(regional_data = mean(value), regional_data_sd = sd(value))
+
+
+
+  return(regional_data_summary)
 }
 #-------------------------------------------------------------------------------
 #create a function that finds the max value for a group
 group_max <- function(dataframe_column, variables){
 
-    true_max <- 0
-    true_min <- 0
+  true_max <- 0
+  true_min <- 0
 
-    for (var in dataframe_column){
-        cur_max <- variables[var, 'Max']
-        cur_min <- variables[var, 'Min']
+  for (var in dataframe_column){
+    cur_max <- variables[var, 'Max']
+    cur_min <- variables[var, 'Min']
 
-        if(cur_max > true_max){true_max <- cur_max}
-        if(cur_min < true_min){true_min <- cur_min}
-    }
+    if(cur_max > true_max){true_max <- cur_max}
+    if(cur_min < true_min){true_min <- cur_min}
+  }
 
-    for (var in dataframe_column){
-        variables[var, 'Max'] <- true_max
-        variables[var, 'Min'] <- true_min
-    }
-    return(variables)
+  for (var in dataframe_column){
+    variables[var, 'Max'] <- true_max
+    variables[var, 'Min'] <- true_min
+  }
+  return(variables)
 }
 #-------------------------------------------------------------------------------
 #Creates a function that combines singular variables into a combined variable
@@ -159,7 +159,7 @@ if(sort_by == 'region'){
         dplyr::select(c(model, experiment, value, sd))
       return(output)
     }
-    
+
     if(add_or_subtract == "subtract"){
       output <- dplyr::left_join(var1, var2, by = c("model", "experiment"))
       output <- dplyr::mutate(output, value = value.x - value.y) %>%
@@ -167,7 +167,7 @@ if(sort_by == 'region'){
         dplyr::select(c(model, experiment, value, sd))
       return(output)
     }
-    
+
     if(add_or_subtract == "divide"){
       output <- dplyr::left_join(var1, var2, by = c("model", "experiment"))
       output <- dplyr::mutate(output, value = value.x / value.y) %>%
@@ -176,8 +176,8 @@ if(sort_by == 'region'){
       return(output)
     }
   }
-  
-  
+
+
 }
 
 if(sort_by == 'experiment'){
@@ -203,321 +203,321 @@ if(sort_by == 'experiment'){
         dplyr::select(c(model, experiment, value, sd))
       return(output)
     }
-    
+
   }
 }
 #-------------------------------------------------------------------------------
 #Creates a function that accumulates (using data_accumulation) data and appropriately
 #renames specific columns (depending on what you are sorting by)
 data_accum_and_rename_region <- function(direc, reg, experiment){
-    experiment_subbed <- gsub('_','-',experiment)
-    output <- data_accumulation(direc, reg, experiment_subbed)
-    names(output)[names(output) == 'regional_data'] <- experiment
-    exper_sd <- paste0(experiment, '_sd')
-    names(output)[names(output) == 'regional_data_sd'] <- exper_sd
-    return(output)
+  experiment_subbed <- gsub('_','-',experiment)
+  output <- data_accumulation(direc, reg, experiment_subbed)
+  names(output)[names(output) == 'regional_data'] <- experiment
+  exper_sd <- paste0(experiment, '_sd')
+  names(output)[names(output) == 'regional_data_sd'] <- exper_sd
+  return(output)
 }
 
 data_accum_and_rename_experiment <- function(direc, reg, experiment){
-    reg_subbed <- gsub('_','-',reg)
-    output <- data_accumulation(direc, reg_subbed, experiment)
-    names(output)[names(output) == 'regional_data'] <- reg
-    reg_sd <- paste0(reg, '_sd')
-    names(output)[names(output) == 'regional_data_sd'] <- reg_sd
-    return(output)
+  reg_subbed <- gsub('_','-',reg)
+  output <- data_accumulation(direc, reg_subbed, experiment)
+  names(output)[names(output) == 'regional_data'] <- reg
+  reg_sd <- paste0(reg, '_sd')
+  names(output)[names(output) == 'regional_data_sd'] <- reg_sd
+  return(output)
 }
 
 #create a function that sorts data for each region
 if(sort_by == "region"){
-    create_summary_long <- function(region, directory){
+  create_summary_long <- function(region, directory){
 
-        summary_data_list <- list()
+    summary_data_list <- list()
 
-        for (i in 1:length(master_exp)){
-            summary_data_list[[i]] <- assign(paste0(master_exp[i], '_summary'), data_accum_and_rename_region(directory,region,master_exp[i]))
-        }
-
-        # Bind data together
-        #summary_data <- list(bc_no_season_summary, high_so4_summary, no_so4_summary, so2_at_height_summary, so2_no_season_summary) %>% reduce(left_join, by = c("variable", "model"))
-        summary_data <- summary_data_list %>% reduce(left_join, by = c("variable", "model"))
-
-        # Correct model names for CESM and CESM2
-        summary_data$model[which(summary_data$model == "CESM")] <- "CESM1"
-
-        # Change to long format
-        summary_long_exp <- summary_data %>%
-            gather(experiment, value, -c(model, variable)) %>%
-            filter(!grepl("_sd", experiment)) %>%
-            select(variable, model, experiment, value) %>%
-            drop_na()
-
-        summary_long_sd <- summary_data %>%
-            gather(experiment, sd, -c(model, variable)) %>%
-            filter(grepl("_sd", experiment)) %>%
-            select(variable, model, experiment, sd) %>%
-            drop_na()
-
-        summary_long_sd$experiment <- gsub("_sd", "", summary_long_sd$experiment)
-
-        summary_long <- dplyr::left_join(summary_long_exp, summary_long_sd)
-
-        #runs through each excluded model pair and filters them out of summary_long
-        if(nrow(excluded_models) != 0) { #only runs if the data frame is not empty
-            for (val in 1:nrow(excluded_models)) {
-
-                summary_long <- filter(summary_long, experiment != excluded_models$Scenario[val] | model != excluded_models$Model[val] | variable != excluded_models$Variable[val])
-
-            }
-
-        }
-        return(summary_long)
+    for (i in 1:length(master_exp)){
+      summary_data_list[[i]] <- assign(paste0(master_exp[i], '_summary'), data_accum_and_rename_region(directory,region,master_exp[i]))
     }
+
+    # Bind data together
+    #summary_data <- list(bc_no_season_summary, high_so4_summary, no_so4_summary, so2_at_height_summary, so2_no_season_summary) %>% reduce(left_join, by = c("variable", "model"))
+    summary_data <- summary_data_list %>% reduce(left_join, by = c("variable", "model"))
+
+    # Correct model names for CESM and CESM2
+    summary_data$model[which(summary_data$model == "CESM")] <- "CESM1"
+
+    # Change to long format
+    summary_long_exp <- summary_data %>%
+      gather(experiment, value, -c(model, variable)) %>%
+      filter(!grepl("_sd", experiment)) %>%
+      select(variable, model, experiment, value) %>%
+      drop_na()
+
+    summary_long_sd <- summary_data %>%
+      gather(experiment, sd, -c(model, variable)) %>%
+      filter(grepl("_sd", experiment)) %>%
+      select(variable, model, experiment, sd) %>%
+      drop_na()
+
+    summary_long_sd$experiment <- gsub("_sd", "", summary_long_sd$experiment)
+
+    summary_long <- dplyr::left_join(summary_long_exp, summary_long_sd)
+
+    #runs through each excluded model pair and filters them out of summary_long
+    if(nrow(excluded_models) != 0) { #only runs if the data frame is not empty
+      for (val in 1:nrow(excluded_models)) {
+
+        summary_long <- filter(summary_long, experiment != excluded_models$Scenario[val] | model != excluded_models$Model[val] | variable != excluded_models$Variable[val])
+
+      }
+
+    }
+    return(summary_long)
+  }
 }
 
 #create a function that sorts data for each experiment
 if(sort_by == "experiment"){
-    create_summary_long <- function(experiment, directory){
+  create_summary_long <- function(experiment, directory){
 
-        summary_data_list <- list()
+    summary_data_list <- list()
 
-        for (i in 1:length(master_region)){
-            summary_data_list[[i]] <- assign(paste0(master_region[i]), data_accum_and_rename_experiment(directory,master_region[i],experiment))
-        }
-
-        # Bind data together
-        summary_data <- summary_data_list %>% reduce(left_join, by = c("variable", "model"))
-
-        # Correct model names for CESM and CESM2
-        summary_data$model[which(summary_data$model == "CESM")] <- "CESM1"
-
-        # Change to long format
-        summary_long_exp <- summary_data %>%
-            gather(region, value, -c(model, variable)) %>%
-            filter(!grepl("_sd", region)) %>%
-            select(variable, model, region, value) %>%
-            drop_na()
-
-        summary_long_sd <- summary_data %>%
-            gather(region, sd, -c(model, variable)) %>%
-            filter(grepl("_sd", region)) %>%
-            select(variable, model, region, sd) %>%
-            drop_na()
-
-        summary_long_sd$region <- gsub("_sd", "", summary_long_sd$region)
-
-        summary_long <- dplyr::left_join(summary_long_exp, summary_long_sd)
-
-        return(summary_long)
+    for (i in 1:length(master_region)){
+      summary_data_list[[i]] <- assign(paste0(master_region[i]), data_accum_and_rename_experiment(directory,master_region[i],experiment))
     }
+
+    # Bind data together
+    summary_data <- summary_data_list %>% reduce(left_join, by = c("variable", "model"))
+
+    # Correct model names for CESM and CESM2
+    summary_data$model[which(summary_data$model == "CESM")] <- "CESM1"
+
+    # Change to long format
+    summary_long_exp <- summary_data %>%
+      gather(region, value, -c(model, variable)) %>%
+      filter(!grepl("_sd", region)) %>%
+      select(variable, model, region, value) %>%
+      drop_na()
+
+    summary_long_sd <- summary_data %>%
+      gather(region, sd, -c(model, variable)) %>%
+      filter(grepl("_sd", region)) %>%
+      select(variable, model, region, sd) %>%
+      drop_na()
+
+    summary_long_sd$region <- gsub("_sd", "", summary_long_sd$region)
+
+    summary_long <- dplyr::left_join(summary_long_exp, summary_long_sd)
+
+    return(summary_long)
+  }
 }
 #-------------------------------------------------------------------------------
 #Creates a function that finds min and max values
 find_max_min <- function(variable_data, variable, varname){
 
-    #replace max and min if current variable data is more or less than the current max/min
-    if(max(variable$value) > variable_data[varname, 'Max']){
-        variable_data[varname, 'Max'] <- max(variable$value) + max(variable$sd)
-    }
-    if(min(variable$value) < variable_data[varname, 'Min']){
-        variable_data[varname, 'Min'] <- min(variable$value) - max(variable$sd)
-    }
-    
-    return(variable_data)
+  #replace max and min if current variable data is more or less than the current max/min
+  if(max(variable$value) > variable_data[varname, 'Max']){
+    variable_data[varname, 'Max'] <- max(variable$value) + max(variable$sd)
+  }
+  if(min(variable$value) < variable_data[varname, 'Min']){
+    variable_data[varname, 'Min'] <- min(variable$value) - max(variable$sd)
+  }
+
+  return(variable_data)
 }
 #-------------------------------------------------------------------------------
 #Creates a function that filters species
 #creates a function that filters species out of a database
 filter_species <- function(database, species){
-    species <- dplyr::filter(database, variable == species)
-    return(species)
+  species <- dplyr::filter(database, variable == species)
+  return(species)
 }
 #-------------------------------------------------------------------------------
 #Creates functions that process all data if fixing the y-axis
 if (sort_by == "region"){
 
-    if(fixed_data[1, 'fixed_by'] == 'fixed'){
-        #first determine min and max values
-        #finds min and max for each variable in all scenarios
-        for (current_region in master_region){
-            #substitutes all _ for - so that R can trace through the directory
-            current_region <- gsub('_','-',current_region)
-            #run the create summary long function for each region
-            region_summary_long <- create_summary_long(current_region, emi_dir)
+  if(fixed_data[1, 'fixed_by'] == 'fixed'){
+    #first determine min and max values
+    #finds min and max for each variable in all scenarios
+    for (current_region in master_region){
+      #substitutes all _ for - so that R can trace through the directory
+      current_region <- gsub('_','-',current_region)
+      #run the create summary long function for each region
+      region_summary_long <- create_summary_long(current_region, emi_dir)
 
-            list_vars <- list()
-            #filter out each variable and determine max and min
-            for (i in 1:length(master_vars)){
-                list_vars[[i]] <- assign(master_vars[i], filter_species(region_summary_long,master_vars[i]))
-            }
+      list_vars <- list()
+      #filter out each variable and determine max and min
+      for (i in 1:length(master_vars)){
+        list_vars[[i]] <- assign(master_vars[i], filter_species(region_summary_long,master_vars[i]))
+      }
 
-            for(i in 1:ncol(combined_vars)){
-                name <- colnames(combined_vars)[i]
-                var1 <- combined_vars[1,i]
-                var2 <- combined_vars[2,i]
-                operator <- combined_vars[3,i]
-                #Adds these variables to total vars directly under where it left off
-                list_vars[[i + length(master_vars)]] <- assign(name, make_combined_var(eval(parse(text = var1)),eval(parse(text = var2)),operator))
-            }
-            #creates an arbitrary counter variable
-            j <- 1
-            #runs the find_max_min function for each variable included in the csv file
-            for (var in list_vars){
-                variables <- find_max_min(variables, var, list_of_variable_strings[j])
-                j <- j + 1
-            }
-        }
+      for(i in 1:ncol(combined_vars)){
+        name <- colnames(combined_vars)[i]
+        var1 <- combined_vars[1,i]
+        var2 <- combined_vars[2,i]
+        operator <- combined_vars[3,i]
+        #Adds these variables to total vars directly under where it left off
+        list_vars[[i + length(master_vars)]] <- assign(name, make_combined_var(eval(parse(text = var1)),eval(parse(text = var2)),operator))
+      }
+      #creates an arbitrary counter variable
+      j <- 1
+      #runs the find_max_min function for each variable included in the csv file
+      for (var in list_vars){
+        variables <- find_max_min(variables, var, list_of_variable_strings[j])
+        j <- j + 1
+      }
     }
-    #---------------------------------------------------------------------------
-    #Now can get data for the region being studied
+  }
+  #---------------------------------------------------------------------------
+  #Now can get data for the region being studied
 
-    #creates a summary_long with the data being focused on
-    summary_long <- create_summary_long(region, emi_dir)
+  #creates a summary_long with the data being focused on
+  summary_long <- create_summary_long(region, emi_dir)
 
-    if(fixed_data[1, 'fixed_by'] == 'group'){
-        #filter out each variable and determine max and min
+  if(fixed_data[1, 'fixed_by'] == 'group'){
+    #filter out each variable and determine max and min
 
-        #Creates a list of singular variables by filtering from summary_long
-        list_vars <- list()
-        for (i in 1:length(master_vars)){
-            list_vars[[i]] <- assign(master_vars[i], filter_species(summary_long,master_vars[i]))
-        }
-        #Adds the combined variables to the list
-        for(i in 1:ncol(combined_vars)){
-            name <- colnames(combined_vars)[i]
-            var1 <- combined_vars[1,i]
-            var2 <- combined_vars[2,i]
-            operator <- combined_vars[3,1]
-            #Adds these variables to total vars directly under where it left off
-            list_vars[[i + length(master_vars)]] <- assign(name, make_combined_var(eval(parse(text = var1)),eval(parse(text = var2)),operator))
-            #creates an intermediate dataframe for editing meant to be overwritten each loop
-            intermediate_df <- list_vars[[i + length(master_vars)]]
-            #Gets rid of infinite, NA, and NaN values
-            list_vars[[i + length(master_vars)]] <- dplyr::filter(intermediate_df,is.infinite(intermediate_df$value) == FALSE) %>% na.omit()
-        }
-        #establishes a j term used for indexing later on
-        j <- 1
-
-        #runs the find_max_min function for each variable included in the csv file
-        for (var in list_vars){
-            variables <- find_max_min(variables, var, list_of_variable_strings[j])
-            j <- j + 1
-        }
-
-        #creates a vector with each fixed_data column name as a string, remove the first column
-        fixed_colnames <- colnames(fixed_data)
-        fixed_colnames <- fixed_colnames[-1]
-
-        #only runs if there is at least one group in the csv file
-        if (ncol(fixed_data > 1)){
-            #runs through each existing group and groups the min/maxes for each var together
-            for (col in fixed_colnames){
-                current_vector <- fixed_data[,col]
-                variables <- group_max(current_vector, variables)
-            }
-        }
-
+    #Creates a list of singular variables by filtering from summary_long
+    list_vars <- list()
+    for (i in 1:length(master_vars)){
+      list_vars[[i]] <- assign(master_vars[i], filter_species(summary_long,master_vars[i]))
     }
+    #Adds the combined variables to the list
+    for(i in 1:ncol(combined_vars)){
+      name <- colnames(combined_vars)[i]
+      var1 <- combined_vars[1,i]
+      var2 <- combined_vars[2,i]
+      operator <- combined_vars[3,1]
+      #Adds these variables to total vars directly under where it left off
+      list_vars[[i + length(master_vars)]] <- assign(name, make_combined_var(eval(parse(text = var1)),eval(parse(text = var2)),operator))
+      #creates an intermediate dataframe for editing meant to be overwritten each loop
+      intermediate_df <- list_vars[[i + length(master_vars)]]
+      #Gets rid of infinite, NA, and NaN values
+      list_vars[[i + length(master_vars)]] <- dplyr::filter(intermediate_df,is.infinite(intermediate_df$value) == FALSE) %>% na.omit()
+    }
+    #establishes a j term used for indexing later on
+    j <- 1
+
+    #runs the find_max_min function for each variable included in the csv file
+    for (var in list_vars){
+      variables <- find_max_min(variables, var, list_of_variable_strings[j])
+      j <- j + 1
+    }
+
+    #creates a vector with each fixed_data column name as a string, remove the first column
+    fixed_colnames <- colnames(fixed_data)
+    fixed_colnames <- fixed_colnames[-1]
+
+    #only runs if there is at least one group in the csv file
+    if (ncol(fixed_data > 1)){
+      #runs through each existing group and groups the min/maxes for each var together
+      for (col in fixed_colnames){
+        current_vector <- fixed_data[,col]
+        variables <- group_max(current_vector, variables)
+      }
+    }
+
+  }
 }
 
 
 if (sort_by == "experiment"){
 
-    if(fixed_data[1, 'fixed_by'] == 'fixed'){
-        #-----------------------------------------------------------------------------
-        #find min and max for each variable in all experiments
-        all_experiments <- master_exp
-        variables <- read.csv(file = paste0(emi_dir, '/input/variables.csv'), fileEncoding="UTF-8-BOM")
-        rownames(variables) <- variables$Variable
-        variables <- subset(variables, select = -c(Variable))
+  if(fixed_data[1, 'fixed_by'] == 'fixed'){
+    #-----------------------------------------------------------------------------
+    #find min and max for each variable in all experiments
+    all_experiments <- master_exp
+    variables <- read.csv(file = paste0(emi_dir, '/input/variables.csv'), fileEncoding="UTF-8-BOM")
+    rownames(variables) <- variables$Variable
+    variables <- subset(variables, select = -c(Variable))
 
-        #creates a list of all the variables as strings
-        list_of_variable_strings <- rownames(variables)
+    #creates a list of all the variables as strings
+    list_of_variable_strings <- rownames(variables)
 
-        for (current_experiment in all_experiments){
-            #substitutes all _ for - so that R can trace through the directory
-            current_experiment <- gsub('_','-',current_experiment)
-            #run the create summary long function for each region
-            experiment_summary_long <- create_summary_long(current_experiment, emi_dir)
-            #Create an empty variable dataframe list
-            list_vars <- list()
-            #Creates a list of dataframes filtered from summary_long
-            for (i in 1:length(master_vars)){
-                list_vars[[i]] <- assign(master_vars[i], filter_species(experiment_summary_long,master_vars[i]))
-            }
-            #Adds combined variables to the list
-            for(i in 1:ncol(combined_vars)){
-                name <- colnames(combined_vars)[i]
-                var1 <- combined_vars[1,i]
-                var2 <- combined_vars[2,i]
-                operator <- combined_vars[3,i]
-                #Adds these variables to total vars directly under where it left off
-                list_vars[[i + length(master_vars)]] <- assign(name, make_combined_var(eval(parse(text = var1)),eval(parse(text = var2)),operator))
-                #creates an intermediate dataframe for editing meant to be overwritten each loop
-                intermediate_df <- list_vars[[i + length(master_vars)]]
-                #Gets rid of infinite, NA, and NaN values
-                list_vars[[i + length(master_vars)]] <- dplyr::filter(intermediate_df,is.infinite(intermediate_df$value) == FALSE) %>% na.omit()
-                }
-            }
-            #establishes a j term used for indexing later on
-            j <- 1
-
-            for (var in list_vars){
-
-                variables <- find_max_min(variables, var, list_of_variable_strings[j])
-
-                j <- j + 1
-            }
-        }
-  #-----------------------------------------------------------------------------
-    #Now can get data for experiment being studied
-    #read in data for each region
-    summary_long <- create_summary_long(exper, emi_dir)
-
-    if(fixed_data[1, 'fixed_by'] == 'group'){
-
-        #Create an empty variable dataframe list
-        list_vars <- list()
-        #filter out each variable and determine max and min
-        for (i in 1:length(master_vars)){
-            list_vars[[i]] <- assign(master_vars[i], filter_species(summary_long,master_vars[i]))
-        }
-        #Adds combined variables to the list
-        for(i in 1:ncol(combined_vars)){
-            name <- colnames(combined_vars)[i]
-            var1 <- combined_vars[1,i]
-            var2 <- combined_vars[2,i]
-            operator <- combined_vars[3,i]
-            #Adds these variables to total vars directly under where it left off
-            list_vars[[i + length(master_vars)]] <- assign(name, make_combined_var(eval(parse(text = var1)),eval(parse(text = var2)),operator))
-            #creates an intermediate dataframe for editing meant to be overwritten each loop
-            intermediate_df <- list_vars[[i + length(master_vars)]]
-            #Gets rid of infinite, NA, and NaN values
-            list_vars[[i + length(master_vars)]] <- dplyr::filter(intermediate_df,is.infinite(intermediate_df$value) == FALSE) %>% na.omit()
-        }
-
-        #establishes a j term used for indexing later on
-        j <- 1
-
-        #runs the find_max_min function for each variable included in the csv file
-        for (var in list_vars){
-            variables <- find_max_min(variables, var, list_of_variable_strings[j])
-            j <- j + 1
-        }
-
-        #creates a vector with each fixed_data column name as a string, remove the first column
-        fixed_colnames <- colnames(fixed_data)
-        fixed_colnames <- fixed_colnames[-1]
-
-        #only runs if there is at least one group in the csv file
-        if (ncol(fixed_data > 1)){
-            #runs through each existing group and groups the min/maxes for each var together
-            for (col in fixed_colnames){
-                current_vector <- fixed_data[,col]
-                variables <- group_max(current_vector, variables)
-            }
-        }
-
+    for (current_experiment in all_experiments){
+      #substitutes all _ for - so that R can trace through the directory
+      current_experiment <- gsub('_','-',current_experiment)
+      #run the create summary long function for each region
+      experiment_summary_long <- create_summary_long(current_experiment, emi_dir)
+      #Create an empty variable dataframe list
+      list_vars <- list()
+      #Creates a list of dataframes filtered from summary_long
+      for (i in 1:length(master_vars)){
+        list_vars[[i]] <- assign(master_vars[i], filter_species(experiment_summary_long,master_vars[i]))
+      }
+      #Adds combined variables to the list
+      for(i in 1:ncol(combined_vars)){
+        name <- colnames(combined_vars)[i]
+        var1 <- combined_vars[1,i]
+        var2 <- combined_vars[2,i]
+        operator <- combined_vars[3,i]
+        #Adds these variables to total vars directly under where it left off
+        list_vars[[i + length(master_vars)]] <- assign(name, make_combined_var(eval(parse(text = var1)),eval(parse(text = var2)),operator))
+        #creates an intermediate dataframe for editing meant to be overwritten each loop
+        intermediate_df <- list_vars[[i + length(master_vars)]]
+        #Gets rid of infinite, NA, and NaN values
+        list_vars[[i + length(master_vars)]] <- dplyr::filter(intermediate_df,is.infinite(intermediate_df$value) == FALSE) %>% na.omit()
+      }
     }
+    #establishes a j term used for indexing later on
+    j <- 1
+
+    for (var in list_vars){
+
+      variables <- find_max_min(variables, var, list_of_variable_strings[j])
+
+      j <- j + 1
+    }
+  }
+  #-----------------------------------------------------------------------------
+  #Now can get data for experiment being studied
+  #read in data for each region
+  summary_long <- create_summary_long(exper, emi_dir)
+
+  if(fixed_data[1, 'fixed_by'] == 'group'){
+
+    #Create an empty variable dataframe list
+    list_vars <- list()
+    #filter out each variable and determine max and min
+    for (i in 1:length(master_vars)){
+      list_vars[[i]] <- assign(master_vars[i], filter_species(summary_long,master_vars[i]))
+    }
+    #Adds combined variables to the list
+    for(i in 1:ncol(combined_vars)){
+      name <- colnames(combined_vars)[i]
+      var1 <- combined_vars[1,i]
+      var2 <- combined_vars[2,i]
+      operator <- combined_vars[3,i]
+      #Adds these variables to total vars directly under where it left off
+      list_vars[[i + length(master_vars)]] <- assign(name, make_combined_var(eval(parse(text = var1)),eval(parse(text = var2)),operator))
+      #creates an intermediate dataframe for editing meant to be overwritten each loop
+      intermediate_df <- list_vars[[i + length(master_vars)]]
+      #Gets rid of infinite, NA, and NaN values
+      list_vars[[i + length(master_vars)]] <- dplyr::filter(intermediate_df,is.infinite(intermediate_df$value) == FALSE) %>% na.omit()
+    }
+
+    #establishes a j term used for indexing later on
+    j <- 1
+
+    #runs the find_max_min function for each variable included in the csv file
+    for (var in list_vars){
+      variables <- find_max_min(variables, var, list_of_variable_strings[j])
+      j <- j + 1
+    }
+
+    #creates a vector with each fixed_data column name as a string, remove the first column
+    fixed_colnames <- colnames(fixed_data)
+    fixed_colnames <- fixed_colnames[-1]
+
+    #only runs if there is at least one group in the csv file
+    if (ncol(fixed_data > 1)){
+      #runs through each existing group and groups the min/maxes for each var together
+      for (col in fixed_colnames){
+        current_vector <- fixed_data[,col]
+        variables <- group_max(current_vector, variables)
+      }
+    }
+
+  }
 }
 #-------------------------------------------------------------------------------
 # Generate plots
@@ -529,25 +529,25 @@ axis_title_font <- 9
 total_vars <- list()
 #filters each species from summary_long
 for (i in 1:length(master_vars)){
-    total_vars[[i]] <- assign(master_vars[i], filter_species(summary_long,master_vars[i]))
+  total_vars[[i]] <- assign(master_vars[i], filter_species(summary_long,master_vars[i]))
 }
 #creates the combined variables
 for(i in 1:ncol(combined_vars)){
-    name <- colnames(combined_vars)[i]
-    var1 <- combined_vars[1,i]
-    var2 <- combined_vars[2,i]
-    operator <- combined_vars[3,i]
-    #Adds these variables to total vars directly under where it left off
-    total_vars[[i + length(master_vars)]] <- assign(name, make_combined_var(eval(parse(text = var1)),eval(parse(text = var2)),operator))
-    #creates an intermediate dataframe for editing meant to be overwritten each loop
-    intermediate_df <- total_vars[[i + length(master_vars)]]
-    #Gets rid of infinite, NA, and NaN values
-    total_vars[[i + length(master_vars)]] <- dplyr::filter(intermediate_df,is.infinite(intermediate_df$value) == FALSE) %>% na.omit()
+  name <- colnames(combined_vars)[i]
+  var1 <- combined_vars[1,i]
+  var2 <- combined_vars[2,i]
+  operator <- combined_vars[3,i]
+  #Adds these variables to total vars directly under where it left off
+  total_vars[[i + length(master_vars)]] <- assign(name, make_combined_var(eval(parse(text = var1)),eval(parse(text = var2)),operator))
+  #creates an intermediate dataframe for editing meant to be overwritten each loop
+  intermediate_df <- total_vars[[i + length(master_vars)]]
+  #Gets rid of infinite, NA, and NaN values
+  total_vars[[i + length(master_vars)]] <- dplyr::filter(intermediate_df,is.infinite(intermediate_df$value) == FALSE) %>% na.omit()
 }
 
 #filter out excluded data again (previous filter step did not include combined variables)
 all_vars <- rownames(variables)
-if(nrow(excluded_models) !=0){  
+if(nrow(excluded_models) !=0){
   for(Model_name in 1:nrow(excluded_models)){
     #locates index number where excluded variable is located in total_vars
     model_index <- which(all_vars == excluded_models[Model_name,3])
@@ -558,132 +558,132 @@ if(nrow(excluded_models) !=0){
 
 #Creates a function that creates plots for the data based on each species
 if (sort_by == "region"){
-    #plots only take max and min into account if fixing or grouping
-    if (fixed_data[1, 'fixed_by'] == 'fixed' || fixed_data[1, 'fixed_by'] == 'group'){
+  #plots only take max and min into account if fixing or grouping
+  if (fixed_data[1, 'fixed_by'] == 'fixed' || fixed_data[1, 'fixed_by'] == 'group'){
     plot_species <- function(variable, x, y, title1, title2, units, region_or_exper, model_colors, model_symbols, ymin, ymax){
-        species <- variable
-        species_plot <- ggplot(species, aes(x = experiment, y = value, color = model, shape = model))+
-            theme_bw()+
-            labs(title=paste0(title1,"\n",title2,' - ', region_or_exper), y="Percent (%)") +
-            theme(plot.title = element_text(hjust = 0.5, size = title_font),
-                  axis.text = element_text(size = axis_font),
-                  axis.title = element_text(size = axis_title_font),
-                  axis.text.x = element_text(angle = 45, hjust = 1),
-                  axis.title.x = element_blank()) +
-            scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(species$value))-max(abs(species$sd)), max(abs(species$value))+max(abs(species$sd)))) +
-            scale_colour_manual(values = model_colors) +
-            scale_shape_manual(values = model_symbols) +
-            geom_point( position=position_dodge(width = 0.4), size = 1.5) +
-            geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
-            ylim(ymax, ymin)
+      species <- variable
+      species_plot <- ggplot(species, aes(x = experiment, y = value, color = model, shape = model))+
+        theme_bw()+
+        labs(title=paste0(title1,"\n",title2,' - ', region_or_exper), y="Percent (%)") +
+        theme(plot.title = element_text(hjust = 0.5, size = title_font),
+              axis.text = element_text(size = axis_font),
+              axis.title = element_text(size = axis_title_font),
+              axis.text.x = element_text(angle = 45, hjust = 1),
+              axis.title.x = element_blank()) +
+        scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(species$value))-max(abs(species$sd)), max(abs(species$value))+max(abs(species$sd)))) +
+        scale_colour_manual(values = model_colors) +
+        scale_shape_manual(values = model_symbols) +
+        geom_point( position=position_dodge(width = 0.4), size = 1.5) +
+        geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
+        ylim(ymax, ymin)
 
-            return(species_plot)
+      return(species_plot)
     }
-    }else{
-        plot_species <- function(variable, x, y, title1,title2, units, region_or_exper, model_colors, model_symbols, ymin, ymax){
-            species <- variable
-            species_plot <- ggplot(species, aes(x = experiment, y = value, color = model, shape = model))+
-                theme_bw()+
-                labs(title=paste0(title1,"\n",title2,' - ', region_or_exper), y="Percent (%)") +
-                theme(plot.title = element_text(hjust = 0.5, size = title_font),
-                      axis.text = element_text(size = axis_font),
-                      axis.title = element_text(size = axis_title_font),
-                      axis.text.x = element_text(angle = 45, hjust = 1),
-                      axis.title.x = element_blank()) +
-                scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(species$value))-max(abs(species$sd)), max(abs(species$value))+max(abs(species$sd)))) +
-                scale_colour_manual(values = model_colors) +
-                scale_shape_manual(values = model_symbols) +
-                geom_point( position=position_dodge(width = 0.4), size = 1.5) +
-                geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
+  }else{
+    plot_species <- function(variable, x, y, title1,title2, units, region_or_exper, model_colors, model_symbols, ymin, ymax){
+      species <- variable
+      species_plot <- ggplot(species, aes(x = experiment, y = value, color = model, shape = model))+
+        theme_bw()+
+        labs(title=paste0(title1,"\n",title2,' - ', region_or_exper), y="Percent (%)") +
+        theme(plot.title = element_text(hjust = 0.5, size = title_font),
+              axis.text = element_text(size = axis_font),
+              axis.title = element_text(size = axis_title_font),
+              axis.text.x = element_text(angle = 45, hjust = 1),
+              axis.title.x = element_blank()) +
+        scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(species$value))-max(abs(species$sd)), max(abs(species$value))+max(abs(species$sd)))) +
+        scale_colour_manual(values = model_colors) +
+        scale_shape_manual(values = model_symbols) +
+        geom_point( position=position_dodge(width = 0.4), size = 1.5) +
+        geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
 
-            return(species_plot)
-        }
+      return(species_plot)
     }
-    #creates plots based on each species using the plot_species function
-    k <- 1
-    for(var in total_vars){
-        #number of the row in the variables column to access
-        #rownum <- which(rownames(variables) == master_vars[k])
-        all_vars <- rownames(variables)
-        assign(paste0(all_vars[k],'_plot'), plot_species(var,region,value,variables[k,'plot_names'],variables[k,'plot_names_line_2'],eval(parse( text = paste(variables[k,'description_diff']))),region,model_colors,model_symbols,variables[k,'Max'],variables[k,'Min'] ))
+  }
+  #creates plots based on each species using the plot_species function
+  k <- 1
+  for(var in total_vars){
+    #number of the row in the variables column to access
+    #rownum <- which(rownames(variables) == master_vars[k])
+    all_vars <- rownames(variables)
+    assign(paste0(all_vars[k],'_plot'), plot_species(var,region,value,variables[k,'plot_names'],variables[k,'plot_names_line_2'],eval(parse( text = paste(variables[k,'description_diff']))),region,model_colors,model_symbols,variables[k,'Max'],variables[k,'Min'] ))
 
-        k <- k + 1
-    }
+    k <- k + 1
+  }
 
 
 }
 
 if (sort_by == "experiment"){
-    #plots only take min or max into account if grouping
-    if (fixed_data[1, 'fixed_by'] == 'fixed' || fixed_data[1, 'fixed_by'] == 'group'){
+  #plots only take min or max into account if grouping
+  if (fixed_data[1, 'fixed_by'] == 'fixed' || fixed_data[1, 'fixed_by'] == 'group'){
     plot_species <- function(variable, x, y, title1,title2, units, region_or_exper, model_colors, model_symbols, ymin, ymax){
-        species <- variable
-        species_plot <- ggplot(species, aes(x = region, y = value, color = model, shape = model))+
-            theme_bw()+
-            labs(title=paste0(title1,"\n", title2,' - ', region_or_exper), y="Percent (%)") +
-            theme(plot.title = element_text(hjust = 0.5, size = title_font),
-                  axis.text = element_text(size = axis_font),
-                  axis.title = element_text(size = axis_title_font),
-                  axis.text.x = element_text(angle = 45, hjust = 1),
-                  axis.title.x = element_blank()) +
-            scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(species$value))-max(abs(species$sd)), max(abs(species$value))+max(abs(species$sd)))) +
-            scale_colour_manual(values = model_colors) +
-            scale_shape_manual(values = model_symbols) +
-            geom_point( position=position_dodge(width = 0.4), size = 1.5) +
-            geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
-            ylim(ymax, ymin)
+      species <- variable
+      species_plot <- ggplot(species, aes(x = region, y = value, color = model, shape = model))+
+        theme_bw()+
+        labs(title=paste0(title1,"\n", title2,' - ', region_or_exper), y="Percent (%)") +
+        theme(plot.title = element_text(hjust = 0.5, size = title_font),
+              axis.text = element_text(size = axis_font),
+              axis.title = element_text(size = axis_title_font),
+              axis.text.x = element_text(angle = 45, hjust = 1),
+              axis.title.x = element_blank()) +
+        scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(species$value))-max(abs(species$sd)), max(abs(species$value))+max(abs(species$sd)))) +
+        scale_colour_manual(values = model_colors) +
+        scale_shape_manual(values = model_symbols) +
+        geom_point( position=position_dodge(width = 0.4), size = 1.5) +
+        geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
+        ylim(ymax, ymin)
 
-        return(species_plot)
+      return(species_plot)
     }
-    } else{
-        plot_species <- function(variable, x, y, title1,title2, units, region_or_exper, model_colors, model_symbols, ymin, ymax){
-            species <- variable
-            species_plot <- ggplot(species, aes(x = region, y = value, color = model, shape = model))+
-                theme_bw()+
-                labs(title=paste0(title1,"\n",title2,' - ', region_or_exper), y="Percent (%)") +
-                theme(plot.title = element_text(hjust = 0.5, size = title_font),
-                      axis.text = element_text(size = axis_font),
-                      axis.title = element_text(size = axis_title_font),
-                      axis.text.x = element_text(angle = 45, hjust = 1),
-                      axis.title.x = element_blank()) +
-                scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(species$value))-max(abs(species$sd)), max(abs(species$value))+max(abs(species$sd)))) +
-                scale_colour_manual(values = model_colors) +
-                scale_shape_manual(values = model_symbols) +
-                geom_point( position=position_dodge(width = 0.4), size = 1.5) +
-                geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
-        return(species_plot)
-        }
+  } else{
+    plot_species <- function(variable, x, y, title1,title2, units, region_or_exper, model_colors, model_symbols, ymin, ymax){
+      species <- variable
+      species_plot <- ggplot(species, aes(x = region, y = value, color = model, shape = model))+
+        theme_bw()+
+        labs(title=paste0(title1,"\n",title2,' - ', region_or_exper), y="Percent (%)") +
+        theme(plot.title = element_text(hjust = 0.5, size = title_font),
+              axis.text = element_text(size = axis_font),
+              axis.title = element_text(size = axis_title_font),
+              axis.text.x = element_text(angle = 45, hjust = 1),
+              axis.title.x = element_blank()) +
+        scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(species$value))-max(abs(species$sd)), max(abs(species$value))+max(abs(species$sd)))) +
+        scale_colour_manual(values = model_colors) +
+        scale_shape_manual(values = model_symbols) +
+        geom_point( position=position_dodge(width = 0.4), size = 1.5) +
+        geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
+      return(species_plot)
     }
+  }
 
-    #creates plots based on each species using the plot_species function
-    k <- 1
-    for(var in total_vars){
-        #number of the row in the variables column to access
-        #rownum <- which(rownames(variables) == master_vars[k])
-        all_vars <- rownames(variables)
-        assign(paste0(all_vars[k],'_plot'), plot_species(var,region,value,variables[k,'plot_names'],variables[k,'plot_names_line_2'],eval(parse(text = paste(variables[k,'description_diff']))),exper,model_colors,model_symbols,variables[k,'Max'],variables[k,'Min'] ))
+  #creates plots based on each species using the plot_species function
+  k <- 1
+  for(var in total_vars){
+    #number of the row in the variables column to access
+    #rownum <- which(rownames(variables) == master_vars[k])
+    all_vars <- rownames(variables)
+    assign(paste0(all_vars[k],'_plot'), plot_species(var,region,value,variables[k,'plot_names'],variables[k,'plot_names_line_2'],eval(parse(text = paste(variables[k,'description_diff']))),exper,model_colors,model_symbols,variables[k,'Max'],variables[k,'Min'] ))
 
-        k <- k + 1
-    }
+    k <- k + 1
+  }
 
 }
 
 # Function from stack exchange to generate a shared legend
 grid_arrange_shared_legend <- function(...) {
-    plots <- list(...)
-    g <- ggplotGrob(plots[[1]] + theme(legend.position="bottom",
-                                       legend.title = element_blank(),
-                                       legend.text = element_text(size = 9,
-                                                                  margin = margin(r = 10, unit = "pt"))))$grobs
-    legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
-    lheight <- sum(legend$height)
-    grid.arrange(
-        do.call(arrangeGrob, lapply(plots, function(x)
-            x + theme(legend.position="none"))),
-        legend,
-        ncol = 1,
-        heights = unit.c(unit(1, "npc") - 1.5 * lheight, lheight), # the "1.5" adds room for title
-        top = textGrob("Summary - percent difference", gp = gpar(fontsize = 12)))
+  plots <- list(...)
+  g <- ggplotGrob(plots[[1]] + theme(legend.position="bottom",
+                                     legend.title = element_blank(),
+                                     legend.text = element_text(size = 9,
+                                                                margin = margin(r = 10, unit = "pt"))))$grobs
+  legend <- g[[which(sapply(g, function(x) x$name) == "guide-box")]]
+  lheight <- sum(legend$height)
+  grid.arrange(
+    do.call(arrangeGrob, lapply(plots, function(x)
+      x + theme(legend.position="none"))),
+    legend,
+    ncol = 1,
+    heights = unit.c(unit(1, "npc") - 1.5 * lheight, lheight), # the "1.5" adds room for title
+    top = textGrob("Summary - percent difference", gp = gpar(fontsize = 12)))
 }
 
 emissions_plot <- grid_arrange_shared_legend(emibc_plot,
@@ -725,15 +725,15 @@ column_plot <- grid_arrange_shared_legend(loadbc_plot,
 
 # Print plots
 if (sort_by == 'region'){
-    setwd(paste0('../../../../output/', region, '/summary'))
+  setwd(paste0('../../../../output/', region, '/summary'))
 
-    pdf(paste0(region, '_summary_plots_per_diff.pdf'), height = 11, width = 8.5, paper = "letter")
+  pdf(paste0(region, '_summary_plots_per_diff.pdf'), height = 11, width = 8.5, paper = "letter")
 }
 
 if (sort_by == 'experiment'){
-    setwd(paste0('../../../../output/', exper, '/summary'))
+  setwd(paste0('../../../../output/', exper, '/summary'))
 
-    pdf(paste0(exper, '_summary_plots_per_diff.pdf'), height = 11, width = 8.5, paper = "letter")
+  pdf(paste0(exper, '_summary_plots_per_diff.pdf'), height = 11, width = 8.5, paper = "letter")
 }
 
 grid.draw(emissions_plot)
