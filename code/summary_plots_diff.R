@@ -18,7 +18,7 @@ library(gridExtra)
 library(grid)
 
 # Specify location of Emissions-MIP directory
-emi_dir <- paste0('C:/Users/ahsa361/Documents/Emissions-MIP_Data')
+emi_dir <- paste0('C:/Users/such559/Documents/Emissions-MIP_Data')
 
 setwd(paste0(emi_dir))
 
@@ -26,7 +26,7 @@ setwd(paste0(emi_dir))
 sort_by <- 'region'
 
 #determines which region or experiment is sorted by
-region <- 'global'
+region <- 'arctic'
 exper <- 'bc-no-season'
 
 # Specify what you are sorting by and either the region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, SH-sea) or experiment (i.e., bc-no-season, high-so4, no-so4, reference, so2-at-height, so2-no-season)
@@ -39,7 +39,7 @@ if (!is_empty(sorting) & sort_by == "experiment"){experiment <- sorting[2]}
 
 #-------------------------------------------------------------------------------
 #Read in variable, region, and experiment names and sort them into their own lists
-var_master_list <- read.csv(file = paste0(emi_dir, '/code/var_master_list.csv'), fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
+var_master_list <- read.csv(file = paste0(emi_dir, '/input/var_master_list.csv'), fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
 master_vars <- var_master_list$vars
 master_com_var <- var_master_list$com_vars
 master_region <- var_master_list$reg
@@ -51,13 +51,13 @@ master_region <- master_region[master_region != ""]
 master_exp <- master_exp[master_exp != ""]
 #-------------------------------------------------------------------------------
 #Read in csv responsible for organizing combined variable outputs
-combined_vars <- read.csv(file=paste0(emi_dir,'/code/combined_variables.csv'), fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
+combined_vars <- read.csv(file=paste0(emi_dir,'/input/combined_variables.csv'), fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
 #-------------------------------------------------------------------------------
 #Read in fixed data to determine whether the axes should be fixed or grouped
-fixed_data <- read.csv(file = paste0(emi_dir, '/code/fixed_axes.csv'), fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
+fixed_data <- read.csv(file = paste0(emi_dir, '/input/fixed_axes.csv'), fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
 #-------------------------------------------------------------------------------
 #Read in the variable min/max data
-variables <- read.csv(file = paste0(emi_dir, '/code/variables.csv'), fileEncoding="UTF-8-BOM")
+variables <- read.csv(file = paste0(emi_dir, '/input/variables.csv'), fileEncoding="UTF-8-BOM")
 rownames(variables) <- variables$Variable
 variables <- subset(variables, select = -c(Variable))
 #creates a list of all the variables as strings
@@ -67,7 +67,7 @@ list_of_variable_strings <- rownames(variables)
 
 #Checks if total variables are consistent between variables.csv and var_master_list.csv
 #Add 2 for the wet and dry s variables that would not appear in the master lists
-if(nrow(variables) != length(master_vars) + length(master_com_var) + 2){
+if(nrow(variables) != length(master_vars) + length(master_com_var) + 3){
   stop('discrepancy between variables.csv and var_master_list.csv files')
 }
 #checks if the number of combined vars in combined_variables.csv added to the
@@ -78,13 +78,22 @@ if(nrow(variables) != length(master_vars) + ncol(combined_vars)){
 
 # ------------------------------------------------------------------------------
 # Reads in csv file specifying which models to exclude from the data
-excluded_models <- read.csv(file = paste0(emi_dir, '/code/excluded_data.csv'), fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
+excluded_models <- read.csv(file = paste0(emi_dir, '/input/excluded_data.csv'), fileEncoding="UTF-8-BOM", stringsAsFactors = FALSE)
 excluded_models %>% drop_na() #gets rid of any empty spaces
 #-------------------------------------------------------------------------------
+# Define default ggplot colors and associate with models (in case a plot is
+# missing a model, the color scheme will remain consistent)
+gg_color_hue <- function(n) {
+  hues = seq(15, 375, length = n + 1)
+  hcl(h = hues, l = 65, c = 100)[1:n]
+}
+
+cols = gg_color_hue(10)
 # Define colorblind-friendly palette colors and associate with models (in case a
 # plot is missing a model, the color scheme will remain consistent)
-cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#920000", "#F0E442",
-               "#0072B2", "#D55E00", "#CC79A7", "#490092", "#117733")
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#920000",
+               "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#490092",
+               "#117733")
 
 model_colors <- c(CESM1 = cbPalette[1], E3SM = cbPalette[2], GISS = cbPalette[3],
                   CESM2 = cbPalette[4], MIROC = cbPalette[5], NorESM2 = cbPalette[6],
@@ -94,6 +103,7 @@ model_colors <- c(CESM1 = cbPalette[1], E3SM = cbPalette[2], GISS = cbPalette[3]
 model_symbols <- c(CESM1 = 15, E3SM = 15, GISS = 17, CESM2 = 19, MIROC = 15,
                    NorESM2 = 17, GFDL = 19, OsloCTM3 = 19, UKESM = 15, GEOS = 17,
                    CAM5 = 17)
+
 #-------------------------------------------------------------------------------
 #extracts data for each perturbation experiment from csv files
 data_accumulation <- function(emi_dir, reg_name, exper){
@@ -108,20 +118,19 @@ data_accumulation <- function(emi_dir, reg_name, exper){
 
   # Extract model from file names (fifth segment) and bind to experiment data frame
   models <- sapply(strsplit(target_filename, "[-.]+"),function(x) x[5])
-  rep_models <- rep(models, each = 5) # five years
+  rep_models <- rep(models, each = 5) # four years
   regional_data$model <- rep_models
 
   # Convert SO2 volume mixing ratio to mass mixing ratio by multiplying by molar
-  # mass of SO2 and dividing by molar mass of air (and similarly with DMS) invert
-  # sign of forcing variables to be consistent with convention (i.e. positive
-  # value denotes a heating effect), then take the average over all years for each
-  # variable and calculate std dev
+  # mass of SO2 and dividing by molar mass of air, invert sign of forcing variables
+  # to be consistent with convention (i.e. positive value denotes a heating effect),
+  # then take the average over all years for each variable and calculate std dev
   regional_data_summary <- regional_data %>%
     dplyr::group_by(variable, model) %>%
     within(value <- ifelse(variable == "so2", 64.066 / 28.96, 1) * value) %>%
-    within(value <- ifelse(variable == "dms", 62.13 / 28.96, 1) * value) %>%
     within(value <- ifelse(variable %in% c("rlut", "rsut", "rlutcs", "rsutcs"), -1, 1) * value) %>%
     within(value <- ifelse(variable %in% c("wetbc", "wetso2", "wetso4") & model == "CESM2", -1, 1) * value) %>%
+    within(value <- ifelse(variable == "dms", 62.13 / 28.96, 1) * value) %>%
     dplyr::summarise(regional_data = mean(value), regional_data_sd = sd(value))
 
   return(regional_data_summary)
@@ -158,11 +167,25 @@ if(sort_by == 'region'){
         dplyr::select(c(model, experiment, value, sd))
       return(output)
     }
-
+    if (add_or_subtract == "so2_and_so4_add"){
+      output <- dplyr::left_join(var1, var2, by = c("model", "region"))
+      output <- dplyr::mutate(output, value = (32.065/64.066)*value.x + (32.065/96.06)*value.y) %>%
+        dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
+        dplyr::select(c(model, region, value, sd))
+      return(output)
+    }
     if(add_or_subtract == "subtract"){
       output <- dplyr::left_join(var1, var2, by = c("model", "experiment"))
       output <- dplyr::mutate(output, value = value.x - value.y) %>%
         dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
+        dplyr::select(c(model, experiment, value, sd))
+      return(output)
+    }
+
+    if(add_or_subtract == "divide"){
+      output <- dplyr::left_join(var1, var2, by = c("model", "experiment"))
+      output <- dplyr::mutate(output, value = value.x / value.y) %>%
+        dplyr::mutate(sd = value*sqrt((sd.x/value.x)^2 + (sd.y/value.y)^2)) %>%
         dplyr::select(c(model, experiment, value, sd))
       return(output)
     }
@@ -180,11 +203,25 @@ if(sort_by == 'experiment'){
         dplyr::select(c(model, region, value, sd))
       return(output)
     }
+    if (add_or_subtract == "so2_and_so4_add"){
+      output <- dplyr::left_join(var1, var2, by = c("model", "region"))
+      output <- dplyr::mutate(output, value = (32.065/64.066)*value.x + (32.065/96.06)*value.y) %>%
+        dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
+        dplyr::select(c(model, region, value, sd))
+      return(output)
+    }
     if (add_or_subtract == "subtract"){
       output <- dplyr::left_join(var1, var2, by = c("model", "region"))
       output <- dplyr::mutate(output, value = value.x - value.y) %>%
         dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
         dplyr::select(c(model, region, value, sd))
+      return(output)
+    }
+    if(add_or_subtract == "divide"){
+      output <- dplyr::left_join(var1, var2, by = c("model", "region"))
+      output <- dplyr::mutate(output, value = value.x / value.y) %>%
+        dplyr::mutate(sd = value*sqrt((sd.x/value.x)^2 + (sd.y/value.y)^2)) %>%
+        dplyr::select(c(model, experiment, value, sd))
       return(output)
     }
 
@@ -248,9 +285,7 @@ if(sort_by == "region"){
     #runs through each excluded model pair and filters them out of summary_long
     if(nrow(excluded_models) != 0) { #only runs if the data frame is not empty
       for (val in 1:nrow(excluded_models)) {
-
         summary_long <- filter(summary_long, experiment != excluded_models$Scenario[val] | model != excluded_models$Model[val] | variable != excluded_models$Variable[val])
-
       }
 
     }
@@ -341,6 +376,8 @@ if (sort_by == "region"){
         operator <- combined_vars[3,i]
         #Adds these variables to total vars directly under where it left off
         list_vars[[i + length(master_vars)]] <- assign(name, make_combined_var(eval(parse(text = var1)),eval(parse(text = var2)),operator))
+        intermediate_df <- list_vars[[i + length(master_vars)]]
+        list_vars[[i + length(master_vars)]] <- intermediate_df %>%  dplyr::filter(is.infinite(value) == FALSE) %>% na.omit()
       }
       #creates an arbitrary counter variable
       j <- 1
@@ -370,9 +407,13 @@ if (sort_by == "region"){
       name <- colnames(combined_vars)[i]
       var1 <- combined_vars[1,i]
       var2 <- combined_vars[2,i]
-      operator <- combined_vars[3,1]
+      operator <- combined_vars[3,i]
       #Adds these variables to total vars directly under where it left off
       list_vars[[i + length(master_vars)]] <- assign(name, make_combined_var(eval(parse(text = var1)),eval(parse(text = var2)),operator))
+      #creates an intermediate dataframe for editing meant to be overwritten each loop
+      intermediate_df <- list_vars[[i + length(master_vars)]]
+      #Gets rid of infinite, NA, and NaN values
+      list_vars[[i + length(master_vars)]] <- dplyr::filter(intermediate_df,is.infinite(intermediate_df$value) == FALSE) %>% na.omit()
     }
     #establishes a j term used for indexing later on
     j <- 1
@@ -395,7 +436,6 @@ if (sort_by == "region"){
         variables <- group_max(current_vector, variables)
       }
     }
-
   }
 }
 
@@ -432,11 +472,10 @@ if (sort_by == "experiment"){
         operator <- combined_vars[3,i]
         #Adds these variables to total vars directly under where it left off
         list_vars[[i + length(master_vars)]] <- assign(name, make_combined_var(eval(parse(text = var1)),eval(parse(text = var2)),operator))
-        if (any(is.na(list_vars[[i + length(master_vars)]])) == TRUE){
-          #If there are NA values, this sets them to zero and puts an error message
-          print(paste0('NA in ', master_vars[i + length(master_vars)], ' setting NA to zero'))
-          list_vars[[i + length(master_vars)]][is.na(list_vars[[i + length(master_vars)]])] <- 0
-        }
+        #creates an intermediate dataframe for editing meant to be overwritten each loop
+        intermediate_df <- list_vars[[i + length(master_vars)]]
+        #Gets rid of infinite, NA, and NaN values
+        list_vars[[i + length(master_vars)]] <- dplyr::filter(intermediate_df,is.infinite(intermediate_df$value) == FALSE) %>% na.omit()
       }
       #establishes a j term used for indexing later on
       j <- 1
@@ -470,11 +509,10 @@ if (sort_by == "experiment"){
       operator <- combined_vars[3,1]
       #Adds these variables to total vars directly under where it left off
       list_vars[[i + length(master_vars)]] <- assign(name, make_combined_var(eval(parse(text = var1)),eval(parse(text = var2)),operator))
-      if (any(is.na(list_vars[[i + length(master_vars)]])) == TRUE){
-        #If there are NA values, this sets them to zero and puts an error message
-        print(paste0('NA in ', master_vars[i + length(master_vars)], ' setting NA to zero'))
-        list_vars[[i + length(master_vars)]][is.na(list_vars[[i + length(master_vars)]])] <- 0
-      }
+      #creates an intermediate dataframe for editing meant to be overwritten each loop
+      intermediate_df <- list_vars[[i + length(master_vars)]]
+      #Gets rid of infinite, NA, and NaN values
+      list_vars[[i + length(master_vars)]] <- dplyr::filter(intermediate_df,is.infinite(intermediate_df$value) == FALSE) %>% na.omit()
     }
 
     #establishes a j term used for indexing later on
@@ -508,22 +546,47 @@ title_font <- 9
 axis_font <- 9
 axis_title_font <- 9
 
-#create a list of variable dataframes
-total_vars <- list()
-#filters each species from summary_long
-for (i in 1:length(master_vars)){
-  total_vars[[i]] <- assign(master_vars[i], filter_species(summary_long,master_vars[i]))
+if(fixed_data[1, 'fixed_by'] == 'group'){ total_vars <- list_vars}
+
+if(fixed_data[1, 'fixed_by'] != 'group'){
+  #create a list of variable dataframes
+  total_vars <- list()
+  #filters each species from summary_long
+  for (i in 1:length(master_vars)){
+    total_vars[[i]] <- assign(master_vars[i], filter_species(summary_long,master_vars[i]))
+  }
+
+  #creates the combined variables
+  for(i in 1:ncol(combined_vars)){
+    name <- colnames(combined_vars)[i]
+    var1 <- combined_vars[1,i]
+    var2 <- combined_vars[2,i]
+    operator <- combined_vars[3,i]
+    #Adds these variables to total vars directly under where it left off
+    total_vars[[i + length(master_vars)]] <- assign(name, make_combined_var(eval(parse(text = var1)),eval(parse(text = var2)),operator))
+    #creates an intermediate dataframe for editing meant to be overwritten each loop
+    intermediate_df <- total_vars[[i + length(master_vars)]]
+    total_vars[[i + length(master_vars)]] <- dplyr::filter(intermediate_df,is.infinite(intermediate_df$value) == FALSE) %>% na.omit()
+  }
 }
 
-#creates the combined variables
-for(i in 1:ncol(combined_vars)){
-  name <- colnames(combined_vars)[i]
-  var1 <- combined_vars[1,i]
-  var2 <- combined_vars[2,i]
-  operator <- combined_vars[3,i]
-  #Adds these variables to total vars directly under where it left off
-  total_vars[[i + length(master_vars)]] <- assign(name, make_combined_var(eval(parse(text = var1)),eval(parse(text = var2)),operator))
+#filter out excluded data again (previous filter step did not include combined variables)
+all_vars <- rownames(variables)
+if(nrow(excluded_models) !=0){
+  for(Model_name in 1:nrow(excluded_models)){
+    #locates index number where excluded variable is located in total_vars
+    model_index <- which(all_vars == excluded_models[Model_name,3])
+    #filters out the experiment and model associated with the filtered variable
+    total_vars[[model_index]] <- filter(total_vars[[model_index]], experiment != excluded_models$Scenario[Model_name] | model != excluded_models$Model[Model_name]  )
+  }
 }
+#convert so2_timescale and so4_lifetime units from seconds to days
+so2_timescale_index <- which(all_vars == 'so2_timescale')
+so4_lifetime_index <- which(all_vars == 'so4_lifetime')
+so2_timescale_to_fix <- total_vars[[so2_timescale_index]]
+so4_lifetime_to_fix <- total_vars[[so4_lifetime_index]]
+total_vars[[so2_timescale_index]] <- mutate(so2_timescale_to_fix, value = value / 86400, sd = sd / 86400)
+total_vars[[so4_lifetime_index]] <- mutate(so4_lifetime_to_fix, value = value / 86400, sd = sd / 86400)
 
 #Creates a function that creates plots for the data based on each species
 if (sort_by == "region"){
@@ -542,8 +605,8 @@ if (sort_by == "region"){
         scale_y_continuous(labels = scales::scientific_format(digits = 2), limits = c(-max(abs(species$value))-max(abs(species$sd)), max(abs(species$value))+max(abs(species$sd))))+
         scale_colour_manual(values = model_colors) +
         scale_shape_manual(values = model_symbols) +
-        geom_point( position=position_dodge(width=0.4), size = 1.5) +
-        geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)+
+        geom_point( position=position_dodge(width=0.5), size = 1.3) +
+        geom_errorbar(aes(ymin=value-sd, ymax=value+sd), size=0.1, width = 0, position=position_dodge(0.5), show.legend = F) +
         ylim(ymax, ymin)
 
       return(species_plot)
@@ -573,8 +636,7 @@ if (sort_by == "region"){
   for(var in total_vars){
     #number of the row in the variables column to access
     #rownum <- which(rownames(variables) == master_vars[k])
-    all_vars <- rownames(variables)
-    assign(paste0(all_vars[k],'_plot'), plot_species(var,region,value,variables[k,'plot_names'],variables[k,'plot_names_line_2'],eval(parse( text = paste(variables[k,'description_diff']))),region,model_colors,model_symbols,variables[k,'Max'],variables[k,'Min'] ))
+    assign(paste0(all_vars[k],'_plot'), plot_species(var,region,value,variables[k,'plot_names'],variables[k,'plot_names_line_2'],eval(parse( text = paste(variables[k,'description_diff']))),region,model_colors,model_symbols,variables[k,'Max'],variables[k,'Min']))
 
     k <- k + 1
   }
@@ -635,7 +697,6 @@ if (sort_by == "experiment"){
 
     k <- k + 1
   }
-
 }
 
 # Function from stack exchange to generate a shared legend
@@ -661,7 +722,8 @@ emissions_plot <- grid_arrange_shared_legend(emibc_plot,
                                              emiso2_plot,
                                              mmrbc_plot,
                                              mmrso4_plot,
-                                             so2_plot)
+                                             so2_plot,
+                                             dms_plot)
 
 forcing_plot <- grid_arrange_shared_legend(rlut_plot,
                                            rsut_plot,
@@ -674,7 +736,9 @@ forcing_plot <- grid_arrange_shared_legend(rlut_plot,
 
 cloud_plot <- grid_arrange_shared_legend(od550aer_plot,
                                          clt_plot,
-                                         cltc_plot)
+                                         cltc_plot,
+                                         cl_plot,
+                                         clivi_plot)
 
 deposition_plot <- grid_arrange_shared_legend(drybc_plot,
                                               wetbc_plot,
@@ -685,17 +749,23 @@ deposition_plot <- grid_arrange_shared_legend(drybc_plot,
                                               wetso4_plot,
                                               tot_s_plot)
 
+column_plot <- grid_arrange_shared_legend(loadbc_plot,
+                                          loadso2_plot,
+                                          loadso4_plot,
+                                          so4_lifetime_plot,
+                                          so2_timescale_plot)
+
 # Print plots
 if (sort_by == 'region'){
   setwd(paste0('../../../../output/', region, '/summary'))
 
-  pdf(paste0(region, '_summary_plots_diff.pdf'), height = 11, width = 8.5, paper = "letter")
+  pdf(paste0(region, '_summary_plots_diff.pdf'), height = 11, width = 10)
 }
 
 if (sort_by == 'experiment'){
   setwd(paste0('../../../../output/', exper, '/summary'))
 
-  pdf(paste0(exper, '_summary_plots_diff.pdf'), height = 11, width = 8.5, paper = "letter")
+  pdf(paste0(exper, '_summary_plots_diff.pdf'), height = 11, width = 12)
 }
 
 grid.draw(emissions_plot)
@@ -705,4 +775,8 @@ grid.newpage()
 grid.draw(cloud_plot)
 grid.newpage()
 grid.draw(deposition_plot)
+grid.newpage()
+grid.draw(column_plot)
 dev.off()
+
+
