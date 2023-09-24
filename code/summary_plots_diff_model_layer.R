@@ -585,7 +585,7 @@ dev.off()
 
 #--------------------Number of Model Layers below 400 m-------------------------
 
-# Plotting function for third model layer
+# Plotting function for number of layers below 400 m
 plot_species <- function(variable, y, title, units, region_or_exper, model_colors, model_symbols){
   species <- variable
   species_plot <- ggplot(species, aes(x = num_layer, y = value, color = model, shape = model))+
@@ -597,8 +597,8 @@ plot_species <- function(variable, y, title, units, region_or_exper, model_color
     scale_y_continuous(labels = scales::scientific_format(digits = 2), limits = c(-max(abs(species$value))-max(abs(species$sd)), max(abs(species$value))+max(abs(species$sd)))) +
     scale_colour_manual(values = model_colors) +
     scale_shape_manual(values = model_symbols) +
-    geom_point( position=position_dodge(width=0.4), size = 1.5) +
-    geom_errorbar(aes(ymin=value-sd, ymax=value+sd), size = 0.1, width = 0, position=position_dodge(0.4), show.legend = F)
+    geom_point(size = 1.5) +
+    geom_errorbar(aes(ymin=value-sd, ymax=value+sd), size = 0.1, width = 0, show.legend = F)
   return(species_plot)
 }
 
