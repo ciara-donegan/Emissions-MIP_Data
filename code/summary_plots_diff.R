@@ -1,7 +1,7 @@
 # ------------------------------------------------------------------------------
 # Program Name: summary_plots_diff.R
 # Authors: Hamza Ahsan, Harrison Suchyta
-# Date Last Modified: January 14, 2022
+# Date Last Modified: September 23, 2023
 # Program Purpose: Produces summary plots of the difference between the
 # perturbations and the reference case averaged over all years
 # Input Files: ~Emissions-MIP/input/
@@ -18,15 +18,15 @@ library(gridExtra)
 library(grid)
 
 # Specify location of Emissions-MIP directory
-emi_dir <- paste0('C:/Users/such559/Documents/Emissions-MIP_Data')
+emi_dir <- paste0('C:/Users/ahsa361/Documents/Emissions-MIP_Data')
 
 setwd(paste0(emi_dir))
 
 #determines whether the script sorts by region or experiment if nothing is put into command line
-sort_by <- 'region'
+sort_by <- 'experiment'
 
 #determines which region or experiment is sorted by
-region <- 'arctic'
+region <- 'SH-sea'
 exper <- 'bc-no-season'
 
 # Specify what you are sorting by and either the region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, SH-sea) or experiment (i.e., bc-no-season, high-so4, no-so4, reference, so2-at-height, so2-no-season)
@@ -91,18 +91,17 @@ gg_color_hue <- function(n) {
 cols = gg_color_hue(10)
 # Define colorblind-friendly palette colors and associate with models (in case a
 # plot is missing a model, the color scheme will remain consistent)
-cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#920000",
-               "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#490092",
-               "#117733")
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#920000", "#F0E442",
+               "#0072B2", "#D55E00", "#CC79A7", "#490092", "#117733")
 
-model_colors <- c(CESM1 = cbPalette[1], E3SM = cbPalette[2], GISS = cbPalette[3],
-                  CESM2 = cbPalette[4], MIROC = cbPalette[5], NorESM2 = cbPalette[6],
-                  GFDL = cbPalette[7], OsloCTM3 = cbPalette[8], UKESM = cbPalette[9],
-                  GEOS = cbPalette[10], CAM5 = cbPalette[11])
+model_colors <- c('CESM' = cbPalette[1], 'E3SM' = cbPalette[2], 'GISS modelE' = cbPalette[3],
+                  'CESM2' = cbPalette[4], 'MIROC-SPRINTARS' = cbPalette[5], 'NorESM2' = cbPalette[6],
+                  'GFDL-ESM4' = cbPalette[7], 'OsloCTM3' = cbPalette[8], 'UKESM1' = cbPalette[9],
+                  'GEOS' = cbPalette[10], 'CAM-ATRAS' = cbPalette[11])
 
-model_symbols <- c(CESM1 = 15, E3SM = 15, GISS = 17, CESM2 = 19, MIROC = 15,
-                   NorESM2 = 17, GFDL = 19, OsloCTM3 = 19, UKESM = 15, GEOS = 17,
-                   CAM5 = 17)
+model_symbols <- c('CESM' = 15, 'E3SM' = 15, 'GISS modelE' = 17, 'CESM2' = 19, 'MIROC-SPRINTARS' = 15,
+                   'NorESM2' = 17, 'GFDL-ESM4' = 19, 'OsloCTM3' = 19, 'UKESM1' = 15, 'GEOS' = 17,
+                   'CAM-ATRAS' = 17)
 
 #-------------------------------------------------------------------------------
 #extracts data for each perturbation experiment from csv files
@@ -118,9 +117,16 @@ data_accumulation <- function(emi_dir, reg_name, exper){
 
   # Extract model from file names (fifth segment) and bind to experiment data frame
   models <- sapply(strsplit(target_filename, "[-.]+"),function(x) x[5])
-  rep_models <- rep(models, each = 5) # four years
+  rep_models <- rep(models, each = 5) # five years
   regional_data$model <- rep_models
 
+  # Correct model names
+  regional_data$model[which(regional_data$model == "GISS")] <- "GISS modelE"
+  regional_data$model[which(regional_data$model == "CAM5")] <- "CAM-ATRAS"
+  regional_data$model[which(regional_data$model == "UKESM")] <- "UKESM1"
+  regional_data$model[which(regional_data$model == "MIROC")] <- "MIROC-SPRINTARS"
+  regional_data$model[which(regional_data$model == "GFDL")] <- "GFDL-ESM4"
+  
   # Convert SO2 volume mixing ratio to mass mixing ratio by multiplying by molar
   # mass of SO2 and dividing by molar mass of air, invert sign of forcing variables
   # to be consistent with convention (i.e. positive value denotes a heating effect),
@@ -131,6 +137,12 @@ data_accumulation <- function(emi_dir, reg_name, exper){
     within(value <- ifelse(variable %in% c("rlut", "rsut", "rlutcs", "rsutcs"), -1, 1) * value) %>%
     within(value <- ifelse(variable %in% c("wetbc", "wetso2", "wetso4") & model == "CESM2", -1, 1) * value) %>%
     within(value <- ifelse(variable == "dms", 62.13 / 28.96, 1) * value) %>%
+    # Convert from NH4HSO4 to SO4 mass
+    within(value <- ifelse(variable %in% c("dryso4", "loadso4", "mmrso4", "wetso4") & model == "E3SM", 96/115, 1) * value) %>%
+    within(value <- ifelse(variable %in% c("dryso4", "loadso4", "mmrso4", "wetso4") & model == "CESM", 96/115, 1) * value) %>%
+    within(value <- ifelse(variable %in% c("dryso4", "loadso4", "mmrso4", "wetso4") & model == "MIROC-SPRINTARS", 96/115, 1) * value) %>%
+    # Convert from H2SO4 to SO4 mass
+    within(value <- ifelse(variable %in% c("dryso4", "loadso4", "mmrso4", "wetso4") & model == "NorESM2", 96/98, 1) * value) %>%
     dplyr::summarise(regional_data = mean(value), regional_data_sd = sd(value))
 
   return(regional_data_summary)
@@ -190,8 +202,6 @@ if(sort_by == 'region'){
       return(output)
     }
   }
-
-
 }
 
 if(sort_by == 'experiment'){
@@ -224,7 +234,6 @@ if(sort_by == 'experiment'){
         dplyr::select(c(model, experiment, value, sd))
       return(output)
     }
-
   }
 }
 #-------------------------------------------------------------------------------
@@ -262,9 +271,6 @@ if(sort_by == "region"){
     #summary_data <- list(bc_no_season_summary, high_so4_summary, no_so4_summary, so2_at_height_summary, so2_no_season_summary) %>% reduce(left_join, by = c("variable", "model"))
     summary_data <- summary_data_list %>% reduce(left_join, by = c("variable", "model"))
 
-    # Correct model names for CESM and CESM2
-    summary_data$model[which(summary_data$model == "CESM")] <- "CESM1"
-
     # Change to long format
     summary_long_exp <- summary_data %>%
       gather(experiment, value, -c(model, variable)) %>%
@@ -287,7 +293,6 @@ if(sort_by == "region"){
       for (val in 1:nrow(excluded_models)) {
         summary_long <- filter(summary_long, experiment != excluded_models$Scenario[val] | model != excluded_models$Model[val] | variable != excluded_models$Variable[val])
       }
-
     }
     return(summary_long)
   }
@@ -305,9 +310,6 @@ if(sort_by == "experiment"){
 
     # Bind data together
     summary_data <- summary_data_list %>% reduce(left_join, by = c("variable", "model"))
-
-    # Correct model names for CESM and CESM2
-    summary_data$model[which(summary_data$model == "CESM")] <- "CESM1"
 
     # Change to long format
     summary_long_exp <- summary_data %>%
@@ -577,9 +579,10 @@ if(nrow(excluded_models) !=0){
     #locates index number where excluded variable is located in total_vars
     model_index <- which(all_vars == excluded_models[Model_name,3])
     #filters out the experiment and model associated with the filtered variable
-    total_vars[[model_index]] <- filter(total_vars[[model_index]], experiment != excluded_models$Scenario[Model_name] | model != excluded_models$Model[Model_name]  )
+    total_vars[[model_index]] <- filter(total_vars[[model_index]], exper != excluded_models$Scenario[Model_name] | model != excluded_models$Model[Model_name]  )
   }
 }
+
 #convert so2_timescale and so4_lifetime units from seconds to days
 so2_timescale_index <- which(all_vars == 'so2_timescale')
 so4_lifetime_index <- which(all_vars == 'so4_lifetime')
@@ -778,5 +781,3 @@ grid.draw(deposition_plot)
 grid.newpage()
 grid.draw(column_plot)
 dev.off()
-
-

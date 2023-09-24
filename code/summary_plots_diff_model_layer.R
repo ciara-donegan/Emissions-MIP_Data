@@ -1,7 +1,7 @@
 # ------------------------------------------------------------------------------
 # Program Name: summary_plots_diff_model_layer.R
 # Authors: Hamza Ahsan
-# Date Last Modified: February 11, 2022
+# Date Last Modified: September 23, 2023
 # Program Purpose: Produces summary plots of the absolute difference between the
 # so2-at-height and reference against model layer data
 # Input Files: ~Emissions-MIP/input/
@@ -18,7 +18,7 @@ library(gridExtra)
 library(grid)
 
 # Specify location of Emissions-MIP directory
-emi_dir <- paste0('C:/Users/ahsa361/OneDrive - PNNL/Desktop/Emissions-MIP-Phase1a')
+emi_dir <- paste0('C:/Users/ahsa361/Documents/Emissions-MIP_Data')
 
 # Specify region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land,
 # SH-sea, NH-atlantic, NH-pacific)
@@ -29,14 +29,14 @@ region <- "global"
 cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#920000", "#F0E442",
                "#0072B2", "#D55E00", "#CC79A7", "#490092", "#117733")
 
-model_colors <- c(CESM1 = cbPalette[1], E3SM = cbPalette[2], GISS = cbPalette[3],
-                  CESM2 = cbPalette[4], MIROC = cbPalette[5], NorESM2 = cbPalette[6],
-                  GFDL = cbPalette[7], OsloCTM3 = cbPalette[8], UKESM = cbPalette[9],
-                  GEOS = cbPalette[10], CAM5 = cbPalette[11])
+model_colors <- c('CESM' = cbPalette[1], 'E3SM' = cbPalette[2], 'GISS modelE' = cbPalette[3],
+                  'CESM2' = cbPalette[4], 'MIROC-SPRINTARS' = cbPalette[5], 'NorESM2' = cbPalette[6],
+                  'GFDL-ESM4' = cbPalette[7], 'OsloCTM3' = cbPalette[8], 'UKESM1' = cbPalette[9],
+                  'GEOS' = cbPalette[10], 'CAM-ATRAS' = cbPalette[11])
 
-model_symbols <- c(CESM1 = 15, E3SM = 15, GISS = 17, CESM2 = 19, MIROC = 15,
-                   NorESM2 = 17, GFDL = 19, OsloCTM3 = 19, UKESM = 15, GEOS = 17,
-                   CAM5 = 17)
+model_symbols <- c('CESM' = 15, 'E3SM' = 15, 'GISS modelE' = 17, 'CESM2' = 19, 'MIROC-SPRINTARS' = 15,
+                   'NorESM2' = 17, 'GFDL-ESM4' = 19, 'OsloCTM3' = 19, 'UKESM1' = 15, 'GEOS' = 17,
+                   'CAM-ATRAS' = 17)
 
 #-------------------------------------------------------------------------------
 
@@ -54,6 +54,13 @@ models <- sapply(strsplit(target_filename, "[-.]+"),function(x) x[5])
 rep_models <- rep(models, each = 5) # five years
 so2_at_hgt$model <- rep_models
 
+# Correct model names
+so2_at_hgt$model[which(so2_at_hgt$model == "GISS")] <- "GISS modelE"
+so2_at_hgt$model[which(so2_at_hgt$model == "CAM5")] <- "CAM-ATRAS"
+so2_at_hgt$model[which(so2_at_hgt$model == "UKESM")] <- "UKESM1"
+so2_at_hgt$model[which(so2_at_hgt$model == "MIROC")] <- "MIROC-SPRINTARS"
+so2_at_hgt$model[which(so2_at_hgt$model == "GFDL")] <- "GFDL-ESM4"
+
 # Convert SO2 volume mixing ratio to mass mixing ratio by multiplying by molar
 # mass of SO2 and dividing by molar mass of air, invert sign of forcing variables
 # to be consistent with convention (i.e. positive value denotes a heating effect),
@@ -64,11 +71,14 @@ so2_at_hgt_summary <- so2_at_hgt %>%
   within(value <- ifelse(variable == "dms", 62.13 / 28.96, 1) * value) %>%
   within(value <- ifelse(variable %in% c("rlut", "rsut", "rlutcs", "rsutcs"), -1, 1) * value) %>%
   within(value <- ifelse(variable %in% c("wetbc", "wetso2", "wetso4") & model == "CESM2", -1, 1) * value) %>%
+  # Convert from NH4HSO4 to SO4 mass
+  within(value <- ifelse(variable %in% c("dryso4", "loadso4", "mmrso4", "wetso4") & model == "E3SM", 96/115, 1) * value) %>%
+  within(value <- ifelse(variable %in% c("dryso4", "loadso4", "mmrso4", "wetso4") & model == "CESM", 96/115, 1) * value) %>%
+  within(value <- ifelse(variable %in% c("dryso4", "loadso4", "mmrso4", "wetso4") & model == "MIROC-SPRINTARS", 96/115, 1) * value) %>%
+  # Convert from H2SO4 to SO4 mass
+  within(value <- ifelse(variable %in% c("dryso4", "loadso4", "mmrso4", "wetso4") & model == "NorESM2", 96/98, 1) * value) %>%
   dplyr::summarise(so2_at_hgt = mean(value), so2_at_hgt_sd = sd(value)) %>%
   drop_na()
-
-# Correct model names for CESM
-so2_at_hgt_summary$model[which(so2_at_hgt_summary$model == "CESM")] <- "CESM1"
 
 # Add missing variables for OsloCTM3 (zero delta, i.e., no difference from reference)
 add_oslo <- data.frame(variable = c("rsdt", "rlut", "rlutcs", "clt", "cltc"), model = "OsloCTM3")
@@ -77,11 +87,11 @@ so2_at_hgt_summary <- bind_rows(so2_at_hgt_summary, add_oslo) %>%
   replace(is.na(.), 0)
 
 # Model layer thickness data and number of layers below 400m
-model <- c("CESM1", "E3SM", "GISS", "GFDL", "CESM2", "OsloCTM3", "GEOS", "UKESM", "CAM5")
-first_layer <- c(64, 13, 170, 35, 80, 17, 58, 20, 129)
-second_layer <- c(141, 41, 190, 50, 150, 24, 131, 33, 154)
-third_layer <- c(170, 65, 220, 75, 150, 37, 65, 47, 180)
-num_layer <- c(3, 6, 2, 5, 3, 7, 4, 6, 2)
+model <- c("CESM", "E3SM", "GISS modelE", "NorESM2", "GFDL-ESM4", "CESM2", "OsloCTM3", "GEOS", "UKESM1", "CAM-ATRAS", "MIROC-SPRINTARS")
+first_layer <- c(124, 25, 170, 127, 35, 150, 17, 58, 20, 129, 21)
+second_layer <- c(149, 54, 190, 152, 50, 150, 25, 131, 33, 154, 49)
+third_layer <- c(173, 72, 220, 176, 75, 150, 36, 65, 47, 180, 71)
+num_layer <- c(3, 6, 2, 2, 5, 2, 7, 4, 6, 2, 4)
 model_hgt <- data.frame(model, first_layer, second_layer, third_layer, num_layer)
 
 # Combine global bldep and model layer thickness with global SO2-at-height results

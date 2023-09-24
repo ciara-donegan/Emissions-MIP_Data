@@ -1,7 +1,7 @@
 # ------------------------------------------------------------------------------
 # Program Name: timeseries_diff.R
 # Authors: Hamza Ahsan
-# Date Last Modified: November 5, 2021
+# Date Last Modified: September 23, 2023
 # Program Purpose: Produces time series line plots of the percent difference
 # between the perturbations and the reference case
 # Input Files: ~Emissions-MIP/input/
@@ -18,17 +18,17 @@ library(gridExtra)
 library(grid)
 
 #set the working directory to the code directory
-setwd('C:/Users/such559/Documents/Emissions-MIP_Data')
+setwd('C:/Users/ahsa361/Documents/Emissions-MIP_Data')
 
 # Specify location of Emissions-MIP directory
-emi_dir <- paste0('C:/Users/such559/Documents/Emissions-MIP_Data')
+emi_dir <- paste0('C:/Users/ahsa361/Documents/Emissions-MIP_Data')
 
 #determines whether the script sorts by region or experiment if nothing is put into command line
-sort_by <- 'region'
+sort_by <- 'experiment'
 
 #determines which region or experiment is sorted by
-region <- 'arctic'
-exper <- 'bc-no-season'
+region <- 'global'
+pert <- 'so2-no-season'
 
 # Specify what you are sorting by and either the region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, SH-sea) or experiment (i.e., bc-no-season, high-so4, no-so4, reference, so2-at-height, so2-no-season)
 #The command line would look like: rscript <rscript>.r <"experiment" or "region"> <specific experiment or region you are sorting by>
@@ -39,13 +39,13 @@ if (!is_empty(sorting) & sort_by == "experiment"){experiment <- sorting[2]}
 
 # Define colorblind-friendly palette colors and associate with models (in case a
 # plot is missing a model, the color scheme will remain consistent)
-cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#920000",
-               "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#490092")
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#920000", "#F0E442",
+               "#0072B2", "#D55E00", "#CC79A7", "#490092", "#117733")
 
-model_colors <- c(CESM1 = cbPalette[1], E3SM = cbPalette[2], GISS = cbPalette[3],
-                  CESM2 = cbPalette[4], MIROC = cbPalette[5], NorESM2 = cbPalette[6],
-                  GFDL = cbPalette[7], OsloCTM3 = cbPalette[8], UKESM = cbPalette[9],
-                  GEOS = cbPalette[10])
+model_colors <- c('CESM' = cbPalette[1], 'E3SM' = cbPalette[2], 'GISS modelE' = cbPalette[3],
+                  'CESM2' = cbPalette[4], 'MIROC-SPRINTARS' = cbPalette[5], 'NorESM2' = cbPalette[6],
+                  'GFDL-ESM4' = cbPalette[7], 'OsloCTM3' = cbPalette[8], 'UKESM1' = cbPalette[9],
+                  'GEOS' = cbPalette[10], 'CAM-ATRAS' = cbPalette[11])
 
 # ------------------------------------------------------------------------------
 # Iterate over the different perturbation/regional experiments
@@ -73,26 +73,21 @@ for(scenario in scenarios){
 
   # Extract model from file names (fifth segment) and bind to experiment data frame
   models <- sapply(strsplit(target_filename, "[-.]+"),function(x) x[5])
-  rep_models <- rep(models, each = 4) # four years
+  rep_models <- rep(models, each = 5) # five years
   experiment$model <- rep_models
 
   # Correct model names
-  experiment$model[which(experiment$model == "CESM")] <- "CESM1"
+  experiment$model[which(experiment$model == "GISS")] <- "GISS modelE"
+  experiment$model[which(experiment$model == "CAM5")] <- "CAM-ATRAS"
+  experiment$model[which(experiment$model == "UKESM")] <- "UKESM1"
+  experiment$model[which(experiment$model == "MIROC")] <- "MIROC-SPRINTARS"
+  experiment$model[which(experiment$model == "GFDL")] <- "GFDL-ESM4"
 
   # Rearrange data frame by years descending
   experiment <- dplyr::arrange(experiment, year)
 
-  #only runs excluded models if sorting by region
-  if (sort_by == "region"){
-    #runs through each excluded model pair and filters them out of experiment
-    if(nrow(excluded_models) != 0) { #only runs if the data frame is not empty
-      for (val in 1:nrow(excluded_models)) {
-        summary_long <- filter(summary_long, experiment != excluded_models$Scenario[val] | model != excluded_models$Model[val] | variable != excluded_models$Variable[val])
-      }
-    }
-  }
-
   # Define remaining experiments
+  so2_experiment    <- dplyr::filter(experiment, variable == 'so2')
   emibc_experiment    <- dplyr::filter(experiment, variable == 'emibc')
   emiso2_experiment   <- dplyr::filter(experiment, variable == 'emiso2')
   mmrbc_experiment    <- dplyr::filter(experiment, variable == 'mmrbc')

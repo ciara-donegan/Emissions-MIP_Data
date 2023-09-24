@@ -1,7 +1,7 @@
 # ------------------------------------------------------------------------------
 # Program Name: reference.R
 # Authors: Hamza Ahsan
-# Date Last Modified: November 2, 2021
+# Date Last Modified: September 21, 2023
 # Program Purpose: Produces time series line plots of the reference case 
 # Input Files: ~Emissions-MIP/input/
 # Output Files: ~Emissions-MIP/output/
@@ -21,17 +21,17 @@ emi_dir <- paste0('C:/Users/ahsa361/Documents/Emissions-MIP_Data')
 
 # Specify region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, SH-sea,
 # NH-pacific, NH-atlantic, NH-indian)
-region <- "NH-indian"
+region <- "global"
 
 # Define colorblind-friendly palette colors and associate with models (in case a  
 # plot is missing a model, the color scheme will remain consistent)
-cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#920000",
-               "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#490092")
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#920000", "#F0E442",
+               "#0072B2", "#D55E00", "#CC79A7", "#490092", "#117733")
 
-model_colors <- c(CESM1 = cbPalette[1], E3SM = cbPalette[2], GISS = cbPalette[3], 
-                  CESM2 = cbPalette[4], MIROC = cbPalette[5], NorESM2 = cbPalette[6], 
-                  GFDL = cbPalette[7], OsloCTM3 = cbPalette[8], UKESM = cbPalette[9], 
-                  GEOS = cbPalette[10])
+model_colors <- c('CESM' = cbPalette[1], 'E3SM' = cbPalette[2], 'GISS modelE' = cbPalette[3],
+                  'CESM2' = cbPalette[4], 'MIROC-SPRINTARS' = cbPalette[5], 'NorESM2' = cbPalette[6],
+                  'GFDL-ESM4' = cbPalette[7], 'OsloCTM3' = cbPalette[8], 'UKESM1' = cbPalette[9],
+                  'GEOS' = cbPalette[10], 'CAM-ATRAS' = cbPalette[11])
 
 # Setup directory for difference data
 setwd(paste0(emi_dir, '/input/', region, '/reference'))
@@ -41,27 +41,46 @@ setwd(paste0(emi_dir, '/input/', region, '/reference'))
 # Read in csv files and bind into single data frame. Remove 'unit' column to
 # avoid error when binding different classes (i.e., factor and integer).
 target_filename <- list.files(getwd(), "*.csv")
+
+# Omit 1950 reference and duplicate reference files
+target_filename <- target_filename[!grepl("AerChemMIP_reference|AerChemMIP_BW1950|CMIP_nudge-ref-1950|CMIP_nudge-ref", target_filename)]
+
 experiment <- rbind(map(target_filename, read.csv))
 experiment <- lapply(experiment, function(x) {x["unit"] <- NULL; x})
 experiment <- bind_rows(experiment)
 
 # Extract model from file names (fourth segment) and bind to experiment data frame
 models <- sapply(strsplit(target_filename, "[-.]+"),function(x) x[4])
-rep_models <- rep(models, each = 4) # four years
+rep_models <- rep(models, each = 5) # five years
 experiment$model <- rep_models
 
 # Correct model names
-experiment$model[which(experiment$model == "CMIP6_AerChemMIP")] <- "GISS"
-experiment$model[which(experiment$model == "CMIP6_CMIP_CESM")] <- "CESM1"
+experiment$model[which(experiment$model == "CMIP6_AerChemMIP")] <- "GISS modelE"
+experiment$model[which(experiment$model == "CMIP6_CMIP_CESM")] <- "CESM"
 experiment$model[which(experiment$model == "CMIP6_CMIP_E3SM")] <- "E3SM"
 experiment$model[which(experiment$model == "CMIP6_CMIP_CESM2")] <- "CESM2"
+experiment$model[which(experiment$model == "CAM5")] <- "CAM-ATRAS"
+experiment$model[which(experiment$model == "UKESM")] <- "UKESM1"
+experiment$model[which(experiment$model == "MIROC")] <- "MIROC-SPRINTARS"
+experiment$model[which(experiment$model == "GFDL")] <- "GFDL-ESM4"
 
-# Invert sign of forcing variables to be consistent with convention (i.e. positive
-# value denotes a heating effect)
-experiment <- within(experiment, value <- ifelse(variable %in% c("rlut", "rsut", "rlutcs", "rsutcs"), -1, 1) * value)
-
-# Invert sign of CESM2 wet deposition variables (i.e., CESM2 wetbc, wetso2, wetso4)
-experiment <- within(experiment, value <- ifelse(variable %in% c("wetbc", "wetso2", "wetso4") & model == "CESM2", -1, 1) * value)
+# Convert DMS from volume mixing ratio to mass mixing ratio
+experiment <- within(experiment, value <- ifelse(variable == "dms", 62.13 / 28.96, 1) * value)  %>%
+  
+  # Invert sign of forcing variables to be consistent with convention (i.e. positive
+  # value denotes a heating effect)
+  within(value <- ifelse(variable %in% c("rlut", "rsut", "rlutcs", "rsutcs"), -1, 1) * value)  %>%
+  
+  # Invert sign of CESM2 wet deposition variables (i.e., CESM2 wetbc, wetso2, wetso4)
+  within(value <- ifelse(variable %in% c("wetbc", "wetso2", "wetso4") & model == "CESM2", -1, 1) * value) %>%
+  
+  # Convert from NH4HSO4 to SO4 mass
+  within(value <- ifelse(variable %in% c("dryso4", "loadso4", "mmrso4", "wetso4") & model == "E3SM", 96/115, 1) * value) %>%
+  within(value <- ifelse(variable %in% c("dryso4", "loadso4", "mmrso4", "wetso4") & model == "CESM", 96/115, 1) * value) %>%
+  within(value <- ifelse(variable %in% c("dryso4", "loadso4", "mmrso4", "wetso4") & model == "MIROC-SPRINTARS", 96/115, 1) * value) %>%
+  
+  # Convert from H2SO4 to SO4 mass
+  within(value <- ifelse(variable %in% c("dryso4", "loadso4", "mmrso4", "wetso4") & model == "NorESM2", 96/98, 1) * value)
 
 # Rearrange data frame by years descending
 experiment <- dplyr::arrange(experiment, year)
