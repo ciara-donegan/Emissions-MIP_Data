@@ -1,7 +1,7 @@
 # ------------------------------------------------------------------------------
 # Program Name: summary_plots_diff.R
 # Authors: Hamza Ahsan
-# Date Last Modified: November 2, 2021
+# Date Last Modified: November 15th, 2023
 # Program Purpose: Produces summary plots of the percent difference between the
 # perturbations and the reference case averaged over all years
 # Input Files: ~Emissions-MIP/input/
@@ -18,7 +18,7 @@ library(gridExtra)
 library(grid)
 
 # Specify and navigate to the location of Emissions-MIP directory
-emi_dir <- paste0('C:/Users/such559/Documents/Emissions-MIP_Phase1b')
+emi_dir <- paste0("C:/Users/done231/OneDrive - PNNL/Desktop/Phase1b_input")
 setwd(paste0(emi_dir))
 
 # Specify what you are sorting by and either the region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, SH-sea) or experiment (i.e., bc-no-season, high-so4, no-so4, reference, so2-at-height, so2-no-season)
@@ -28,13 +28,15 @@ sort_by <- sorting[1]
 if (sort_by == "region"){region <- sorting[2]}
 if (sort_by == "experiment"){exper <- sorting[2]}
 
+sort_by <- "region"
+region <- "NH-pacific"
 
 # Define colorblind-friendly palette colors and associate with models (in case a
 # plot is missing a model, the color scheme will remain consistent)
-cbPalette <- c("#0072B2", "#D55E00")
+cbPalette <- c("#999999", "#D55E00", "#117733", "#490092", "#F0E442","#0072B2", "#E69F00")
 
-model_colors <- c('CESM1' = cbPalette[1], 'GISS' = cbPalette[2])
-model_symbols <- c("CESM1" = 15, "GISS" = 17)
+model_colors <- c('CESM1' = cbPalette[1], 'GISS modelE' = cbPalette[2], 'CAM-ATRAS' = cbPalette[3], 'GEOS' = cbPalette[4], 'NorESM2' = cbPalette[5], 'GFDL-ESM4' = cbPalette[6], 'E3SM' = cbPalette[7])
+model_symbols <- c("CESM1" = 15, "GISS modelE" = 17, "CAM-ATRAS" = 17, "NorESM2" = 17, "GEOS" = 17, "GFDL-ESM4" = 19, "E3SM" = 15)
 
 # ------------------------------------------------------------------------------
 #reads in csv file specifying which models to exclude from the data
@@ -43,97 +45,94 @@ excluded_models %>% drop_na() #gets rid of any empty spaces
 #-----------------------------------------------------------------------------
 #extracts data for each perturbation experiment from csv files
 data_accumulation <- function(emi_dir, reg_name, exper){
-
+  
   # Setup directory for bc-no-seas percent difference data
   setwd(paste0(emi_dir,'/input/', reg_name,'/', exper, '/per-diff'))
-
+  
   # Read in csv files and bind into single data frame
   target_filename <- list.files(getwd(), "*.csv")
   regional_data <- rbind(map(target_filename, read.csv))
   regional_data <- lapply(regional_data, function(x) {x["unit"] <- NULL; x})
   regional_data <- bind_rows(regional_data)
-
+  
   # Extract model from file names (fifth segment) and bind to experiment data frame
   models <- sapply(strsplit(target_filename, "[-.]+"),function(x) x[5])
   rep_models <- rep(models, each = 5) # five years
   regional_data$model <- rep_models
-
-  # Invert sign of CESM2 wet deposition variables
-  regional_data$value[which(regional_data$model == "CESM2" & regional_data$variable == "wetbc")] <-
-    -1 * regional_data$value[which(regional_data$model == "CESM2" & regional_data$variable == "wetbc")]
-  regional_data$value[which(regional_data$model == "CESM2" & regional_data$variable == "wetso2")] <-
-    -1 * regional_data$value[which(regional_data$model == "CESM2" & regional_data$variable == "wetso2")]
-  regional_data$value[which(regional_data$model == "CESM2" & regional_data$variable == "wetso4")] <-
-    -1 * regional_data$value[which(regional_data$model == "CESM2" & regional_data$variable == "wetso4")]
-
+  
+  # # Invert sign of CESM2 wet deposition variables
+  # regional_data$value[which(regional_data$model == "CESM2" & regional_data$variable == "wetbc")] <-
+  #   -1 * regional_data$value[which(regional_data$model == "CESM2" & regional_data$variable == "wetbc")]
+  # regional_data$value[which(regional_data$model == "CESM2" & regional_data$variable == "wetso2")] <-
+  #   -1 * regional_data$value[which(regional_data$model == "CESM2" & regional_data$variable == "wetso2")]
+  # regional_data$value[which(regional_data$model == "CESM2" & regional_data$variable == "wetso4")] <-
+  #   -1 * regional_data$value[which(regional_data$model == "CESM2" & regional_data$variable == "wetso4")]
+  
   # Take the average over all years for each variable
   regional_data_summary <- regional_data %>% dplyr::group_by(variable, model) %>%
     dplyr::summarise(regional_data = mean(value), regional_data_sd = sd(value))
-
+  
   return(regional_data_summary)
 }
 
 
 if (sort_by == "region"){
-
-  shp_10p_red_summary <- data_accumulation(emi_dir,region,"shp-10p-red")
-  shp_10p_red_1950_summary <- data_accumulation(emi_dir,region,"shp-10p-red-1950")
-  shp_20p_red_summary <- data_accumulation(emi_dir,region,"shp-20p-red")
-  shp_20p_red_1950_summary <- data_accumulation(emi_dir,region,"shp-20p-red-1950")
-  shp_80p_red_summary <- data_accumulation(emi_dir,region,"shp-80p-red")
+  
+  shp_30p_red_summary <- data_accumulation(emi_dir,region,"shp-30p-red")
+  shp_60p_red_summary <- data_accumulation(emi_dir,region,"shp-60p-red")
+  shp_60p_red_1950_summary <- data_accumulation(emi_dir,region,"shp-60p-red-1950")
   shp_atl_shift_summary <- data_accumulation(emi_dir,region,"shp-atl-shift")
   shp_atl_shift_1950_summary <- data_accumulation(emi_dir,region,"shp-atl-shift-1950")
   shp_ind_shift_summary <- data_accumulation(emi_dir,region,"shp-ind-shift")
   shp_ind_shift_1950_summary <- data_accumulation(emi_dir,region,"shp-ind-shift-1950")
-
-  shp_10p_red_summary <- rename(shp_10p_red_summary, shp_10p_red = regional_data)
-  shp_10p_red_1950_summary <- rename(shp_10p_red_1950_summary, shp_10p_red_1950 = regional_data)
-  shp_20p_red_summary <- rename(shp_20p_red_summary, shp_20p_red = regional_data)
-  shp_20p_red_1950_summary <- rename(shp_20p_red_1950_summary, shp_20p_red_1950 = regional_data)
-  shp_80p_red_summary <- rename(shp_80p_red_summary, shp_80p_red = regional_data)
+  
+  shp_30p_red_summary <- rename(shp_30p_red_summary, shp_30p_red = regional_data)
+  shp_60p_red_summary <- rename(shp_60p_red_summary, shp_60p_red = regional_data)
+  shp_60p_red_1950_summary <- rename(shp_60p_red_1950_summary, shp_60p_red_1950 = regional_data)
   shp_atl_shift_summary <- rename(shp_atl_shift_summary, shp_atl_shift = regional_data)
   shp_atl_shift_1950_summary <- rename(shp_atl_shift_1950_summary, shp_atl_shift_1950 = regional_data)
   shp_ind_shift_summary <- rename(shp_ind_shift_summary, shp_ind_shift = regional_data)
   shp_ind_shift_1950_summary <- rename(shp_ind_shift_1950_summary, shp_ind_shift_1950 = regional_data)
-
-  shp_10p_red_summary <- rename(shp_10p_red_summary, shp_10p_red_sd = regional_data_sd)
-  shp_10p_red_1950_summary <- rename(shp_10p_red_1950_summary, shp_10p_red_1950_sd = regional_data_sd)
-  shp_20p_red_summary <- rename(shp_20p_red_summary, shp_20p_red_sd = regional_data_sd)
-  shp_20p_red_1950_summary <- rename(shp_20p_red_1950_summary, shp_20p_red_1950_sd = regional_data_sd)
-  shp_80p_red_summary <- rename(shp_80p_red_summary, shp_80p_red_sd = regional_data_sd)
+  
+  shp_30p_red_summary <- rename(shp_30p_red_summary, shp_30p_red_sd = regional_data_sd)
+  shp_60p_red_summary <- rename(shp_60p_red_summary, shp_60p_red_sd = regional_data_sd)
+  shp_60p_red_1950_summary <- rename(shp_60p_red_1950_summary, shp_60p_red_1950_sd = regional_data_sd)
   shp_atl_shift_summary <- rename(shp_atl_shift_summary, shp_atl_shift_sd = regional_data_sd)
   shp_atl_shift_1950_summary <- rename(shp_atl_shift_1950_summary, shp_atl_shift_1950_sd = regional_data_sd)
   shp_ind_shift_summary <- rename(shp_ind_shift_summary, shp_ind_shift_sd = regional_data_sd)
   shp_ind_shift_1950_summary <- rename(shp_ind_shift_1950_summary, shp_ind_shift_1950_sd = regional_data_sd)
-
+  
   # Bind data together
-  summary_data <- list(shp_10p_red_summary, shp_10p_red_1950_summary, shp_20p_red_summary, shp_20p_red_1950_summary, shp_80p_red_summary, shp_atl_shift_summary, shp_atl_shift_1950_summary, shp_ind_shift_summary, shp_ind_shift_1950_summary) %>% reduce(left_join, by = c("variable", "model"))
-
-  # Correct model names for CESM and CESM2
+  summary_data <- list(shp_30p_red_summary, shp_60p_red_summary, shp_60p_red_1950_summary, shp_atl_shift_summary, shp_atl_shift_1950_summary, shp_ind_shift_summary, shp_ind_shift_1950_summary) %>% reduce(left_join, by = c("variable", "model"))
+  
+  # Correct model names
   summary_data$model[which(summary_data$model == "CESM")] <- "CESM1"
-
+  summary_data$model[which(summary_data$model == "GISS")] <- "GISS modelE"
+  summary_data$model[which(summary_data$model == "CAM5")] <- "CAM-ATRAS"
+  summary_data$model[which(summary_data$model == "GFDL")] <- "GFDL-ESM4"
+  
   # Change to long format
   summary_long_exp <- summary_data %>%
-    gather(experiment, value, -c(model, variable, shp_10p_red_sd, shp_10p_red_1950_sd, shp_20p_red_sd, shp_20p_red_1950_sd, shp_80p_red_sd, shp_atl_shift_sd, shp_atl_shift_1950_sd, shp_ind_shift_sd, shp_ind_shift_1950_sd)) %>%
+    gather(experiment, value, -c(model, variable, shp_30p_red_sd, shp_60p_red_sd, shp_60p_red_1950_sd, shp_atl_shift_sd, shp_ind_shift_sd, shp_atl_shift_1950_sd, shp_ind_shift_1950_sd)) %>%
     select(variable, model, experiment, value) %>%
     drop_na()
-
+  
   summary_long_sd <- summary_data %>%
-    gather(experiment, sd, -c(model, variable, shp_10p_red, shp_10p_red_1950, shp_20p_red, shp_20p_red_1950, shp_80p_red, shp_atl_shift, shp_atl_shift_1950, shp_ind_shift, shp_ind_shift_1950)) %>%
+    gather(experiment, sd, -c(model, variable, shp_30p_red, shp_60p_red, shp_60p_red_1950, shp_atl_shift, shp_atl_shift_1950, shp_ind_shift, shp_ind_shift_1950)) %>%
     select(variable, model, experiment, sd) %>%
     drop_na()
-
+  
   summary_long_sd$experiment <- gsub("_sd", "", summary_long_sd$experiment)
-
+  
   summary_long <- dplyr::left_join(summary_long_exp, summary_long_sd)
-
+  
   #runs through each excluded model pair and filters them out of summary_long
   if(nrow(excluded_models) != 0) { #only runs if the data frame is not empty
     for (val in 1:nrow(excluded_models)) {
       summary_long <- filter(summary_long, experiment != excluded_models$Scenario[val] | model != excluded_models$Model[val] | variable != excluded_models$Variable[val])
     }
   }
-
+  
 }
 
 if (sort_by == "experiment"){
@@ -149,7 +148,7 @@ if (sort_by == "experiment"){
   sea <- data_accumulation(emi_dir,'sea',exper)
   SH_land <- data_accumulation(emi_dir,'SH-land',exper)
   SH_sea <- data_accumulation(emi_dir,'SH-sea',exper)
-
+  
   #rename the mean and standard deviation results columns in each data frame
   arctic <- rename(arctic, arctic = regional_data)
   global <- rename(global, global = regional_data)
@@ -162,7 +161,7 @@ if (sort_by == "experiment"){
   sea <- rename(sea, sea = regional_data)
   SH_land <- rename(SH_land, SH_land = regional_data)
   SH_sea <- rename(SH_sea, SH_sea = regional_data)
-
+  
   arctic <- rename(arctic, arctic_sd = regional_data_sd)
   global <- rename(global, global_sd = regional_data_sd)
   land <- rename(land, land_sd = regional_data_sd)
@@ -174,26 +173,26 @@ if (sort_by == "experiment"){
   sea <- rename(sea, sea_sd = regional_data_sd)
   SH_land <- rename(SH_land, SH_land_sd = regional_data_sd)
   SH_sea <- rename(SH_sea, SH_sea_sd = regional_data_sd)
-
+  
   # Bind data together
   summary_data <- list(arctic, global, land, NH_atlantic, NH_indian, NH_land, NH_pacific, NH_sea, sea, SH_land, SH_sea) %>% reduce(left_join, by = c("variable", "model"))
-
+  
   # Correct model names for CESM and CESM2
   summary_data$model[which(summary_data$model == "CESM")] <- "CESM1"
-
+  
   # Change to long format
   summary_long_exp <- summary_data %>%
     gather(region, value, -c(model, variable, arctic_sd, global_sd, land_sd, NH_atlantic_sd, NH_indian_sd, NH_land_sd, NH_pacific_sd, NH_sea_sd, sea_sd, SH_land_sd, SH_sea_sd)) %>%
     select(variable, model, region, value) %>%
     drop_na()
-
+  
   summary_long_sd <- summary_data %>%
     gather(region, sd, -c(model, variable, arctic, global, land, NH_atlantic, NH_indian, NH_land, NH_pacific, NH_sea, sea, SH_land, SH_sea)) %>%
     select(variable, model, region, sd) %>%
     drop_na()
-
+  
   summary_long_sd$region <- gsub("_sd", "", summary_long_sd$region)
-
+  
   summary_long <- dplyr::left_join(summary_long_exp, summary_long_sd)
 }
 
@@ -233,6 +232,7 @@ clivi <- filter_species(summary_long, "clivi")
 dms <- filter_species(summary_long, "dms")
 loadso4 <- filter_species(summary_long, "loadso4")
 loadbc <- filter_species(summary_long, "loadbc")
+loadso2 <- filter_species(summary_long, "loadso2")
 
 #Creates a function that creates plots for the data based on each species
 if (sort_by == "region"){
@@ -246,7 +246,7 @@ if (sort_by == "region"){
             axis.title = element_text(size = axis_title_font),
             axis.text.x = element_text(angle = 45, hjust = 1),
             axis.title.x = element_blank()) +
-      scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(species$value))-max(abs(species$sd)), max(abs(species$value))+max(abs(species$sd)))) +
+      scale_y_continuous(labels = function(x) paste0(format(x,digits=2), "%"), limits = c(-max(abs(species$value))-max(abs(species$sd)), max(abs(species$value))+max(abs(species$sd)))) +
       scale_colour_manual(values = model_colors) +
       scale_shape_manual(values = model_symbols) +
       geom_point( position=position_dodge(width = 0.4), size = 1.5) +
@@ -278,6 +278,7 @@ if (sort_by == "region"){
   dms_plot <- plot_species(dms, region, value, 'Dimethyl sulphide (DMS) mole fraction', expression(Delta*~dms~(mol~mol^-1)), region, model_colors, model_symbols)
   loadso4_plot  <- plot_species(loadso4, region, value, 'load \n of so4', expression(Delta*~loadso4~(kg~m^-2)), region, model_colors, model_symbols)
   loadbc_plot  <- plot_species(loadbc, region, value, 'load \n of bc', expression(Delta*~loadbc~(kg~m^-2)), region, model_colors, model_symbols)
+  loadso2_plot <- plot_species(loadso2, region, value, 'load \n of so2', expression(Delta*~loadso2~(kg~m^-2)), region, model_colors, model_symbols)
 }
 if (sort_by == "experiment"){
   plot_species <- function(variable, x, y, title, units, region_or_exper, model_colors, model_symbols){
@@ -290,12 +291,12 @@ if (sort_by == "experiment"){
             axis.title = element_text(size = axis_title_font),
             axis.text.x = element_text(angle = 45, hjust = 1),
             axis.title.x = element_blank()) +
-      scale_y_continuous(labels = function(x) paste0(x, "%"), limits = c(-max(abs(species$value))-max(abs(species$sd)), max(abs(species$value))+max(abs(species$sd)))) +
+      scale_y_continuous(labels = function(x) paste0(format(x,digits=2), "%"), limits = c(-max(abs(species$value))-max(abs(species$sd)), max(abs(species$value))+max(abs(species$sd)))) +
       scale_colour_manual(values = model_colors) +
       scale_shape_manual(values = model_symbols) +
       geom_point( position=position_dodge(width = 0.4), size = 1.5) +
       geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
-
+    
     return(species_plot)
   }
   #creates plots based on each species using the plot_species function
@@ -323,7 +324,7 @@ if (sort_by == "experiment"){
   dms_plot <- plot_species(dms, region, value, 'Dimethyl sulphide (DMS) mole fraction', expression(Delta*~dms~(mol~mol^-1)), exper, model_colors, model_symbols)
   loadso4_plot  <- plot_species(loadso4, region, value, 'load \n of so4', expression(Delta*~loadso4~(kg~m^-2)), exper, model_colors, model_symbols)
   loadbc_plot  <- plot_species(loadbc, region, value, 'load \n of bc', expression(Delta*~loadbc~(kg~m^-2)), exper, model_colors, model_symbols)
-
+  
 }
 
 # Define normal and clear-sky net radiative flux (sum of longwave and shortwave radiation)
@@ -332,12 +333,12 @@ if (sort_by == "region"){
   net_rad <- dplyr::mutate(net_rad, value = value.x + value.y) %>%
     dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
     dplyr::select(c(model, experiment, value, sd))
-
+  
   net_rad_cs <- dplyr::left_join(rlutcs, rsutcs, by = c("model", "experiment"))
   net_rad_cs <- dplyr::mutate(net_rad_cs, value = value.x + value.y) %>%
     dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
     dplyr::select(c(model, experiment, value, sd))
-
+  
   #plots normal and clear sky net radiative flux using the plot_species function
   net_rad_plot <- plot_species(net_rad, region, value, 'net radiative flux \n at TOA', expression(Delta*~rlut~+~rsut), region, model_colors, model_symbols)
   net_rad_cs_plot <- plot_species(net_rad_cs, region, value, 'clear-sky net radiative flux \n at TOA', expression(Delta*~rlutcs~+~rsutcs), region, model_colors, model_symbols)
@@ -348,12 +349,12 @@ if (sort_by == "experiment"){
   net_rad <- dplyr::mutate(net_rad, value = value.x + value.y) %>%
     dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
     dplyr::select(c(model, region, value, sd))
-
+  
   net_rad_cs <- dplyr::left_join(rlutcs, rsutcs, by = c("model", "region"))
   net_rad_cs <- dplyr::mutate(net_rad_cs, value = value.x + value.y) %>%
     dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
     dplyr::select(c(model, region, value, sd))
-
+  
   #plots normal and clear sky net radiative flux using the plot_species function
   net_rad_plot <- plot_species(net_rad, region, value, 'net radiative flux \n at TOA', expression(Delta*~rlut~+~rsut), exper, model_colors, model_symbols)
   net_rad_cs_plot <- plot_species(net_rad_cs, region, value, 'clear-sky net radiative flux \n at TOA', expression(Delta*~rlutcs~+~rsutcs), exper, model_colors, model_symbols)
@@ -365,7 +366,7 @@ if (sort_by == "region"){
   tot_bc <- dplyr::mutate(tot_bc, value = value.x + value.y) %>%
     dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
     dplyr::select(c(model, experiment, value, sd))
-
+  
   tot_bc_plot <- plot_species(tot_bc, region, value, 'total deposition rate \n of BC', expression(Delta*~drybc~+~wetbc), region, model_colors, model_symbols)
 }
 
@@ -374,7 +375,7 @@ if (sort_by == "experiment"){
   tot_bc <- dplyr::mutate(tot_bc, value = value.x + value.y) %>%
     dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
     dplyr::select(c(model, region, value, sd))
-
+  
   tot_bc_plot <- plot_species(tot_bc, region, value, 'total deposition rate \n of BC', expression(Delta*~drybc~+~wetbc), exper, model_colors, model_symbols)
 }
 
@@ -384,17 +385,17 @@ if (sort_by == "region"){
   dry_s <- dplyr::mutate(dry_s, value = (32.065/64.066)*value.x + (32.065/96.06)*value.y) %>%
     dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
     dplyr::select(c(model, experiment, value, sd))
-
+  
   wet_s <- dplyr::left_join(wetso2, wetso4, by = c("model", "experiment"))
   wet_s <- dplyr::mutate(wet_s, value = (32.065/64.066)*value.x + (32.065/96.06)*value.y) %>%
     dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
     dplyr::select(c(model, experiment, value, sd))
-
+  
   tot_s <- dplyr::left_join(dry_s, wet_s, by = c("model", "experiment"))
   tot_s <- dplyr::mutate(tot_s, value = value.x + value.y) %>%
     dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
     dplyr::select(c(model, experiment, value, sd))
-
+  
   tot_s_plot <- plot_species(tot_s, region, value, 'total deposition rate \n of S', expression(Delta*(~dryso2~+~wetso2)/2~+~(dryso4~+~wetso4)/3), region, model_colors, model_symbols)
 }
 
@@ -403,17 +404,17 @@ if (sort_by == "experiment"){
   dry_s <- dplyr::mutate(dry_s, value = (32.065/64.066)*value.x + (32.065/96.06)*value.y) %>%
     dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
     dplyr::select(c(model, region, value, sd))
-
+  
   wet_s <- dplyr::left_join(wetso2, wetso4, by = c("model", "region"))
   wet_s <- dplyr::mutate(wet_s, value = (32.065/64.066)*value.x + (32.065/96.06)*value.y) %>%
     dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
     dplyr::select(c(model, region, value, sd))
-
+  
   tot_s <- dplyr::left_join(dry_s, wet_s, by = c("model", "region"))
   tot_s <- dplyr::mutate(tot_s, value = value.x + value.y) %>%
     dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
     dplyr::select(c(model, region, value, sd))
-
+  
   tot_s_plot <- plot_species(tot_s, region, value, 'total deposition rate \n of S', expression(Delta*(~dryso2~+~wetso2)/2~+~(dryso4~+~wetso4)/3), exper, model_colors, model_symbols)
 }
 
@@ -423,7 +424,7 @@ if (sort_by == "region"){
   imp_cld <- dplyr::mutate(imp_cld, value = value.x - value.y) %>%
     dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
     dplyr::select(c(model, experiment, value, sd))
-
+  
   imp_cld_plot <- plot_species(imp_cld, region, value, 'implied cloud response at TOA - \n', expression(Delta*~rlut~+~rsut~-~rlutcs~-~rsutcs), region, model_colors, model_symbols)
 }
 
@@ -433,8 +434,43 @@ if (sort_by == "experiment"){
   imp_cld <- dplyr::mutate(imp_cld, value = value.x - value.y) %>%
     dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
     dplyr::select(c(model, region, value, sd))
-
+  
   imp_cld_plot <- plot_species(imp_cld, region, value, 'implied cloud response at TOA - \n', expression(Delta*~rlut~+~rsut~-~rlutcs~-~rsutcs),exper, model_colors, model_symbols)
+}
+
+if (sort_by == "region"){
+  # Define total SO4 (sum of dry and wet SO4)
+  tot_so4 <- dplyr::left_join(dryso4, wetso4, by = c("model","experiment"))
+  tot_so4 <- dplyr::mutate(tot_so4, value = value.x + value.y) %>%
+    dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
+    dplyr::select(c(model,experiment,value,sd))
+  
+  tot_so4_plot <- plot_species(tot_so4, region, value, 'total SO4 - \n', expression(Delta*~dryso4~+~wetso4), region, model_colors, model_symbols)
+}
+
+if (sort_by == "region"){
+  # define so4 lifetime (loadso4/tot_so4), convert from seconds to days
+  so4_lifetime <- dplyr::left_join(loadso4, tot_so4, by = c("model","experiment"))
+  so4_lifetime <- dplyr::mutate(so4_lifetime, value = (value.x/value.y)/86400) %>%
+    dplyr::mutate(sd = value*sqrt((sd.x/value.x)^2 + (sd.y/value.y)^2)) %>%
+    dplyr::filter_if(~is.numeric(.), all_vars(!is.infinite(.))) %>%
+    dplyr::filter(value >= 0) %>%
+    dplyr::select(c(model,experiment,value,sd))
+  
+  so4_lifetime_plot <- plot_species(so4_lifetime, region, value, 'SO4 lifetime - \n ', expression(Delta*~loadso4/(dryso4~+~wetso4)~(days)), region, model_colors, model_symbols)
+}
+
+# so2 lifetime (loadso2/emiso2), convert from seconds to days
+if (sort_by == "region"){
+  # define so2 lifetime (loadso2/emiso2), convert seconds to days
+  so2_lifetime <- dplyr::left_join(loadso2, emiso2, by = c("model","experiment"))
+  so2_lifetime <- dplyr::mutate(so2_lifetime, value = (value.x/value.y)/86400) %>%
+    dplyr::mutate(sd = value*sqrt((sd.x/value.x)^2 + (sd.y/value.y)^2)) %>%
+    dplyr::filter_if(~is.numeric(.), all_vars(!is.infinite(.))) %>%
+    dplyr::filter(value >= 0) %>%
+    dplyr::select(c(model,experiment,value,sd))
+  
+  so2_lifetime_plot <- plot_species(so2_lifetime, region, value, 'SO2 lifetime - \n', expression(Delta*~loadso2/emiso2~(days)), region, model_colors, model_symbols)
 }
 
 # Function from stack exchange to generate a shared legend
@@ -452,7 +488,7 @@ grid_arrange_shared_legend <- function(...) {
     legend,
     ncol = 1,
     heights = unit.c(unit(1, "npc") - 1.5 * lheight, lheight), # the "1.5" adds room for title
-    top = textGrob("Summary - absolute difference", gp = gpar(fontsize = 12)))
+    top = textGrob("Summary - percent difference", gp = gpar(fontsize = 12)))
 }
 
 emissions_plot <- grid_arrange_shared_legend(emibc_plot,
@@ -460,8 +496,6 @@ emissions_plot <- grid_arrange_shared_legend(emibc_plot,
                                              mmrbc_plot,
                                              mmrso4_plot,
                                              so2_plot,
-                                             loadso4_plot,
-                                             loadbc_plot,
                                              dms_plot)
 
 forcing_plot <- grid_arrange_shared_legend(rlut_plot,
@@ -479,7 +513,6 @@ cloud_plot <- grid_arrange_shared_legend(od550aer_plot,
                                          cl_plot,
                                          clivi_plot)
 
-
 deposition_plot <- grid_arrange_shared_legend(drybc_plot,
                                               wetbc_plot,
                                               tot_bc_plot,
@@ -489,16 +522,22 @@ deposition_plot <- grid_arrange_shared_legend(drybc_plot,
                                               wetso4_plot,
                                               tot_s_plot)
 
+column_plot <- grid_arrange_shared_legend(loadbc_plot,
+                                          loadso2_plot,
+                                          loadso4_plot,
+                                          so4_lifetime_plot,
+                                          so2_lifetime_plot)
+
 # Print plots
 if (sort_by == 'region'){
   setwd(paste0('../../../../output/', region, '/summary'))
-
+  
   pdf(paste0(region, '_summary_plots_per_diff.pdf'), height = 11, width = 8.5, paper = "letter")
 }
 
 if (sort_by == 'experiment'){
   setwd(paste0('../../../../output/', exper, '/summary'))
-
+  
   pdf(paste0(exper, '_summary_plots_per_diff.pdf'), height = 11, width = 8.5, paper = "letter")
 }
 
