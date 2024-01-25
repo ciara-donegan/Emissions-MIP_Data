@@ -26,7 +26,7 @@ region <- "SH-land"
 
 # Define colorblind-friendly palette colors and associate with models (in case a  
 # plot is missing a model, the color scheme will remain consistent)
-cbPalette <- c("#999999", "#D55E00", "#117733", "#490092", "#F0E442","#0072B2", "#E69F00")
+cbPalette <- c("#c4c4c3", "#4477aa", "#228833", "#66ccee", "#ccbb44","#ee6677", "#aa3377")
 
 model_colors <- c('CESM1' = cbPalette[1], 'GISS' = cbPalette[2], 'CAM-ATRAS' = cbPalette[3], 'GEOS' = cbPalette[4], 'NorESM2' = cbPalette[5], 'GFDL' = cbPalette[6], 'E3SM' = cbPalette[7],
                   'CESM1-1950' = cbPalette[1], 'GISS-1950' = cbPalette[2], 'CAM-ATRAS-1950' = cbPalette[3], 'GEOS-1950' = cbPalette[4], 'NorESM2-1950' = cbPalette[5], 'GFDL-1950' = cbPalette[6], 'E3SM-1950' = cbPalette[7])

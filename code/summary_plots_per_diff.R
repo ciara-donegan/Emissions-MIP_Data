@@ -29,11 +29,12 @@ if (sort_by == "region"){region <- sorting[2]}
 if (sort_by == "experiment"){exper <- sorting[2]}
 
 sort_by <- "region"
-region <- "NH-pacific"
+region <- "indian"
 
 # Define colorblind-friendly palette colors and associate with models (in case a
 # plot is missing a model, the color scheme will remain consistent)
-cbPalette <- c("#999999", "#D55E00", "#117733", "#490092", "#F0E442","#0072B2", "#E69F00")
+#cbPalette <- c("#999999", "#D55E00", "#117733", "#490092", "#F0E442","#0072B2", "#E69F00")
+cbPalette <- c("#c4c4c3", "#4477aa", "#228833", "#66ccee", "#ccbb44","#ee6677", "#aa3377")
 
 model_colors <- c('CESM1' = cbPalette[1], 'GISS modelE' = cbPalette[2], 'CAM-ATRAS' = cbPalette[3], 'GEOS' = cbPalette[4], 'NorESM2' = cbPalette[5], 'GFDL-ESM4' = cbPalette[6], 'E3SM' = cbPalette[7])
 model_symbols <- c("CESM1" = 15, "GISS modelE" = 17, "CAM-ATRAS" = 17, "NorESM2" = 17, "GEOS" = 17, "GFDL-ESM4" = 19, "E3SM" = 15)
@@ -236,7 +237,7 @@ loadso2 <- filter_species(summary_long, "loadso2")
 
 #Creates a function that creates plots for the data based on each species
 if (sort_by == "region"){
-  plot_species <- function(variable, x, y, title, units, region_or_exper, model_colors, model_symbols){
+  plot_species <- function(variable, x, y, title, units, region_or_exper, model_colors, model_symbols, ylimit=c(NA,NA)){
     species <- variable
     species_plot <- ggplot(species, aes(x = experiment, y = value, color = model, shape = model))+
       theme_bw()+
@@ -250,20 +251,27 @@ if (sort_by == "region"){
       scale_colour_manual(values = model_colors) +
       scale_shape_manual(values = model_symbols) +
       geom_point( position=position_dodge(width = 0.4), size = 1.5) +
-      geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
+      geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F) +
+      if(missing(ylimit)) {
+        
+      } else {
+        ylim(ylimit[1],ylimit[2])
+      }
+    
     return(species_plot)
   }
+  
   #creates plots based on each species using the plot_species function
   emibc_plot <- plot_species(emibc, region, value, 'surface flux of BC', expression(Delta*~emibc), region, model_colors, model_symbols)
   emiso2_plot <- plot_species(emiso2, region, value, 'surface flux of SO2', expression(Delta*~emiso2), region, model_colors, model_symbols)
   mmrbc_plot <- plot_species(mmrbc, region, value, 'surface concentration of BC', expression(Delta*~mmrbc), region, model_colors, model_symbols)
   mmrso4_plot <- plot_species(mmrso4, region, value, 'surface concentration of SO4', expression(Delta*~mmrso4), region, model_colors, model_symbols)
   so2_plot <- plot_species(so2, region, value, 'surface concentration of SO2', expression(Delta*~so2), region, model_colors, model_symbols)
-  rlut_plot <- plot_species(rlut, region, value, 'upwelling longwave flux \n at TOA', expression(Delta*~rlut), region, model_colors, model_symbols)
-  rsut_plot <- plot_species(rsut, region, value, 'upwelling shortwave flux \n at TOA', expression(Delta*~rsut), region, model_colors, model_symbols)
-  rsdt_plot <- plot_species(rsdt, region, value, 'incident shortwave flux \n at TOA', expression(Delta*~rsdt), region, model_colors, model_symbols)
-  rlutcs_plot <- plot_species(rlutcs, region, value, 'upwelling clear-sky longwave \n flux at TOA', expression(Delta*~rlutcs), region, model_colors, model_symbols)
-  rsutcs_plot <- plot_species(rsutcs, region, value, 'upwelling clear-sky shortwave \n flux at TOA', expression(Delta*~rsutcs), region, model_colors, model_symbols)
+  rlut_plot <- plot_species(rlut, region, value, 'upwelling longwave flux \n at TOA', expression(Delta*~rlut), region, model_colors, model_symbols,c(-0.75,0.75))
+  rsut_plot <- plot_species(rsut, region, value, 'upwelling shortwave flux \n at TOA', expression(Delta*~rsut), region, model_colors, model_symbols,c(-0.75,0.75))
+  rsdt_plot <- plot_species(rsdt, region, value, 'incident shortwave flux \n at TOA', expression(Delta*~rsdt), region, model_colors, model_symbols,c(-0.75,0.75))
+  rlutcs_plot <- plot_species(rlutcs, region, value, 'upwelling clear-sky longwave \n flux at TOA', expression(Delta*~rlutcs), region, model_colors, model_symbols,c(-0.75,0.75))
+  rsutcs_plot <- plot_species(rsutcs, region, value, 'upwelling clear-sky shortwave \n flux at TOA', expression(Delta*~rsutcs), region, model_colors, model_symbols,c(-0.75,0.75))
   drybc_plot <- plot_species(drybc, region, value, 'dry deposition rate \n of BC', expression(Delta*~drybc), region, model_colors, model_symbols)
   wetbc_plot <- plot_species(wetbc, region, value, 'wet deposition rate \n of BC', expression(Delta*~wetbc), region, model_colors, model_symbols)
   dryso2_plot <- plot_species(dryso2, region, value, 'dry deposition rate \n of so2', expression(Delta*~dryso2), region, model_colors, model_symbols)
@@ -340,8 +348,8 @@ if (sort_by == "region"){
     dplyr::select(c(model, experiment, value, sd))
   
   #plots normal and clear sky net radiative flux using the plot_species function
-  net_rad_plot <- plot_species(net_rad, region, value, 'net radiative flux \n at TOA', expression(Delta*~rlut~+~rsut), region, model_colors, model_symbols)
-  net_rad_cs_plot <- plot_species(net_rad_cs, region, value, 'clear-sky net radiative flux \n at TOA', expression(Delta*~rlutcs~+~rsutcs), region, model_colors, model_symbols)
+  net_rad_plot <- plot_species(net_rad, region, value, 'net radiative flux \n at TOA', expression(Delta*~rlut~+~rsut), region, model_colors, model_symbols,c(-0.75,0.75))
+  net_rad_cs_plot <- plot_species(net_rad_cs, region, value, 'clear-sky net radiative flux \n at TOA', expression(Delta*~rlutcs~+~rsutcs), region, model_colors, model_symbols,c(-0.75,0.75))
 }
 
 if (sort_by == "experiment"){
@@ -425,7 +433,7 @@ if (sort_by == "region"){
     dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
     dplyr::select(c(model, experiment, value, sd))
   
-  imp_cld_plot <- plot_species(imp_cld, region, value, 'implied cloud response at TOA - \n', expression(Delta*~rlut~+~rsut~-~rlutcs~-~rsutcs), region, model_colors, model_symbols)
+  imp_cld_plot <- plot_species(imp_cld, region, value, 'implied cloud response at TOA - \n', expression(Delta*~rlut~+~rsut~-~rlutcs~-~rsutcs), region, model_colors, model_symbols,c(-0.75,0.75))
 }
 
 if (sort_by == "experiment"){

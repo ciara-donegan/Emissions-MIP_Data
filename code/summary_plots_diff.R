@@ -29,7 +29,7 @@ if (sort_by == "region") {region <- sorting[2]}
 if (sort_by == "experiment") {exper <- sorting[2]}
 
 sort_by <- "region"
-region <- "NH-atlantic"
+region <- "indian"
 
 
 # Define colorblind-friendly palette colors and associate with models (in case a
@@ -316,17 +316,18 @@ if (sort_by == "region"){
     
     return(species_plot)
   }
+  
   #creates plots based on each species using the plot_species function
   emibc_plot <- plot_species(emibc, region, value, 'surface flux of BC', expression(Delta*~emibc~(kg~m^-2~s^-1)), region, model_colors, model_symbols)
   emiso2_plot <- plot_species(emiso2, region, value, 'surface flux of SO2', expression(Delta*~emiso2~(kg~m^-2~s^-1)), region, model_colors, model_symbols)#,c(-10e-13,10e-13))
   mmrbc_plot <- plot_species(mmrbc, region, value, 'surface concentration of BC', expression(Delta*~mmrbc~(kg~kg-1)), region, model_colors, model_symbols)
   mmrso4_plot <- plot_species(mmrso4, region, value, 'surface concentration of SO4', expression(Delta*~mmrso4~(kg~kg-1)), region, model_colors, model_symbols)#,c(-2e-11,2e-11))
   so2_plot <- plot_species(so2, region, value, 'surface concentration of SO2', expression(Delta*~so2~(kg~kg-1)), region, model_colors, model_symbols)
-  rlut_plot <- plot_species(rlut, region, value, 'upwelling longwave flux \n at TOA', expression(Delta*~rlut~(W~m-2)), region, model_colors, model_symbols)#,c(-0.1,0.1))
-  rsut_plot <- plot_species(rsut, region, value, 'upwelling shortwave flux \n at TOA', expression(Delta*~rsut~(W~m-2)), region, model_colors, model_symbols)#,c(-0.5,0.5))
-  rsdt_plot <- plot_species(rsdt, region, value, 'incident shortwave flux \n at TOA', expression(Delta*~rsdt~(W~m-2)), region, model_colors, model_symbols)#,c(-5e-7,5e-7))
-  rlutcs_plot <- plot_species(rlutcs, region, value, 'upwelling clear-sky longwave \n flux at TOA', expression(Delta*~rlutcs~(W~m-2)), region, model_colors, model_symbols)#,c(-1.2e-1,1.2e-1))
-  rsutcs_plot <- plot_species(rsutcs, region, value, 'upwelling clear-sky shortwave \n flux at TOA', expression(Delta*~rsutcs~(W~m-2)), region, model_colors, model_symbols)#,c(-0.15,0.15))
+  rlut_plot <- plot_species(rlut, region, value, 'upwelling longwave flux \n at TOA', expression(Delta*~rlut~(W~m-2)), region, model_colors, model_symbols,c(-1,1))
+  rsut_plot <- plot_species(rsut, region, value, 'upwelling shortwave flux \n at TOA', expression(Delta*~rsut~(W~m-2)), region, model_colors, model_symbols,c(-1,1))
+  rsdt_plot <- plot_species(rsdt, region, value, 'incident shortwave flux \n at TOA', expression(Delta*~rsdt~(W~m-2)), region, model_colors, model_symbols,c(-1,1))
+  rlutcs_plot <- plot_species(rlutcs, region, value, 'upwelling clear-sky longwave \n flux at TOA', expression(Delta*~rlutcs~(W~m-2)), region, model_colors, model_symbols,c(-1,1))
+  rsutcs_plot <- plot_species(rsutcs, region, value, 'upwelling clear-sky shortwave \n flux at TOA', expression(Delta*~rsutcs~(W~m-2)), region, model_colors, model_symbols,c(-1,1))
   drybc_plot <- plot_species(drybc, region, value, 'dry deposition rate \n of BC', expression(Delta*~drybc~(kg~m^-2~s^-1)), region, model_colors, model_symbols)
   wetbc_plot <- plot_species(wetbc, region, value, 'wet deposition rate \n of BC', expression(Delta*~wetbc~(kg~m^-2~s^-1)), region, model_colors, model_symbols)
   dryso2_plot <- plot_species(dryso2, region, value, 'dry deposition rate \n of so2', expression(Delta*~dryso2~(kg~m^-2~s^-1)), region, model_colors, model_symbols)#,c(-2e-13,2e-13))
@@ -403,8 +404,8 @@ if (sort_by == "region"){
     dplyr::select(c(model, experiment, value, sd))
   
   #plots normal and clear sky net radiative flux using the plot_species function
-  net_rad_plot <- plot_species(net_rad, region, value, 'net radiative flux \n at TOA', expression(Delta*~rlut~+~rsut~(W~m-2)), region, model_colors, model_symbols)
-  net_rad_cs_plot <- plot_species(net_rad_cs, region, value, 'clear-sky net radiative flux \n at TOA', expression(Delta*~rlutcs~+~rsutcs~(W~m-2)), region, model_colors, model_symbols)
+  net_rad_plot <- plot_species(net_rad, region, value, 'net radiative flux \n at TOA', expression(Delta*~rlut~+~rsut~(W~m-2)), region, model_colors, model_symbols,c(-1,1))
+  net_rad_cs_plot <- plot_species(net_rad_cs, region, value, 'clear-sky net radiative flux \n at TOA', expression(Delta*~rlutcs~+~rsutcs~(W~m-2)), region, model_colors, model_symbols,c(-1,1))
 }
 
 if (sort_by == "experiment"){
@@ -488,7 +489,7 @@ if (sort_by == "region"){
     dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
     dplyr::select(c(model, experiment, value, sd))
   
-  imp_cld_plot <- plot_species(imp_cld, region, value, 'implied cloud response at TOA - \n', expression(Delta*~rlut~+~rsut~-~rlutcs~-~rsutcs~(W~m^-2)), region, model_colors, model_symbols)
+  imp_cld_plot <- plot_species(imp_cld, region, value, 'implied cloud response at TOA - \n', expression(Delta*~rlut~+~rsut~-~rlutcs~-~rsutcs~(W~m^-2)), region, model_colors, model_symbols,c(-1,1))
 }
 
 if (sort_by == "experiment"){
@@ -536,79 +537,54 @@ if (sort_by == "region"){
   so2_lifetime_plot <- plot_species(so2_lifetime, region, value, 'SO2 lifetime - \n', expression(Delta*~loadso2/emiso2~(days)), region, model_colors, model_symbols)
 }
 
-# loadso4 vs rsutcs
+# loadso4 vs rsut
 if (sort_by == "region"){
-  loadso4_rsutcs_combined <- dplyr::left_join(loadso4,rsutcs, by = c("model","experiment"))
-  loadso4_rsutcs_plot <- ggplot(loadso4_rsutcs_combined, aes(value.x,value.y,color=model)) +
+  loadso4_rsut_combined <- dplyr::left_join(loadso4,rsut, by = c("model","experiment"))
+  loadso4_rsut_plot <- ggplot(loadso4_rsut_combined, aes(value.x,value.y,color=model)) +
     geom_point() +
     
     # trend lines
-    geom_smooth(method=lm,data=filter(loadso4_rsutcs_combined,model=="CESM1"),se=FALSE, linetype = "dashed") +
-    #stat_cor(aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")),data=filter(loadso4_rsutcs_combined,model=="CESM1")) +
-    
-    geom_smooth(method=lm,data=filter(loadso4_rsutcs_combined,model=="CAM-ATRAS"),se=FALSE, linetype = "dashed") +
-    #stat_cor(aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")),data=filter(loadso4_rsutcs_combined,model=="CAM-ATRAS")) +
-    
-    geom_smooth(method=lm,data=filter(loadso4_rsutcs_combined,model=="E3SM"),se=FALSE, linetype = "dashed") +
-    #stat_cor(aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")),data=filter(loadso4_rsutcs_combined,model=="E3SM")) +
-    
-    geom_smooth(method=lm,data=filter(loadso4_rsutcs_combined,model=="GEOS"),se=FALSE, linetype = "dashed") +
-    #stat_cor(aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")),data=filter(loadso4_rsutcs_combined,model=="GEOS")) +
-    
-    geom_smooth(method=lm,data=filter(loadso4_rsutcs_combined,model=="GFDL-ESM4"),se=FALSE, linetype = "dashed") +
-    #stat_cor(aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")),data=filter(loadso4_rsutcs_combined,model=="GFDL-ESM4")) +
-    
-    geom_smooth(method=lm,data=filter(loadso4_rsutcs_combined,model=="GISS modelE"),se=FALSE, linetype = "dashed") +
-    #stat_cor(aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")),data=filter(loadso4_rsutcs_combined,model=="GISS modelE")) +
-    
-    geom_smooth(method=lm,data=filter(loadso4_rsutcs_combined,model=="NorESM2"),se=FALSE, linetype = "dashed") +
-    #stat_cor(aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")),data=filter(loadso4_rsutcs_combined,model=="NorESM2")) +
-    
+    geom_smooth(method=lm,data=filter(loadso4_rsut_combined,model=="CESM1"),se=FALSE, linetype = "dashed") +
+    geom_smooth(method=lm,data=filter(loadso4_rsut_combined,model=="CAM-ATRAS"),se=FALSE, linetype = "dashed") +
+    geom_smooth(method=lm,data=filter(loadso4_rsut_combined,model=="E3SM"),se=FALSE, linetype = "dashed") +
+    geom_smooth(method=lm,data=filter(loadso4_rsut_combined,model=="GEOS"),se=FALSE, linetype = "dashed") +
+    geom_smooth(method=lm,data=filter(loadso4_rsut_combined,model=="GFDL-ESM4"),se=FALSE, linetype = "dashed") +
+    geom_smooth(method=lm,data=filter(loadso4_rsut_combined,model=="GISS modelE"),se=FALSE, linetype = "dashed") +
+    geom_smooth(method=lm,data=filter(loadso4_rsut_combined,model=="NorESM2"),se=FALSE, linetype = "dashed") +
+
     # aesthetics
     scale_color_manual(values = model_colors) +
     #facet_wrap(vars(model)) +
     geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y)) +
     geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x)) +
-    #xlim(-0.05,0.05) +
-    ylab(expression(Delta~clear~sky~shortwave~flux~(W~m^-2))) +
+    #xlim(-5e-7,1e-6) +
+    #ylim(-1,1) +
+    ylab(expression(Delta~shortwave~flux~(W~m^-2))) +
     xlab(expression(Delta~SO4~column~burden~(kg~m^-2)))
 }
 
-# loadso2 vs rsutcs
+# loadso2 vs rsut
 if (sort_by == "region") {
-  loadso2_rsutcs_combined <- dplyr::left_join(loadso2,rsutcs, by = c("model","experiment"))
-  loadso2_rsutcs_plot <- ggplot(loadso2_rsutcs_combined, aes(value.x,value.y,color=model)) +
+  loadso2_rsut_combined <- dplyr::left_join(loadso2,rsut, by = c("model","experiment"))
+  loadso2_rsut_plot <- ggplot(loadso2_rsut_combined, aes(value.x,value.y,color=model)) +
     geom_point() +
     # trend lines
-    geom_smooth(method=lm,data=filter(loadso2_rsutcs_combined,model=="CESM1"),se=FALSE, linetype = "dashed") +
-    #stat_cor(aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")),data=filter(loadso2_rsutcs_combined,model=="CESM1")) +
-    
-    geom_smooth(method=lm,data=filter(loadso2_rsutcs_combined,model=="CAM-ATRAS"),se=FALSE, linetype = "dashed") +
-    #stat_cor(aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")),data=filter(loadso2_rsutcs_combined,model=="CAM-ATRAS")) +
-    
-    geom_smooth(method=lm,data=filter(loadso2_rsutcs_combined,model=="E3SM"),se=FALSE, linetype = "dashed") +
-    #stat_cor(aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")),data=filter(loadso2_rsutcs_combined,model=="E3SM")) +
-    
-    geom_smooth(method=lm,data=filter(loadso2_rsutcs_combined,model=="GEOS"),se=FALSE, linetype = "dashed") +
-    #stat_cor(aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")),data=filter(loadso2_rsutcs_combined,model=="GEOS")) +
-    
-    geom_smooth(method=lm,data=filter(loadso2_rsutcs_combined,model=="GFDL-ESM4"),se=FALSE, linetype = "dashed") +
-    #stat_cor(aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")),data=filter(loadso2_rsutcs_combined,model=="GFDL-ESM4")) +
-    
-    geom_smooth(method=lm,data=filter(loadso2_rsutcs_combined,model=="GISS modelE"),se=FALSE, linetype = "dashed") +
-    #stat_cor(aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")),data=filter(loadso2_rsutcs_combined,model=="GISS modelE")) +
-    
-    geom_smooth(method=lm,data=filter(loadso2_rsutcs_combined,model=="NorESM2"),se=FALSE, linetype = "dashed") +
-    #stat_cor(aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")),data=filter(loadso2_rsutcs_combined,model=="NorESM2")) +
-    
+    geom_smooth(method=lm,data=filter(loadso2_rsut_combined,model=="CESM1"),se=FALSE, linetype = "dashed") +
+    geom_smooth(method=lm,data=filter(loadso2_rsut_combined,model=="CAM-ATRAS"),se=FALSE, linetype = "dashed") +
+    geom_smooth(method=lm,data=filter(loadso2_rsut_combined,model=="E3SM"),se=FALSE, linetype = "dashed") +
+    geom_smooth(method=lm,data=filter(loadso2_rsut_combined,model=="GEOS"),se=FALSE, linetype = "dashed") +
+    geom_smooth(method=lm,data=filter(loadso2_rsut_combined,model=="GFDL-ESM4"),se=FALSE, linetype = "dashed") +
+    geom_smooth(method=lm,data=filter(loadso2_rsut_combined,model=="GISS modelE"),se=FALSE, linetype = "dashed") +
+    geom_smooth(method=lm,data=filter(loadso2_rsut_combined,model=="NorESM2"),se=FALSE, linetype = "dashed") +
+
     # aesthetics
     #facet_wrap(vars(model)) +
     scale_color_manual(values = model_colors) +
     geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y)) +
     geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x)) +
-    #xlim(-0.05,0.05) +
-    #lim(-5e-8,5e-8) +
-    ylab(expression(Delta~clear-sky~shortwave~flux~(W~m^-2))) +
+    xlim(-1.6e-7,2.5e-7) +
+    ylim(-1,0.6) +
+    ylab(expression(Delta~shortwave~flux~(W~m^-2))) +
     xlab(expression(Delta~SO2~column~burden~(kg~m^-2)))
 }
 
@@ -685,7 +661,8 @@ if (sort_by == "region") {
     geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y)) +
     geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x)) +
     #scale_shape_manual(values = model_symbols) +
-    #ylim(-5e-8,5e-8) +
+    xlim(-1.3e-7,8e-8) +
+    ylim (-2.3e-7,1.7e-7) +
     ylab(expression(Delta~SO4~column~burden~(kg~m^-2))) +
     xlab(expression(Delta~SO2~column~burden~(kg~m^-2)))
 }
@@ -858,6 +835,50 @@ if (sort_by == "region") {
     ylab(expression(Delta~total~cloud~cover~percentage))
 }
 
+# load SO2 vs clt
+if (sort_by == "region") {
+  mmrso4_imp_cld_combined <- dplyr::left_join(mmrso4,imp_cld, by = c("model", "experiment"))
+  mmrso4_imp_cld_plot <- ggplot(mmrso4_imp_cld_combined, aes(value.x,value.y,color=model)) +
+    geom_point() + 
+    # trend lines
+    geom_smooth(method=lm,data=filter(mmrso4_imp_cld_combined,model=="CESM1"),se=FALSE, linetype= "dashed") +
+    geom_smooth(method=lm,data=filter(mmrso4_imp_cld_combined,model=="CAM-ATRAS"),se=FALSE, linetype= "dashed") +
+    geom_smooth(method=lm,data=filter(mmrso4_imp_cld_combined,model=="E3SM"),se=FALSE, linetype= "dashed") +
+    geom_smooth(method=lm,data=filter(mmrso4_imp_cld_combined,model=="GEOS"),se=FALSE, linetype= "dashed") +
+    geom_smooth(method=lm,data=filter(mmrso4_imp_cld_combined,model=="GFDL-ESM4"),se=FALSE, linetype= "dashed") +
+    geom_smooth(method=lm,data=filter(mmrso4_imp_cld_combined,model=="GISS modelE"),se=FALSE, linetype= "dashed") +
+    geom_smooth(method=lm,data=filter(mmrso4_imp_cld_combined,model=="NorESM2"),se=FALSE, linetype= "dashed") +
+    scale_color_manual(values = model_colors) + 
+    geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y)) +
+    geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x)) +
+    #scale_shape_manual(values = model_symbols) +
+    xlab(expression(Delta~SO2~column~burden~(kg~m^-2))) +
+    ylab(expression(Delta~total~cloud~cover~percentage))
+}
+
+# DMS and emiso2 -- change DMS units
+if (sort_by == "region") {
+  # convert to units sulfur
+  dms_S <- dms
+  dms_S$value <- dms_S$value*62.13/28.96 # kg S/kg (air)
+  emiso2_dms_combined <- dplyr::left_join(emiso2,dms_S, by = c("model","experiment"))
+  emiso2_dms_plot <- ggplot(emiso2_dms_combined, aes(value.x,value.y,color=model)) +
+    geom_point() + 
+    # trend lines
+    geom_smooth(method=lm,data=filter(emiso2_dms_combined,model=="CESM1"),se=FALSE, linetype= "dashed") +
+    geom_smooth(method=lm,data=filter(emiso2_dms_combined,model=="CAM-ATRAS"),se=FALSE, linetype= "dashed") +
+    geom_smooth(method=lm,data=filter(emiso2_dms_combined,model=="E3SM"),se=FALSE, linetype= "dashed") +
+    geom_smooth(method=lm,data=filter(emiso2_dms_combined,model=="GEOS"),se=FALSE, linetype= "dashed") +
+    geom_smooth(method=lm,data=filter(emiso2_dms_combined,model=="GFDL-ESM4"),se=FALSE, linetype= "dashed") +
+    geom_smooth(method=lm,data=filter(emiso2_dms_combined,model=="GISS modelE"),se=FALSE, linetype= "dashed") +
+    geom_smooth(method=lm,data=filter(emiso2_dms_combined,model=="NorESM2"),se=FALSE, linetype= "dashed") +
+    scale_color_manual(values = model_colors) + 
+    geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y)) +
+    geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x)) +
+    xlab(expression(Delta~emiso2~(kg~m^-2~s^-1))) +
+    ylab(expression(Delta~dms~(kg~S~kg^-1)))
+}
+
 # Function from stack exchange to generate a shared legend
 grid_arrange_shared_legend <- function(...) {
   plots <- list(...)
@@ -886,11 +907,11 @@ emissions_plot <- grid_arrange_shared_legend(emibc_plot,
 forcing_plot <- grid_arrange_shared_legend(rlut_plot,
                                            rsut_plot,
                                            net_rad_plot,
+                                           net_rad_cs_plot,
+                                           imp_cld_plot,
                                            rsdt_plot,
                                            rlutcs_plot,
-                                           rsutcs_plot,
-                                           net_rad_cs_plot,
-                                           imp_cld_plot)
+                                           rsutcs_plot)
 
 cloud_plot <- grid_arrange_shared_legend(od550aer_plot,
                                          clt_plot,
@@ -913,8 +934,8 @@ column_plot <- grid_arrange_shared_legend(loadbc_plot,
                                           so4_lifetime_plot,
                                           so2_lifetime_plot)
 
-other_plot <- grid_arrange_shared_legend(loadso4_rsutcs_plot,
-                                         loadso2_rsutcs_plot,
+other_plot <- grid_arrange_shared_legend(loadso4_rsut_plot,
+                                         loadso2_rsut_plot,
                                          so2lifetime_rsutcs_plot,
                                          loadso2_loadso4_plot,
                                          loadso2_so2lifetime_plot,
@@ -923,9 +944,10 @@ other_plot <- grid_arrange_shared_legend(loadso4_rsutcs_plot,
                                          so2_loadso2_plot,
                                          emiso2_loadso2_plot)
 
-other_plot_2 <- grid_arrange_shared_legend(mmrso4_loadso4_plot,
-                                           so2_clt_plot,
-                                           loadso2_clt_plot)
+# other_plot_2 <- grid_arrange_shared_legend(mmrso4_loadso4_plot,
+#                                            so2_clt_plot,
+#                                            loadso2_clt_plot,
+#                                            emiso2_dms_plot)
 
 
 # Print plots
@@ -952,6 +974,6 @@ grid.newpage()
 grid.draw(column_plot)
 grid.newpage()
 grid.draw(other_plot)
-grid.newpage()
-grid.draw(other_plot_2)
+#grid.newpage()
+#grid.draw(other_plot_2)
 dev.off()

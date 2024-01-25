@@ -16,8 +16,8 @@ rm(model_CAM_ATRAS,model_CESM,model_E3SM,model_GEOS,
    model_GFDL,model_GISS,model_NorESM)
 
 # lm slopes
-data <- loadso2_clt_combined
-data_name <- deparse(substitute(loadso2_clt_combined))
+data <- loadso2_loadso4_combined
+data_name <- deparse(substitute(loadso2_loadso4_combined))
 model_CAM_ATRAS <- lm(value.y ~ value.x, data=filter(data,model=="CAM-ATRAS"))
 model_CESM <- lm(value.y ~ value.x, data=filter(data,model=="CESM1"))
 model_E3SM <- lm(value.y ~ value.x, data=filter(data,model=="E3SM"))
@@ -59,25 +59,25 @@ df <- data.frame(models=c("CAM-ATRAS","CESM1","E3SM","GEOS","GFDL-ESM4",
                              get_r2(model_GFDL),get_r2(model_GISS),
                              get_r2(model_NorESM)))
 
-# df <- data.frame(models=c("CAM-ATRAS","CESM1","E3SM","GEOS",
-#                           "GISS modelE","NorESM2"),
-#                  resolution=c("129, 154, 180, 204m","124, 149, 173, 197m",
-#                               "25, 54, 72, 77, 82, 87m","58, 131, 65, 133m",
-#                               "170, 190, 220, 240m",
-#                               "127, 152, 176, 201m"),
-#                  bottom.thickness=c(129,124,25,58,170,127),
-#                  layers=c(4,4,6,4,4,4),
-#                  slopes=c(get_slope(model_CAM_ATRAS),get_slope(model_CESM),
-#                           get_slope(model_E3SM),get_slope(model_GEOS),
-#                           get_slope(model_GISS),
-#                           get_slope(model_NorESM)),
-#                  intercept=c(get_intercept(model_CAM_ATRAS),get_intercept(model_CESM),
-#                              get_intercept(model_E3SM),get_intercept(model_GEOS),
-#                              get_intercept(model_GISS),
-#                              get_intercept(model_NorESM)),
-#                  r.squared=c(get_r2(model_CAM_ATRAS),get_r2(model_CESM),
-#                              get_r2(model_E3SM),get_r2(model_GEOS),
-#                              get_r2(model_GISS),
-#                              get_r2(model_NorESM)))
+df <- data.frame(models=c("CAM-ATRAS","CESM1","E3SM","GEOS",
+                          "GISS modelE","NorESM2"),
+                 resolution=c("129, 154, 180, 204m","124, 149, 173, 197m",
+                              "25, 54, 72, 77, 82, 87m","58, 131, 65, 133m",
+                              "170, 190, 220, 240m",
+                              "127, 152, 176, 201m"),
+                 bottom.thickness=c(129,124,25,58,170,127),
+                 layers=c(4,4,6,4,4,4),
+                 slopes=c(get_slope(model_CAM_ATRAS),get_slope(model_CESM),
+                          get_slope(model_E3SM),get_slope(model_GEOS),
+                          get_slope(model_GISS),
+                          get_slope(model_NorESM)),
+                 intercept=c(get_intercept(model_CAM_ATRAS),get_intercept(model_CESM),
+                             get_intercept(model_E3SM),get_intercept(model_GEOS),
+                             get_intercept(model_GISS),
+                             get_intercept(model_NorESM)),
+                 r.squared=c(get_r2(model_CAM_ATRAS),get_r2(model_CESM),
+                             get_r2(model_E3SM),get_r2(model_GEOS),
+                             get_r2(model_GISS),
+                             get_r2(model_NorESM)))
 
 write.csv(df,paste0("C:\\Users\\done231\\OneDrive - PNNL\\Desktop\\Phase1b_input\\output\\",region,"\\",region,"_table_",data_name,".csv"))
