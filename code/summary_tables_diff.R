@@ -16,8 +16,8 @@ rm(model_CAM_ATRAS,model_CESM,model_E3SM,model_GEOS,
    model_GFDL,model_GISS,model_NorESM)
 
 # lm slopes
-data <- loadso2_loadso4_combined
-data_name <- deparse(substitute(loadso2_loadso4_combined))
+data <- emiso2_loadso2_combined
+data_name <- deparse(substitute(emiso2_loadso2_combined))
 model_CAM_ATRAS <- lm(value.y ~ value.x, data=filter(data,model=="CAM-ATRAS"))
 model_CESM <- lm(value.y ~ value.x, data=filter(data,model=="CESM1"))
 model_E3SM <- lm(value.y ~ value.x, data=filter(data,model=="E3SM"))
@@ -38,6 +38,7 @@ get_intercept <- function(model) {
   coef(model)[1]
 }
 
+# all models
 df <- data.frame(models=c("CAM-ATRAS","CESM1","E3SM","GEOS","GFDL-ESM4",
                           "GISS modelE","NorESM2"),
                  resolution=c("129, 154, 180, 204m","124, 149, 173, 197m",
@@ -59,6 +60,7 @@ df <- data.frame(models=c("CAM-ATRAS","CESM1","E3SM","GEOS","GFDL-ESM4",
                              get_r2(model_GFDL),get_r2(model_GISS),
                              get_r2(model_NorESM)))
 
+# missing GFDL
 df <- data.frame(models=c("CAM-ATRAS","CESM1","E3SM","GEOS",
                           "GISS modelE","NorESM2"),
                  resolution=c("129, 154, 180, 204m","124, 149, 173, 197m",
