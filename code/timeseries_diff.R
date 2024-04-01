@@ -32,8 +32,8 @@ if (sort_by == "experiment"){pert <- sorting[2]}
 # plot is missing a model, the color scheme will remain consistent)
 cbPalette <- c("#c4c4c3", "#4477aa", "#228833", "#66ccee", "#ccbb44","#ee6677", "#aa3377")
 
-model_colors <- c('CESM1' = cbPalette[1], 'GISS modelE' = cbPalette[2], 'CAM-ATRAS' = cbPalette[3], 'GEOS' = cbPalette[4], 'NorESM2' = cbPalette[5], 'GFDL-ESM4' = cbPalette[6], 'E3SM' = cbPalette[7])
-model_symbols <- c("CESM1" = 15, "GISS modelE" = 17, "CAM-ATRAS" = 17, "NorESM2" = 17, "GEOS" = 17, "GFDL-ESM4" = 19, "E3SM" = 15)
+model_colors <- c('CESM1' = cbPalette[1], 'GISS-E2.1' = cbPalette[2], 'CAM-ATRAS' = cbPalette[3], 'GEOS' = cbPalette[4], 'NorESM2' = cbPalette[5], 'GFDL-ESM4' = cbPalette[6], 'E3SM' = cbPalette[7])
+model_symbols <- c("CESM1" = 15, "GISS-E2.1" = 17, "CAM-ATRAS" = 17, "NorESM2" = 17, "GEOS" = 17, "GFDL-ESM4" = 19, "E3SM" = 15)
 
 # ------------------------------------------------------------------------------
 # Iterate over the different perturbation/regional experiments
@@ -66,7 +66,7 @@ for(scenario in scenarios){
 
   # Correct model names
   experiment$model[which(experiment$model == "CESM")] <- "CESM1"
-  experiment$model[which(experiment$model == "GISS")] <- "GISS modelE"
+  experiment$model[which(experiment$model == "GISS")] <- "GISS-E2.1"
   experiment$model[which(experiment$model == "CAM5")] <- "CAM-ATRAS"
   experiment$model[which(experiment$model == "GFDL")] <- "GFDL-ESM4"
 

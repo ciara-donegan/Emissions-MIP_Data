@@ -1,7 +1,7 @@
 # ------------------------------------------------------------------------------
 # Program Name: summary_plots_diff.R
 # Authors: Hamza Ahsan
-# Date Last Modified: November 15, 2023
+# Date Last Modified: February 12, 2024
 # Program Purpose: Produces summary plots of the difference between the
 # perturbations and the reference case averaged over all years
 # Input Files: ~Emissions-MIP/input/
@@ -29,7 +29,8 @@ if (sort_by == "region") {region <- sorting[2]}
 if (sort_by == "experiment") {exper <- sorting[2]}
 
 sort_by <- "region"
-region <- "SH-sea"
+region <- "NH-atlantic"
+#exper <- "shp-60p-red"
 filter_outliers <- FALSE
 
 
