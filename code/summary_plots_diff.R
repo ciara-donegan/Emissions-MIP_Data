@@ -31,7 +31,6 @@ if (sort_by == "experiment") {exper <- sorting[2]}
 sort_by <- "region"
 region <- "NH-atlantic"
 #exper <- "shp-60p-red"
-filter_outliers <- FALSE
 
 
 # Define colorblind-friendly palette colors and associate with models (in case a
@@ -256,72 +255,37 @@ axis_font <- 9
 axis_title_font <- 9
 
 #creates a function that filters species out of a database
-filter_species <- function(database, species,filter_outliers=FALSE){
+filter_species <- function(database, species){
   species <- dplyr::filter(database, variable == species)
-  # filter outliers, if selected
-  if(filter_outliers==FALSE) {
-    
-  } else if (filter_outliers==TRUE) {
-    outliers <- boxplot(species$value,plot=FALSE)$out
-    species <- species[-which(species$value %in% outliers),]
-  }
   return(species)
 }
 
 #filters each species from summary_long
-if (filter_outliers==TRUE) {
-  emibc <- filter_species(summary_long, "emibc",filter_outliers=TRUE)
-  emiso2 <- filter_species(summary_long, "emiso2",filter_outliers=TRUE)
-  mmrbc <- filter_species(summary_long, "mmrbc",filter_outliers=TRUE)
-  mmrso4 <- filter_species(summary_long, "mmrso4",filter_outliers=TRUE)
-  so2 <- filter_species(summary_long, "so2",filter_outliers=TRUE)
-  rlut <- filter_species(summary_long, "rlut",filter_outliers=TRUE)
-  rsut <- filter_species(summary_long, "rsut",filter_outliers=TRUE)
-  rsdt <- filter_species(summary_long, "rsdt",filter_outliers=TRUE)
-  rlutcs <- filter_species(summary_long, "rlutcs",filter_outliers=TRUE)
-  rsutcs <- filter_species(summary_long, "rsutcs",filter_outliers=TRUE)
-  drybc <- filter_species(summary_long, "drybc",filter_outliers=TRUE)
-  wetbc <- filter_species(summary_long, "wetbc",filter_outliers=TRUE)
-  dryso2 <- filter_species(summary_long, "dryso2",filter_outliers=TRUE)
-  wetso2 <- filter_species(summary_long, "wetso2",filter_outliers=TRUE)
-  dryso4 <- filter_species(summary_long, "dryso4",filter_outliers=TRUE)
-  wetso4 <- filter_species(summary_long, "wetso4",filter_outliers=TRUE)
-  od550aer <- filter_species(summary_long, "od550aer",filter_outliers=TRUE)
-  clt <- filter_species(summary_long, "clt",filter_outliers=TRUE)
-  cltc <- filter_species(summary_long, "cltc",filter_outliers=TRUE)
-  cl <- filter_species(summary_long, "cl",filter_outliers=TRUE)
-  clivi <- filter_species(summary_long, "clivi",filter_outliers=TRUE)
-  dms <- filter_species(summary_long, "dms",filter_outliers=TRUE)
-  loadso4 <- filter_species(summary_long, "loadso4",filter_outliers=TRUE)
-  loadbc <- filter_species(summary_long, "loadbc",filter_outliers=TRUE)
-  loadso2 <- filter_species(summary_long, "loadso2",filter_outliers=TRUE)
-} else if (filter_outliers==FALSE) {
-  emibc <- filter_species(summary_long, "emibc")
-  emiso2 <- filter_species(summary_long, "emiso2")
-  mmrbc <- filter_species(summary_long, "mmrbc")
-  mmrso4 <- filter_species(summary_long, "mmrso4")
-  so2 <- filter_species(summary_long, "so2")
-  rlut <- filter_species(summary_long, "rlut")
-  rsut <- filter_species(summary_long, "rsut")
-  rsdt <- filter_species(summary_long, "rsdt")
-  rlutcs <- filter_species(summary_long, "rlutcs")
-  rsutcs <- filter_species(summary_long, "rsutcs")
-  drybc <- filter_species(summary_long, "drybc")
-  wetbc <- filter_species(summary_long, "wetbc")
-  dryso2 <- filter_species(summary_long, "dryso2")
-  wetso2 <- filter_species(summary_long, "wetso2")
-  dryso4 <- filter_species(summary_long, "dryso4")
-  wetso4 <- filter_species(summary_long, "wetso4")
-  od550aer <- filter_species(summary_long, "od550aer")
-  clt <- filter_species(summary_long, "clt")
-  cltc <- filter_species(summary_long, "cltc")
-  cl <- filter_species(summary_long, "cl")
-  clivi <- filter_species(summary_long, "clivi")
-  dms <- filter_species(summary_long, "dms")
-  loadso4 <- filter_species(summary_long, "loadso4")
-  loadbc <- filter_species(summary_long, "loadbc")
-  loadso2 <- filter_species(summary_long, "loadso2")
-}
+emibc <- filter_species(summary_long, "emibc")
+emiso2 <- filter_species(summary_long, "emiso2")
+mmrbc <- filter_species(summary_long, "mmrbc")
+mmrso4 <- filter_species(summary_long, "mmrso4")
+so2 <- filter_species(summary_long, "so2")
+rlut <- filter_species(summary_long, "rlut")
+rsut <- filter_species(summary_long, "rsut")
+rsdt <- filter_species(summary_long, "rsdt")
+rlutcs <- filter_species(summary_long, "rlutcs")
+rsutcs <- filter_species(summary_long, "rsutcs")
+drybc <- filter_species(summary_long, "drybc")
+wetbc <- filter_species(summary_long, "wetbc")
+dryso2 <- filter_species(summary_long, "dryso2")
+wetso2 <- filter_species(summary_long, "wetso2")
+dryso4 <- filter_species(summary_long, "dryso4")
+wetso4 <- filter_species(summary_long, "wetso4")
+od550aer <- filter_species(summary_long, "od550aer")
+clt <- filter_species(summary_long, "clt")
+cltc <- filter_species(summary_long, "cltc")
+cl <- filter_species(summary_long, "cl")
+clivi <- filter_species(summary_long, "clivi")
+dms <- filter_species(summary_long, "dms")
+loadso4 <- filter_species(summary_long, "loadso4")
+loadbc <- filter_species(summary_long, "loadbc")
+loadso2 <- filter_species(summary_long, "loadso2")
 
 
 # add E3SM's srfdms to dms
@@ -331,7 +295,7 @@ dms[dms=="srfdms"] <- "dms" #replace srfdms variable name with dms
 
 #Creates a function that creates plots for the data based on each species
 if (sort_by == "region"){
-  plot_species <- function(variable, x, y, title, units, region_or_exper, model_colors, model_symbols, ylimit=c(NA,NA), filter_outliers=FALSE){
+  plot_species <- function(variable, x, y, title, units, region_or_exper, model_colors, model_symbols, ylimit=c(NA,NA)){
     species <- variable
     species_plot <- ggplot(variable, aes(x = experiment, y = value, color = model, shape = model))+
       theme_bw()+
@@ -360,11 +324,11 @@ if (sort_by == "region"){
   mmrbc_plot <- plot_species(mmrbc, region, value, 'surface concentration of BC', expression(Delta*~mmrbc~(kg~kg-1)), region, model_colors, model_symbols)
   mmrso4_plot <- plot_species(mmrso4, region, value, 'surface concentration of SO4', expression(Delta*~mmrso4~(kg~kg-1)), region, model_colors, model_symbols)#,c(-2e-11,2e-11))
   so2_plot <- plot_species(so2, region, value, 'surface concentration of SO2', expression(Delta*~so2~(kg~kg-1)), region, model_colors, model_symbols)
-  rlut_plot <- plot_species(rlut, region, value, 'upwelling longwave flux \n at TOA', expression(Delta*~rlut~(W~m-2)), region, model_colors, model_symbols)#,c(-1,1))
-  rsut_plot <- plot_species(rsut, region, value, 'upwelling shortwave flux \n at TOA', expression(Delta*~rsut~(W~m-2)), region, model_colors, model_symbols)#,c(-1,1))
-  rsdt_plot <- plot_species(rsdt, region, value, 'incident shortwave flux \n at TOA', expression(Delta*~rsdt~(W~m-2)), region, model_colors, model_symbols)#,c(-1,1))
-  rlutcs_plot <- plot_species(rlutcs, region, value, 'upwelling clear-sky longwave \n flux at TOA', expression(Delta*~rlutcs~(W~m-2)), region, model_colors, model_symbols)#,c(-1,1))
-  rsutcs_plot <- plot_species(rsutcs, region, value, 'upwelling clear-sky shortwave \n flux at TOA', expression(Delta*~rsutcs~(W~m-2)), region, model_colors, model_symbols)#,c(-1,1))
+  rlut_plot <- plot_species(rlut, region, value, 'upwelling longwave flux \n at TOA', expression(Delta*~rlut~(W~m-2)), region, model_colors, model_symbols,c(-1.25,1.25))
+  rsut_plot <- plot_species(rsut, region, value, 'upwelling shortwave flux \n at TOA', expression(Delta*~rsut~(W~m-2)), region, model_colors, model_symbols,c(-1.25,1.25))
+  rsdt_plot <- plot_species(rsdt, region, value, 'incident shortwave flux \n at TOA', expression(Delta*~rsdt~(W~m-2)), region, model_colors, model_symbols,c(-1.25,1.25))
+  rlutcs_plot <- plot_species(rlutcs, region, value, 'upwelling clear-sky longwave \n flux at TOA', expression(Delta*~rlutcs~(W~m-2)), region, model_colors, model_symbols,c(-1.25,1.25))
+  rsutcs_plot <- plot_species(rsutcs, region, value, 'upwelling clear-sky shortwave \n flux at TOA', expression(Delta*~rsutcs~(W~m-2)), region, model_colors, model_symbols,c(-1.25,1.25))
   drybc_plot <- plot_species(drybc, region, value, 'dry deposition rate \n of BC', expression(Delta*~drybc~(kg~m^-2~s^-1)), region, model_colors, model_symbols)
   wetbc_plot <- plot_species(wetbc, region, value, 'wet deposition rate \n of BC', expression(Delta*~wetbc~(kg~m^-2~s^-1)), region, model_colors, model_symbols)
   dryso2_plot <- plot_species(dryso2, region, value, 'dry deposition rate \n of so2', expression(Delta*~dryso2~(kg~m^-2~s^-1)), region, model_colors, model_symbols)#,c(-2e-13,2e-13))
@@ -441,8 +405,8 @@ if (sort_by == "region"){
     dplyr::select(c(model, experiment, value, sd))
   
   #plots normal and clear sky net radiative flux using the plot_species function
-  net_rad_plot <- plot_species(net_rad, region, value, 'net radiative flux \n at TOA', expression(Delta*~rlut~+~rsut~(W~m-2)), region, model_colors, model_symbols)
-  net_rad_cs_plot <- plot_species(net_rad_cs, region, value, 'clear-sky net radiative flux \n at TOA', expression(Delta*~rlutcs~+~rsutcs~(W~m-2)), region, model_colors, model_symbols)
+  net_rad_plot <- plot_species(net_rad, region, value, 'net radiative flux \n at TOA', expression(Delta*~rlut~+~rsut~(W~m-2)), region, model_colors, model_symbols,c(-1.25,1.25))
+  net_rad_cs_plot <- plot_species(net_rad_cs, region, value, 'clear-sky net radiative flux \n at TOA', expression(Delta*~rlutcs~+~rsutcs~(W~m-2)), region, model_colors, model_symbols,c(-1.25,1.25))
 }
 
 if (sort_by == "experiment"){
@@ -526,7 +490,7 @@ if (sort_by == "region"){
     dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
     dplyr::select(c(model, experiment, value, sd))
   
-  imp_cld_plot <- plot_species(imp_cld, region, value, 'implied cloud response at TOA - \n', expression(Delta*~rlut~+~rsut~-~rlutcs~-~rsutcs~(W~m^-2)), region, model_colors, model_symbols)
+  imp_cld_plot <- plot_species(imp_cld, region, value, 'implied cloud response at TOA - \n', expression(Delta*~rlut~+~rsut~-~rlutcs~-~rsutcs~(W~m^-2)), region, model_colors, model_symbols,c(-1.25,1.25))
 }
 
 if (sort_by == "experiment"){
@@ -967,11 +931,6 @@ other_plot <- grid_arrange_shared_legend(loadso4_rsut_plot,
 if (sort_by == 'region'){
   setwd(paste0('../../../../output/', region, '/summary'))
   pdf(paste0(region, '_summary_plots_diff.pdf'), height = 11, width = 8.5, paper = "letter")
-  # if (filter_outliers==TRUE) {
-  #   pdf(paste0(region, '_summary_plots_diff-filtered.pdf'), height = 11, width = 8.5, paper = "letter")
-  # } else if (filter_outliers==FALSE) {
-  #   pdf(paste0(region, '_summary_plots_diff-unfiltered.pdf'), height = 11, width = 8.5, paper = "letter")
-  # }
 }
 
 if (sort_by == 'experiment'){
