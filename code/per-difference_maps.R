@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------------
-# Program Name: difference_maps.R
+# Program Name: per-difference_maps.R
 # Authors: Ciara Donegan
 # Date Last Modified: April 15, 2024
 # Program Purpose: Produces maps of the difference between perturbation datasets
@@ -20,59 +20,20 @@ library(rasterVis)
 library(classInt)
 library(dplyr)
 library(tidyr)
+library(grid)
+library(gridExtra)
 
 # set path to netCDF files - replace with your path to files
 file_dir <- paste0("C:/Users/done231/OneDrive - PNNL/Desktop/difference_plot_files")
 setwd(file_dir)
 
 # select scenario to generate maps for
-scenario <- "shp-30p-red"
+scenario <- "shp-60p-red-1950"
 
 # read in shapefile for coastline
 coast_outline <- shapefile("ne_110m_coastline.shp")
 
-# select scenario at top for this func
-# get_ncdf_data <- function(variable,model) {
-#   filepath <- paste0(file_dir,"/input/",scenario,"/",model)
-#   file_control <- list.files(path=paste0(file_dir,"/input/",scenario,"/",model),
-#                      pattern=paste0("Difference_lat_lon_",variable,"_"))
-#   ncin <- nc_open(paste0(filepath,"/",file))
-#   
-#   # get coordinate vars
-#   lon <- ncvar_get(ncin,"lon") # 0 to 360, rather than -180 to 180
-#   lon <- lon - 180
-#   nlon <- dim(lon)
-#   
-#   lat <- ncvar_get(ncin,"lat") # -90 to 90
-#   nlat <- dim(lat)
-#   
-#   year <- ncvar_get(ncin,"year") # values are averaged across time range
-#   
-#   # read in data from chosen variable
-#   ncdf.array <- ncvar_get(ncin,"unknown")
-#   fillvalue <- ncatt_get(ncin,"unknown","_FillValue") # get value used for missing data
-#   
-#   # close netCDF file
-#   nc_close(ncin)
-#   
-#   # get ncdf coordinates to match shapefile (centered on 0 deg longitude)
-#   east <- ncdf.array[181:360,]
-#   west <- ncdf.array[1:180,]
-#   ncdf.shifted <- rbind(east,west)
-#   
-#   # raster
-#   r <- raster(t(ncdf.shifted),xmn=min(lon),xmx=max(lon),ymn=min(lat),ymx=max(lat),crs=CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"))
-#   r <- flip(r,direction='y')
-#   
-#   #  convert to a format usable by ggplot
-#   r.df <- as.data.frame(r,xy=TRUE)
-#   
-#   # remove fill value
-#   r.df[r.df>1e36] <- NA
-#   
-#   return(r.df)
-# }
-
+# get data from ncdf files
 get_ncdf_data <- function(variable,model) {
   filepath <- paste0(file_dir,"/input/",scenario,"/",model)
   
@@ -204,12 +165,16 @@ get_ncdf_data <- function(variable,model) {
   r.df$x <- r.exp$x
   r.df$y <- r.exp$y
   
+  ## Invert sign of forcing variables to match convention (positive = warming effect)
+  #if (variable == "rlut" | variable == "rsut" | variable == "rlutcs" | variable == "rsutcs") {
+  #  r.df$layer <- r.df$layer*-1
+  #}
+  
   return(r.df)
 }
 
+# get plot from dataframe
 get_plot <- function(variable,model,df,at,title) {
-  # labels
-  #map_title <- paste0(model," ",scenario," ",variable)
   
   # levelplot from lattice
   myTheme <- rasterTheme(region = rev(brewer.pal(11,'RdBu')))
@@ -378,16 +343,56 @@ bound_rlutcs <- max(abs(all_rlutcs$layer))
 rlutcs.at <- seq(-bound_rlutcs,bound_rlutcs,length.out=25)
 
 # rsut
+#if (scenario == "shp-60p-red-1950") {
+#  all_rsut <- rbind(rsut_CAM5ATRAS,rsut_E3SM,rsut_GEOS,rsut_GFDL,rsut_GISS,rsut_NorESM2)
+#} else {
 all_rsut <- rbind(rsut_CAM5ATRAS,rsut_CESM1,rsut_E3SM,rsut_GEOS,rsut_GFDL,rsut_GISS,rsut_NorESM2)
+#}
 all_rsut <- drop_na(all_rsut)
 bound_rsut <- max(abs(all_rsut$layer))
 rsut.at <- seq(-bound_rsut,bound_rsut,length.out=25)
 
-# rsutcs
+# rsutcs - remove CESM1 for ind shift, outlier
+#if (scenario == "shp-ind-shift" | scenario == "shp-ind-shift-1950") {
+#  all_rsutcs <- rbind(rsutcs_CAM5ATRAS,rsutcs_E3SM,rsutcs_GEOS,rsutcs_GFDL,rsutcs_GISS,rsutcs_NorESM2)
+#} else {
 all_rsutcs <- rbind(rsutcs_CAM5ATRAS,rsutcs_CESM1,rsutcs_E3SM,rsutcs_GEOS,rsutcs_GFDL,rsutcs_GISS,rsutcs_NorESM2)
+#}
 all_rsutcs <- drop_na(all_rsutcs)
 bound_rsutcs <- max(abs(all_rsutcs$layer))
 rsutcs.at <- seq(-bound_rsutcs,bound_rsutcs,length.out=25)
+
+# standardize flux scales
+flux.at.list <- list(rlut.at,rlutcs.at,rsut.at,rsutcs.at)
+if (scenario == "shp-30p-red") {
+  flux.at.shp_30p_red <- flux.at.list[[which.max(sapply(flux.at.list,max))]]
+}
+if (scenario == "shp-60p-red") {
+  flux.at.shp_60p_red <- flux.at.list[[which.max(sapply(flux.at.list,max))]]
+}
+if (scenario == "shp-60p-red-1950") {
+  flux.at.shp_60p_red_1950 <- flux.at.list[[which.max(sapply(flux.at.list,max))]]
+}
+if (scenario == "shp-atl-shift") {
+  flux.at.shp_atl_shift <- flux.at.list[[which.max(sapply(flux.at.list,max))]]
+}
+if (scenario == "shp-atl-shift-1950") {
+  flux.at.shp_atl_shift_1950 <- flux.at.list[[which.max(sapply(flux.at.list,max))]]
+}
+if (scenario == "shp-ind-shift") {
+  flux.at.shp_ind_shift <- flux.at.list[[which.max(sapply(flux.at.list,max))]]
+}
+if (scenario == "shp-ind-shift-1950") {
+  flux.at.shp_ind_shift_1950 <- flux.at.list[[which.max(sapply(flux.at.list,max))]]
+}
+
+
+## standarize flux scales between scenarios
+all.flux.at.list <- list(flux.at.shp_30p_red,flux.at.shp_60p_red,flux.at.shp_60p_red_1950,
+                         flux.at.shp_atl_shift,flux.at.shp_ind_shift,flux.at.shp_atl_shift_1950,
+                         flux.at.shp_ind_shift_1950)
+#flux.at <- all.flux.at.list[[which.max(sapply(flux.at.list,max))]]
+flux.at <- flux.at.shp_atl_shift # above isn't working for some reason, but only for 60p 1950??
 
 ## Get plots
 # CAM5ATRAS
@@ -395,20 +400,20 @@ clt_CAM5ATRAS_plot <- get_plot("clt","CAM5ATRAS",clt_CAM5ATRAS,clt.at,"Cloud Are
 loadbc_CAM5ATRAS_plot <- get_plot("loadbc","CAM5ATRAS",loadbc_CAM5ATRAS,loadbc.at,"Load of Black Carbon (% Diff) - CAM-ATRAS")
 loadso2_CAM5ATRAS_plot <- get_plot("loadso2","CAM5ATRAS",loadso2_CAM5ATRAS,loadso2.at,"Load of SO2 (% Diff) - CAM-ATRAS")
 loadso4_CAM5ATRAS_plot <- get_plot("loadso4","CAM5ATRAS",loadso4_CAM5ATRAS,loadso4.at,"Load of SO4 (% Diff) - CAM-ATRAS")
-rlut_CAM5ATRAS_plot <- get_plot("rlut","CAM5ATRAS",rlut_CAM5ATRAS,rlut.at,"Upwelling Longwave Radiation at TOA (% Diff) - CAM-ATRAS")
-rlutcs_CAM5ATRAS_plot <- get_plot("rlutcs","CAM5ATRAS",rlutcs_CAM5ATRAS,rlutcs.at,"Upwelling Clear-Sky Longwave Radiation at TOA (% Diff) - CAM-ATRAS")
-rsut_CAM5ATRAS_plot <- get_plot("rsut","CAM5ATRAS",rsut_CAM5ATRAS,rsut.at,"Upwelling Shortwave Radiation at TOA (% Diff) - CAM-ATRAS")
-rsutcs_CAM5ATRAS_plot <- get_plot("rsutcs","CAM5ATRAS",rsut_CAM5ATRAS,rsutcs.at,"Upwelling Clear-Sky Longwave Radiation at TOA (% Diff) - CAM-ATRAS")
+rlut_CAM5ATRAS_plot <- get_plot("rlut","CAM5ATRAS",rlut_CAM5ATRAS,flux.at,"Upwelling Longwave Radiation \n at TOA (% Diff) - CAM-ATRAS")
+rlutcs_CAM5ATRAS_plot <- get_plot("rlutcs","CAM5ATRAS",rlutcs_CAM5ATRAS,flux.at,"Upwelling Clear-Sky Longwave \n Radiation at TOA (% Diff) - CAM-ATRAS")
+rsut_CAM5ATRAS_plot <- get_plot("rsut","CAM5ATRAS",rsut_CAM5ATRAS,flux.at,"Upwelling Shortwave Radiation \n at TOA (% Diff) - CAM-ATRAS")
+rsutcs_CAM5ATRAS_plot <- get_plot("rsutcs","CAM5ATRAS",rsut_CAM5ATRAS,flux.at,"Upwelling Clear-Sky Longwave \n Radiation at TOA (% Diff) - CAM-ATRAS")
 
 # CESM1
 clt_CESM1_plot <- get_plot("clt","CESM1",clt_CESM1,clt.at,"Cloud Area Fraction (% Diff) - CESM1")
 loadbc_CESM1_plot <- get_plot("loadbc","CESM1",loadbc_CESM1,loadbc.at,"Load of Black Carbon (% Diff) - CESM1")
 loadso2_CESM1_plot <- get_plot("loadso2","CESM1",loadso2_CESM1,loadso2.at,"Load of SO2 (% Diff) - CESM1")
 loadso4_CESM1_plot <- get_plot("loadso4","CESM1",loadso4_CESM1,loadso4.at,"Load of SO4 (% Diff) - CESM1")
-rlut_CESM1_plot <- get_plot("rlut","CESM1",rlut_CESM1,rlut.at,"Upwelling Longwave Radiation at TOA (% Diff) - CESM1")
-rlutcs_CESM1_plot <- get_plot("rlutcs","CESM1",rlutcs_CESM1,rlutcs.at,"Clear-Sky Upwelling Longwave Radiation at TOA (% Diff) - CESM1")
-rsut_CESM1_plot <- get_plot("rsut","CESM1",rsut_CESM1,rsut.at,"Upwelling Shortwave Radiation at TOA (% Diff) - CESM1")
-rsutcs_CESM1_plot <- get_plot("rsutcs","CESM1",rsut_CESM1,rsutcs.at,"Clear-Sky Upwelling Shortwave Radiation at TOA (% Diff) - CESM1")
+rlut_CESM1_plot <- get_plot("rlut","CESM1",rlut_CESM1,flux.at,"Upwelling Longwave Radiation \n at TOA (% Diff) - CESM1")
+rlutcs_CESM1_plot <- get_plot("rlutcs","CESM1",rlutcs_CESM1,flux.at,"Clear-Sky Upwelling Longwave \n Radiation at TOA (% Diff) - CESM1")
+rsut_CESM1_plot <- get_plot("rsut","CESM1",rsut_CESM1,flux.at,"Upwelling Shortwave Radiation \n at TOA (% Diff) - CESM1")
+rsutcs_CESM1_plot <- get_plot("rsutcs","CESM1",rsut_CESM1,flux.at,"Clear-Sky Upwelling Shortwave \n Radiation at TOA (% Diff) - CESM1")
 
 # E3SM
 clt_E3SM_plot <- get_plot("clt","E3SM",clt_E3SM,clt.at,"Cloud Area Fraction (% Diff) - E3SM")
@@ -417,30 +422,30 @@ if (scenario != "shp-atl-shift") {
   loadso2_E3SM_plot <- get_plot("loadso2","E3SM",loadso2_E3SM,loadso2.at,"Load of SO2 (% Diff) - E3SM")
   loadso4_E3SM_plot <- get_plot("loadso4","E3SM",loadso4_E3SM,loadso4.at,"Load of SO4 (% Diff) - E3SM")
 }
-rlut_E3SM_plot <- get_plot("rlut","E3SM",rlut_E3SM,rlut.at,"Upwelling Longwave Radiation at TOA (% Diff) - E3SM")
-rlutcs_E3SM_plot <- get_plot("rlutcs","E3SM",rlutcs_E3SM,rlutcs.at,"Clear-Sky Upwelling Longwave Radiation at TOA (% Diff) - E3SM")
-rsut_E3SM_plot <- get_plot("rsut","E3SM",rsut_E3SM,rsut.at,"Upwelling Shortwave Radiation at TOA (% Diff) - E3SM")
-rsutcs_E3SM_plot <- get_plot("rsutcs","E3SM",rsut_E3SM,rsutcs.at,"Clear-Sky Upwelling Shortwave Radiation at TOA (% Diff) - E3SM")
+rlut_E3SM_plot <- get_plot("rlut","E3SM",rlut_E3SM,flux.at,"Upwelling Longwave Radiation \n at TOA (% Diff) - E3SM")
+rlutcs_E3SM_plot <- get_plot("rlutcs","E3SM",rlutcs_E3SM,flux.at,"Clear-Sky Upwelling Longwave \n Radiation at TOA (% Diff) - E3SM")
+rsut_E3SM_plot <- get_plot("rsut","E3SM",rsut_E3SM,flux.at,"Upwelling Shortwave Radiation \n at TOA (% Diff) - E3SM")
+rsutcs_E3SM_plot <- get_plot("rsutcs","E3SM",rsut_E3SM,flux.at,"Clear-Sky Upwelling Shortwave \n Radiation at TOA (% Diff) - E3SM")
 
 # GEOS
 clt_GEOS_plot <- get_plot("clt","GEOS",clt_GEOS,clt.at,"Cloud Area Fraction (% Diff) - GEOS")
 loadbc_GEOS_plot <- get_plot("loadbc","GEOS",loadbc_GEOS,loadbc.at,"Load of Black Carbon (% Diff) - GEOS")
 loadso2_GEOS_plot <- get_plot("loadso2","GEOS",loadso2_GEOS,loadso2.at,"Load of SO2 (% Diff) - GEOS")
 loadso4_GEOS_plot <- get_plot("loadso4","GEOS",loadso4_GEOS,loadso4.at,"Load of SO4 (% Diff) - GEOS")
-rlut_GEOS_plot <- get_plot("rlut","GEOS",rlut_GEOS,rlut.at,"Upwelling Longwave Radiation at TOA (% Diff) - GEOS")
-rlutcs_GEOS_plot <- get_plot("rlutcs","GEOS",rlutcs_GEOS,rlutcs.at,"Clear-Sky Upwelling Longwave Radiation at TOA (% Diff) - GEOS")
-rsut_GEOS_plot <- get_plot("rsut","GEOS",rsut_GEOS,rsut.at,"Upwelling Shortwave Radiation at TOA (% Diff) - GEOS")
-rsutcs_GEOS_plot <- get_plot("rsutcs","GEOS",rsut_GEOS,rsutcs.at,"Clear-Sky Upwelling Shortwave Radiation at TOA (% Diff) - GEOS")
+rlut_GEOS_plot <- get_plot("rlut","GEOS",rlut_GEOS,flux.at,"Upwelling Longwave Radiation \n at TOA (% Diff) - GEOS")
+rlutcs_GEOS_plot <- get_plot("rlutcs","GEOS",rlutcs_GEOS,flux.at,"Clear-Sky Upwelling Longwave \n Radiation at TOA (% Diff) - GEOS")
+rsut_GEOS_plot <- get_plot("rsut","GEOS",rsut_GEOS,flux.at,"Upwelling Shortwave Radiation \n at TOA (% Diff) - GEOS")
+rsutcs_GEOS_plot <- get_plot("rsutcs","GEOS",rsut_GEOS,flux.at,"Clear-Sky Upwelling Shortwave \n Radiation at TOA (% Diff) - GEOS")
 
 # GISS
 clt_GISS_plot <- get_plot("clt","GISS",clt_GISS,clt.at,"Cloud Area Fraction (% Diff) - GISS-E2.1")
 loadbc_GISS_plot <- get_plot("loadbc","GISS",loadbc_GISS,loadbc.at,"Load of Black Carbon (% Diff) - GISS-E2.1")
 loadso2_GISS_plot <- get_plot("loadso2","GISS",loadso2_GISS,loadso2.at,"Load of SO2 (% Diff) - GISS-E2.1")
 loadso4_GISS_plot <- get_plot("loadso4","GISS",loadso4_GISS,loadso4.at,"Load of SO4 (% Diff) - GISS-E2.1")
-rlut_GISS_plot <- get_plot("rlut","GISS",rlut_GISS,rlut.at,"Upwelling Longwave Radiation at TOA (% Diff) - GISS-E2.1")
-rlutcs_GISS_plot <- get_plot("rlutcs","GISS",rlutcs_GISS,rlutcs.at,"Clear-Sky Upwelling Longwave Radiation at TOA (% Diff) - GISS-E2.1")
-rsut_GISS_plot <- get_plot("rsut","GISS",rsut_GISS,rsut.at,"Upwelling Shortwave Radiation at TOA (% Diff) - GISS-E2.1")
-rsutcs_GISS_plot <- get_plot("rsutcs","GISS",rsut_GISS,rsutcs.at,"Clear-Sky Upwelling Shortwave Radiation at TOA (% Diff) - GISS-E2.1")
+rlut_GISS_plot <- get_plot("rlut","GISS",rlut_GISS,flux.at,"Upwelling Longwave Radiation \n at TOA (% Diff) - GISS-E2.1")
+rlutcs_GISS_plot <- get_plot("rlutcs","GISS",rlutcs_GISS,flux.at,"Clear-Sky Upwelling Longwave \n Radiation at TOA (% Diff) - GISS-E2.1")
+rsut_GISS_plot <- get_plot("rsut","GISS",rsut_GISS,flux.at,"Upwelling Shortwave Radiation \n at TOA (% Diff) - GISS-E2.1")
+rsutcs_GISS_plot <- get_plot("rsutcs","GISS",rsut_GISS,flux.at,"Clear-Sky Upwelling Shortwave \n Radiation at TOA (% Diff) - GISS-E2.1")
 
 # GFDL
 if (scenario == "shp-60p-red" || scenario == "shp-atl-shift" || scenario == "shp-ind-shift") {
@@ -450,24 +455,24 @@ if (scenario != "shp-ind-shift-1950" & scenario != "shp-30p-red") {
   loadbc_GFDL_plot <- get_plot("loadbc","GFDL",loadbc_GFDL,loadbc.at,"Load of Black Carbon (% Diff) - GFDL-ESM4")
   loadso4_GFDL_plot <- get_plot("loadso4","GFDL",loadso4_GFDL,loadso4.at,"Load of SO4 (% Diff) - GFDL-ESM4")
 }
-rlut_GFDL_plot <- get_plot("rlut","GFDL",rlut_GFDL,rlut.at,"Upwelling Longwave Radiation at TOA (% Diff) - GFDL-ESM4")
-rlutcs_GFDL_plot <- get_plot("rlutcs","GFDL",rlutcs_GFDL,rlutcs.at,"Clear-Sky Upwelling Longwave Radiation at TOA (% Diff) - GFDL-ESM4")
-rsut_GFDL_plot <- get_plot("rsut","GFDL",rsut_GFDL,rsut.at,"Upwelling Shortwave Radiation at TOA (% Diff) - GFDL-ESM4")
-rsutcs_GFDL_plot <- get_plot("rsutcs","GFDL",rsut_GFDL,rsutcs.at,"Clear-Sky Upwelling Shortwave Radiation at TOA (% Diff) - GFDL-ESM4")
+rlut_GFDL_plot <- get_plot("rlut","GFDL",rlut_GFDL,flux.at,"Upwelling Longwave Radiation \n at TOA (% Diff) - GFDL-ESM4")
+rlutcs_GFDL_plot <- get_plot("rlutcs","GFDL",rlutcs_GFDL,flux.at,"Clear-Sky Upwelling Longwave \n Radiation at TOA (% Diff) - GFDL-ESM4")
+rsut_GFDL_plot <- get_plot("rsut","GFDL",rsut_GFDL,flux.at,"Upwelling Shortwave Radiation \n at TOA (% Diff) - GFDL-ESM4")
+rsutcs_GFDL_plot <- get_plot("rsutcs","GFDL",rsut_GFDL,flux.at,"Clear-Sky Upwelling Shortwave \n Radiation at TOA (% Diff) - GFDL-ESM4")
 
 # NorESM2
 clt_NorESM2_plot <- get_plot("clt","NorESM2",clt_NorESM2,clt.at,"Cloud Area Fraction (% Diff) - NorESM2")
 loadbc_NorESM2_plot <- get_plot("loadbc","NorESM2",loadbc_NorESM2,loadbc.at,"Load of Black Carbon (% Diff) - NorESM2")
 loadso2_NorESM2_plot <- get_plot("loadso2","NorESM2",loadso2_NorESM2,loadso2.at,"Load of SO2 (% Diff) - NorESM2")
 loadso4_NorESM2_plot <- get_plot("loadso4","NorESM2",loadso4_NorESM2,loadso4.at,"Load of SO4 (% Diff) - NorESM2")
-rlut_NorESM2_plot <- get_plot("rlut","NorESM2",rlut_NorESM2,rlut.at,"Upwelling Longwave Radiation at TOA (% Diff) - NorESM2")
-rlutcs_NorESM2_plot <- get_plot("rlutcs","NorESM2",rlutcs_NorESM2,rlutcs.at,"Clear-Sky Upwelling Longwave Radiation at TOA (% Diff) - NorESM2")
-rsut_NorESM2_plot <- get_plot("rsut","NorESM2",rsut_NorESM2,rsut.at,"Upwelling Shortwave Radiation at TOA (% Diff) - NorESM2")
-rsutcs_NorESM2_plot <- get_plot("rsutcs","NorESM2",rsut_NorESM2,rsutcs.at,"Clear-Sky Upwelling Shortwave Radiation at TOA (% Diff) - NorESM2")
+rlut_NorESM2_plot <- get_plot("rlut","NorESM2",rlut_NorESM2,flux.at,"Upwelling Longwave Radiation \n at TOA (% Diff) - NorESM2")
+rlutcs_NorESM2_plot <- get_plot("rlutcs","NorESM2",rlutcs_NorESM2,flux.at,"Clear-Sky Upwelling Longwave \n Radiation at TOA (% Diff) - NorESM2")
+rsut_NorESM2_plot <- get_plot("rsut","NorESM2",rsut_NorESM2,flux.at,"Upwelling Shortwave Radiation \n at TOA (% Diff) - NorESM2")
+rsutcs_NorESM2_plot <- get_plot("rsutcs","NorESM2",rsut_NorESM2,flux.at,"Clear-Sky Upwelling Shortwave \n Radiation at TOA (% Diff) - NorESM2")
 
 # save plot function
 save_plot <- function(plot) {
-  setwd(paste0(file_dir,"/output/",scenario,"/",model))
+  setwd(paste0(file_dir,"/output/scenario/",scenario,"/",model))
   png(filename=paste0(deparse(substitute(plot)),"_per-diff.png"),
       width=844,height=620,units="px")
   print(plot)
@@ -559,3 +564,78 @@ save_plot(rlut_NorESM2_plot)
 save_plot(rlutcs_NorESM2_plot)
 save_plot(rsut_NorESM2_plot)
 save_plot(rsutcs_NorESM2_plot)
+
+## Arrange plots in grid
+clt_plots <- grid.arrange(clt_CAM5ATRAS_plot,clt_CESM1_plot,clt_E3SM_plot,#clt_GEOS_plot,
+                          clt_GISS_plot,clt_NorESM2_plot)
+
+if (scenario == "shp-60p-red" || scenario == "shp-atl-shift" || scenario == "shp-ind-shift") {
+  if (scenario == "shp-atl-shift") {
+    loadso2_plots <- grid.arrange(loadso2_CAM5ATRAS_plot,loadso2_CESM1_plot,
+                                  #loadso2_GEOS_plot,
+                                  loadso2_GFDL_plot,loadso2_GISS_plot,
+                                  loadso2_NorESM2_plot)
+  } else {
+    loadso2_plots <- grid.arrange(loadso2_CAM5ATRAS_plot,loadso2_CESM1_plot,
+                                  loadso2_E3SM_plot,#loadso2_GEOS_plot,
+                                  loadso2_GFDL_plot,loadso2_GISS_plot,
+                                  loadso2_NorESM2_plot)
+  }
+} else {
+  loadso2_plots <- grid.arrange(loadso2_CAM5ATRAS_plot,loadso2_CESM1_plot,
+                                loadso2_E3SM_plot,#loadso2_GEOS_plot,
+                                loadso2_GISS_plot,loadso2_NorESM2_plot)
+}
+
+if (scenario != "shp-ind-shift-1950" & scenario != "shp-30p-red") {
+  if (scenario == "shp-atl-shift") {
+    loadso4_plots <- grid.arrange(loadso4_CAM5ATRAS_plot,loadso4_CESM1_plot,
+                                  #loadso4_GEOS_plot,
+                                  loadso4_GFDL_plot,loadso4_GISS_plot,
+                                  loadso4_NorESM2_plot)
+  } else {
+    loadso4_plots <- grid.arrange(loadso4_CAM5ATRAS_plot,loadso4_CESM1_plot,
+                                  loadso4_E3SM_plot,#loadso4_GEOS_plot,
+                                  loadso4_GFDL_plot,loadso4_GISS_plot,
+                                  loadso4_NorESM2_plot)
+  }
+} else {
+  loadso4_plots <- grid.arrange(loadso4_CAM5ATRAS_plot,loadso4_CESM1_plot,
+                                loadso4_E3SM_plot,#loadso4_GEOS_plot,
+                                loadso4_GISS_plot,loadso4_NorESM2_plot)
+}
+
+rlut_plots <- grid.arrange(rlut_CAM5ATRAS_plot,rlut_CESM1_plot,rlut_E3SM_plot,#rlut_GEOS_plot,
+                           rlut_GFDL_plot,rlut_GISS_plot,
+                           rlut_NorESM2_plot)
+
+rlutcs_plots <- grid.arrange(rlutcs_CAM5ATRAS_plot,rlutcs_CESM1_plot,
+                             rlutcs_E3SM_plot,rlutcs_GFDL_plot,#rlutcs_GEOS_plot,
+                             rlutcs_GISS_plot,rlutcs_NorESM2_plot)
+
+rsut_plots <- grid.arrange(rsut_CAM5ATRAS_plot,rsut_CESM1_plot,rsut_E3SM_plot,#rsut_GEOS_plot,
+                           rsut_GFDL_plot,rsut_GISS_plot,
+                           rsut_NorESM2_plot)
+
+rsutcs_plots <- grid.arrange(rsutcs_CAM5ATRAS_plot,rsutcs_CESM1_plot,
+                             rsutcs_E3SM_plot,rsutcs_GFDL_plot,#rsutcs_GEOS_plot,
+                             rsutcs_GISS_plot,rsutcs_NorESM2_plot)
+
+# Save plots as pdf
+setwd(paste0(file_dir,"/output/scenario/",scenario))
+pdf(paste0(scenario,'_maps_per-diff.pdf'), height = 11, width = 8.5, paper = "letter")
+
+grid.draw(clt_plots)
+grid.newpage()
+grid.draw(loadso2_plots)
+grid.newpage()
+grid.draw(loadso4_plots)
+grid.newpage()
+grid.draw(rlut_plots)
+grid.newpage()
+grid.draw(rsut_plots)
+grid.newpage()
+grid.draw(rlutcs_plots)
+grid.newpage()
+grid.draw(rsutcs_plots)
+dev.off()
