@@ -29,7 +29,7 @@ if (sort_by == "region"){region <- sorting[2]}
 if (sort_by == "experiment"){exper <- sorting[2]}
 
 sort_by <- "region"
-region <- "SH-sea"
+region <- "NH-atlantic"
 
 # Define colorblind-friendly palette colors and associate with models (in case a
 # plot is missing a model, the color scheme will remain consistent)
@@ -340,7 +340,7 @@ if (sort_by == "region"){
     dplyr::select(c(model, experiment, value, sd))
   
   #plots normal and clear sky net radiative flux using the plot_species function
-  net_rad_plot <- plot_species(net_rad, region, value, 'net radiative flux \n at TOA', expression(Delta*~rlut~+~rsut), region, model_colors, model_symbols)
+  net_rad_plot <- plot_species(net_rad, region, value, 'net radiative flux \n at TOA', expression(Delta*~rlut~+~rsut), region, model_colors, model_symbols,c(-1,1))
   net_rad_cs_plot <- plot_species(net_rad_cs, region, value, 'clear-sky net radiative flux \n at TOA', expression(Delta*~rlutcs~+~rsutcs), region, model_colors, model_symbols)
 }
 
@@ -548,4 +548,6 @@ grid.newpage()
 grid.draw(cloud_plot)
 grid.newpage()
 grid.draw(deposition_plot)
+grid.newpage()
+grid.draw(column_plot)
 dev.off()

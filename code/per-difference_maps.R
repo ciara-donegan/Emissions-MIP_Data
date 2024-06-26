@@ -28,7 +28,7 @@ file_dir <- paste0("C:/Users/done231/OneDrive - PNNL/Desktop/difference_plot_fil
 setwd(file_dir)
 
 # select scenario to generate maps for
-scenario <- "shp-60p-red-1950"
+scenario <- "shp-60p-red"
 
 # read in shapefile for coastline
 coast_outline <- shapefile("ne_110m_coastline.shp")
@@ -622,20 +622,38 @@ rsutcs_plots <- grid.arrange(rsutcs_CAM5ATRAS_plot,rsutcs_CESM1_plot,
                              rsutcs_GISS_plot,rsutcs_NorESM2_plot)
 
 # Save plots as pdf
-setwd(paste0(file_dir,"/output/scenario/",scenario))
-pdf(paste0(scenario,'_maps_per-diff.pdf'), height = 11, width = 8.5, paper = "letter")
+# setwd(paste0(file_dir,"/output/scenario/",scenario))
+# pdf(paste0(scenario,'_maps_per-diff.pdf'), height = 11, width = 8.5, paper = "letter")
+# 
+# grid.draw(clt_plots)
+# grid.newpage()
+# grid.draw(loadso2_plots)
+# grid.newpage()
+# grid.draw(loadso4_plots)
+# grid.newpage()
+# grid.draw(rlut_plots)
+# grid.newpage()
+# grid.draw(rsut_plots)
+# grid.newpage()
+# grid.draw(rlutcs_plots)
+# grid.newpage()
+# grid.draw(rsutcs_plots)
+# dev.off()
 
-grid.draw(clt_plots)
-grid.newpage()
-grid.draw(loadso2_plots)
-grid.newpage()
-grid.draw(loadso4_plots)
-grid.newpage()
-grid.draw(rlut_plots)
-grid.newpage()
-grid.draw(rsut_plots)
-grid.newpage()
-grid.draw(rlutcs_plots)
-grid.newpage()
-grid.draw(rsutcs_plots)
-dev.off()
+
+
+# get average rsut plot
+rsut_all <- (rsut_CAM5ATRAS+rsut_CESM1+rsut_E3SM+rsut_GEOS+rsut_GISS+rsut_GFDL+rsut_NorESM2)/7
+rsut_all.at <- drop_na(rsut_all)
+bound_rsut_all <- max(abs(rsut_all.at$layer))
+rsut_all.at <- seq(-bound_rsut_all,bound_rsut_all,length.out=25)
+
+rsut_all_plot <- get_plot("rsut","all",rsut_all,rsut_all.at,"Upwelling Shortwave Radiation \n at TOA (%) - All Models")
+
+# get average rlut plot
+rlut_all <- (rlut_CAM5ATRAS+rlut_CESM1+rlut_E3SM+rlut_GEOS+rlut_GISS+rlut_GFDL+rlut_NorESM2)/7
+rlut_all.at <- drop_na(rlut_all)
+bound_rlut_all <- max(abs(rlut_all.at$layer))
+rlut_all.at <- seq(-bound_rlut_all,bound_rlut_all,length.out=25)
+
+rlut_all_plot <- get_plot("rlut","all",rlut_all,rsut_all.at,"Upwelling Longwave Radiation \n at TOA (%) - All Models")

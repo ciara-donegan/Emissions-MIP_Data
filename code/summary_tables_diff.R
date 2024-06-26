@@ -16,14 +16,14 @@ rm(model_CAM_ATRAS,model_CESM,model_E3SM,model_GEOS,
    model_GFDL,model_GISS,model_NorESM)
 
 # lm slopes
-data <- emiso2_loadso2_combined
-data_name <- deparse(substitute(emiso2_loadso2_combined))
+data <- loadso2_rad_combined
+data_name <- deparse(substitute(loadso2_rad_combined))
 model_CAM_ATRAS <- lm(value.y ~ value.x, data=filter(data,model=="CAM-ATRAS"))
 model_CESM <- lm(value.y ~ value.x, data=filter(data,model=="CESM1"))
 model_E3SM <- lm(value.y ~ value.x, data=filter(data,model=="E3SM"))
 model_GEOS <- lm(value.y ~ value.x, data=filter(data,model=="GEOS"))
 model_GFDL <- lm(value.y ~ value.x, data=filter(data,model=="GFDL-ESM4"))
-model_GISS <- lm(value.y ~ value.x, data=filter(data,model=="GISS modelE"))
+model_GISS <- lm(value.y ~ value.x, data=filter(data,model=="GISS-E2.1"))
 model_NorESM <- lm(value.y ~ value.x, data=filter(data,model=="NorESM2"))
 
 get_slope <- function(model) {
@@ -40,7 +40,7 @@ get_intercept <- function(model) {
 
 # all models
 df <- data.frame(models=c("CAM-ATRAS","CESM1","E3SM","GEOS","GFDL-ESM4",
-                          "GISS modelE","NorESM2"),
+                          "GISS-E2.1","NorESM2"),
                  resolution=c("129, 154, 180, 204m","124, 149, 173, 197m",
                               "25, 54, 72, 77, 82, 87m","58, 131, 65, 133m",
                               "35, 50, 75, 90, 120m","170, 190, 220, 240m",
@@ -82,4 +82,4 @@ df <- data.frame(models=c("CAM-ATRAS","CESM1","E3SM","GEOS",
                              get_r2(model_GISS),
                              get_r2(model_NorESM)))
 
-write.csv(df,paste0("C:\\Users\\done231\\OneDrive - PNNL\\Desktop\\Phase1b_input\\output\\",region,"\\",region,"_table_",data_name,".csv"))
+write.csv(df,paste0("C:\\Users\\done231\\OneDrive - PNNL\\Desktop\\Phase1b_data\\output\\",region,"\\",region,"_table_",data_name,".csv"))

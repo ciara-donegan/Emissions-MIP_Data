@@ -23,125 +23,74 @@ library(tidyr)
 library(grid)
 library(gridExtra)
 
-# set path to netCDF files - replace with your path to files
-file_dir <- paste0("C:/Users/done231/OneDrive - PNNL/Desktop/difference_plot_files")
-setwd(file_dir)
-
 # sort by model or scenario
 sort_by <- "scenario"
 
 # select scenario to generate maps for
-scenario <- "shp-ind-shift-1950"
+scenario <- "shp-ind-shift"
+region <- "NH-atlantic"
+
+# set path to netCDF files - replace with your path to files
+file_dir <- paste0("C:/Users/done231/OneDrive - PNNL/Desktop/difference_plot_files")
+setwd(file_dir)
 
 # read in shapefile for coastline
 coast_outline <- shapefile("ne_110m_coastline.shp")
 
-# # get dataset from ncdf file -- currently not working properly, using function below
-# get_ncdf_data <- function(variable,model) {
-#   filepath <- paste0(file_dir,"/input/",scenario,"/",model)
-#   file <- list.files(path=paste0(file_dir,"/input/",scenario,"/",model),
-#                      pattern=paste0("Difference_lat_lon_",variable,"_"))
-#   ncin <- nc_open(paste0(filepath,"/",file))
-#   
-#   # get coordinate vars
-#   lon <- ncvar_get(ncin,"lon") # 0 to 360, rather than -180 to 180
-#   lon <- lon - 180
-#   nlon <- dim(lon)
-#   
-#   lat <- ncvar_get(ncin,"lat") # -90 to 90
-#   nlat <- dim(lat)
-#   
-#   year <- ncvar_get(ncin,"year") # values are averaged across time range
-#   
-#   # read in data from chosen variable
-#   ncdf.array <- ncvar_get(ncin,"unknown")
-#   fillvalue <- ncatt_get(ncin,"unknown","_FillValue") # get value used for missing data
-#   
-#   # close netCDF file
-#   nc_close(ncin)
-#   
-#   # get ncdf coordinates to match shapefile (centered on 0 deg longitude)
-#   east <- ncdf.array[181:360,]
-#   west <- ncdf.array[1:180,]
-#   ncdf.shifted <- rbind(east,west)
-#   
-#   # raster
-#   r <- raster(t(ncdf.shifted),xmn=min(lon),xmx=max(lon),ymn=min(lat),ymx=max(lat),crs=CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"))
-#   r <- flip(r,direction='y')
-#   
-#   #  convert to a format usable by ggplot
-#   r.df <- as.data.frame(r,xy=TRUE)
-#   
-#   # remove fill value
-#   r.df[r.df>1e36] <- NA
-#   
-# #  # remove after rerunning scripts (had reference - perturbation by mistake)
-# #  if (model != "GISS") {
-# #    r.df$layer <- r.df$layer*-1
-# #  }
-#   
-#   # Invert sign of forcing variables to match convention (positive = warming effect)
-#   if (variable == "rlut" | variable == "rsut" | variable == "rlutcs" | variable == "rsutcs") {
-#     r.df$layer <- r.df$layer*-1
-#   }
-#   
-#   return(r.df)
-# }
-
 # get data from ncdf files
 get_ncdf_data <- function(variable,model) {
-  filepath <- paste0(file_dir,"/input/",scenario,"/",model)
+  filepath <- paste0(file_dir,"/input/",region,"/",scenario,"/",model)
   
   # Get control file
   if (model == "CAM5ATRAS" | model == "GEOS" | model == "GFDL" | model == "NorESM2") {
-    file_control <- list.files(path=paste0(file_dir,"/input/",scenario,"/",model),
+    file_control <- list.files(path=filepath,
                                pattern=paste0("base.+",variable,".nc"))
   }
   
   if (model == "CESM1" | model == "E3SM") {
-    file_control <- list.files(path=paste0(file_dir,"/input/",scenario,"/",model),
+    file_control <- list.files(path=filepath,
                                pattern=paste0("ref.+",variable,".nc"))
   }
   
   if (model == "GISS" & scenario != "shp-60p-red-1950" & scenario != "shp-atl-shift-1950" & scenario != "shp-ind-shift-1950") {
-    file_control <- list.files(path=paste0(file_dir,"/input/",scenario,"/",model),
+    file_control <- list.files(path=filepath,
                                pattern=paste0("ref.+",variable,".nc"))
   }
   
   if (model == "GISS" & (scenario == "shp-60p-red-1950" | scenario == "shp-atl-shift-1950" | scenario == "shp-ind-shift-1950")) {
-    file_control <- list.files(path=paste0(file_dir,"/input/",scenario,"/",model),
+    file_control <- list.files(path=filepath,
                                pattern=paste0("BW1950.+",variable,".nc"))
   }
   
   # Get experiment file
   if (model != "GISS" & scenario == "shp-30p-red") {
-    file_exp <- list.files(path=paste0(file_dir,"/input/",scenario,"/",model),
+    file_exp <- list.files(path=filepath,
                            pattern=paste0("30.+",variable,".nc"))
   }
   
   if (model != "GISS" & scenario == "shp-60p-red" | scenario == "shp-60p-red-1950") {
-    file_exp <- list.files(path=paste0(file_dir,"/input/",scenario,"/",model),
+    file_exp <- list.files(path=filepath,
                            pattern=paste0("60.+",variable,".nc"))
   }
   
   
   if (model != "GISS" & (scenario == "shp-atl-shift" | scenario == "shp-atl-shift-1950")) {
-    file_exp <- list.files(path=paste0(file_dir,"/input/",scenario,"/",model),
+    file_exp <- list.files(path=filepath,
                            pattern=paste0("atl.+",variable,".nc"))
   }
   
   if (model != "GISS" & (scenario == "shp-ind-shift" | scenario == "shp-ind-shift-1950")) {
-    file_exp <- list.files(path=paste0(file_dir,"/input/",scenario,"/",model),
+    file_exp <- list.files(path=filepath,
                            pattern=paste0("ind.+",variable,".nc"))
   }
   
   if (model == "GISS" & (scenario == "shp-30p-red" | scenario == "shp-60p-red" | scenario == "shp-60p-red-1950")) {
-    file_exp <- list.files(path=paste0(file_dir,"/input/",scenario,"/",model),
+    file_exp <- list.files(path=filepath,
                            pattern=paste0("dot.+",variable,".nc"))
   }
   
   if (model == "GISS" & scenario != "shp-30p-red" & scenario != "shp-60p-red" & scenario != "shp-60p-red-1950") {
-    file_exp <- list.files(path=paste0(file_dir,"/input/",scenario,"/",model),
+    file_exp <- list.files(path=filepath,
                            pattern=paste0("SHFT.+",variable,".nc"))
   }
   
@@ -171,7 +120,7 @@ get_ncdf_data <- function(variable,model) {
   control.shifted <- rbind(east,west)
   
   # raster
-  r <- raster(t(control.shifted),xmn=min(lon),xmx=max(lon),ymn=min(lat),ymx=max(lat),crs=CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"))
+  r <- raster(t(control.shifted),xmn=-180,xmx=180,ymn=-90,ymx=90,crs=CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"))
   r <- flip(r,direction='y')
   
   #  convert to a format usable by ggplot
@@ -206,7 +155,7 @@ get_ncdf_data <- function(variable,model) {
   exp.shifted <- rbind(east,west)
   
   # raster
-  r <- raster(t(exp.shifted),xmn=min(lon),xmx=max(lon),ymn=min(lat),ymx=max(lat),crs=CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"))
+  r <- raster(t(exp.shifted),xmn=-180,xmx=180,ymn=-90,ymx=90,crs=CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"))
   r <- flip(r,direction='y')
   
   #  convert to a format usable by ggplot
@@ -219,11 +168,11 @@ get_ncdf_data <- function(variable,model) {
   r.df <- r.exp - r.control
   r.df$x <- r.exp$x
   r.df$y <- r.exp$y
-  
-  ## Invert sign of forcing variables to match convention (positive = warming effect)
-  #if (variable == "rlut" | variable == "rsut" | variable == "rlutcs" | variable == "rsutcs") {
-  #  r.df$layer <- r.df$layer*-1
-  #}
+
+  # Invert sign of forcing variables to match convention (positive = warming effect)
+  if (variable == "rlut" | variable == "rsut" | variable == "rlutcs" | variable == "rsutcs") {
+   r.df$layer <- r.df$layer*-1
+  }
   
   return(r.df)
 }
@@ -386,25 +335,25 @@ if (scenario == "shp-30p-red" || scenario == "shp-ind-shift-1950") {
 }
 
 # rlut
-all_rlut <- rbind(rlut_CAM5ATRAS,rlut_CESM1,rlut_E3SM,rlut_GEOS,rlut_GFDL,rlut_GISS,rlut_NorESM2)
+all_rlut <- rbind(rlut_CAM5ATRAS,rlut_E3SM,rlut_GEOS,rlut_GFDL,rlut_GISS,rlut_NorESM2)
 all_rlut <- drop_na(all_rlut)
 bound_rlut <- max(abs(all_rlut$layer))
 rlut.at <- seq(-bound_rlut,bound_rlut,length.out=24)
 
 # rlutcs
-all_rlutcs <- rbind(rlutcs_CAM5ATRAS,rlutcs_CESM1,rlutcs_E3SM,rlutcs_GEOS,rlutcs_GFDL,rlutcs_GISS,rlutcs_NorESM2)
+all_rlutcs <- rbind(rlutcs_CAM5ATRAS,rlutcs_E3SM,rlutcs_GEOS,rlutcs_GFDL,rlutcs_GISS,rlutcs_NorESM2)
 all_rlutcs <- drop_na(all_rlutcs)
 bound_rlutcs <- max(abs(all_rlutcs$layer))
 rlutcs.at <- seq(-bound_rlutcs,bound_rlutcs,length.out=24)
 
 # rsut
-all_rsut <- rbind(rsut_CAM5ATRAS,rsut_CESM1,rsut_E3SM,rsut_GEOS,rsut_GFDL,rsut_GISS,rsut_NorESM2)
+all_rsut <- rbind(rsut_CAM5ATRAS,rsut_E3SM,rsut_GEOS,rsut_GFDL,rsut_GISS,rsut_NorESM2)
 all_rsut <- drop_na(all_rsut)
 bound_rsut <- max(abs(all_rsut$layer))
 rsut.at <- seq(-bound_rsut,bound_rsut,length.out=24)
 
 # rsutcs
-all_rsutcs <- rbind(rsutcs_CAM5ATRAS,rsutcs_CESM1,rsutcs_E3SM,rsutcs_GEOS,rsutcs_GFDL,rsutcs_GISS,rsutcs_NorESM2)
+all_rsutcs <- rbind(rsutcs_CAM5ATRAS,rsutcs_E3SM,rsutcs_GEOS,rsutcs_GFDL,rsutcs_GISS,rsutcs_NorESM2)
 all_rsutcs <- drop_na(all_rsutcs)
 bound_rsutcs <- max(abs(all_rsutcs$layer))
 rsutcs.at <- seq(-bound_rsutcs,bound_rsutcs,length.out=24)
@@ -435,10 +384,10 @@ if (scenario == "shp-ind-shift-1950") {
 
 
 ## standarize flux scales between scenarios
-all.flux.at.list <- list(flux.at.shp_30p_red,flux.at.shp_60p_red,flux.at.shp_60p_red_1950,
-                         flux.at.shp_atl_shift,flux.at.shp_ind_shift,flux.at.shp_atl_shift_1950,
-                         flux.at.shp_ind_shift_1950)
-flux.at <- all.flux.at.list[[which.max(sapply(flux.at.list,max))]]
+# all.flux.at.list <- list(flux.at.shp_30p_red,flux.at.shp_60p_red,flux.at.shp_60p_red_1950,
+#                          flux.at.shp_atl_shift,flux.at.shp_ind_shift,flux.at.shp_atl_shift_1950,
+#                          flux.at.shp_ind_shift_1950)
+flux.at <- flux.at.shp_30p_red #all.flux.at.list[[which.max(sapply(flux.at.list,max))]]
 
 ## Get plots
 # CAM5ATRAS
@@ -447,9 +396,9 @@ loadbc_CAM5ATRAS_plot <- get_plot("loadbc","CAM5ATRAS",loadbc_CAM5ATRAS,loadbc.a
 loadso2_CAM5ATRAS_plot <- get_plot("loadso2","CAM5ATRAS",loadso2_CAM5ATRAS,loadso2.at,"Load of SO2 (kg/m^2) - CAM-ATRAS")
 loadso4_CAM5ATRAS_plot <- get_plot("loadso4","CAM5ATRAS",loadso4_CAM5ATRAS,loadso4.at,"Load of SO4 (kg/m^2) - CAM-ATRAS")
 rlut_CAM5ATRAS_plot <- get_plot("rlut","CAM5ATRAS",rlut_CAM5ATRAS,flux.at,"Upwelling Longwave Radiation \n at TOA (W/m^2) - CAM-ATRAS")
-rlutcs_CAM5ATRAS_plot <- get_plot("rlutcs","CAM5ATRAS",rlutcs_CAM5ATRAS,flux.at,"Upwelling Clear-Sky Longwave \n Radiation at TOA (W/m^2) - CAM-ATRAS")
+rlutcs_CAM5ATRAS_plot <- get_plot("rlutcs","CAM5ATRAS",rlutcs_CAM5ATRAS,flux.at,"Clear-Sky Upwelling Longwave \n Radiation at TOA (W/m^2) - CAM-ATRAS")
 rsut_CAM5ATRAS_plot <- get_plot("rsut","CAM5ATRAS",rsut_CAM5ATRAS,flux.at,"Upwelling Shortwave Radiation \n at TOA (W/m^2) - CAM-ATRAS")
-rsutcs_CAM5ATRAS_plot <- get_plot("rsutcs","CAM5ATRAS",rsut_CAM5ATRAS,flux.at,"Upwelling Clear-Sky Longwave \n Radiation at TOA (W/m^2) - CAM-ATRAS")
+rsutcs_CAM5ATRAS_plot <- get_plot("rsutcs","CAM5ATRAS",rsut_CAM5ATRAS,flux.at,"Clear-Sky Upwelling Longwave \n Radiation at TOA (W/m^2) - CAM-ATRAS")
 
 # CESM1
 clt_CESM1_plot <- get_plot("clt","CESM1",clt_CESM1,clt.at,"Cloud Area Fraction (%) - CESM1")
@@ -518,7 +467,7 @@ rsutcs_NorESM2_plot <- get_plot("rsutcs","NorESM2",rsut_NorESM2,flux.at,"Clear-S
 
 # save plot function
 save_plot <- function(plot) {
-  setwd(paste0(file_dir,"/output/scenario/",scenario,"/",model))
+  setwd(paste0(file_dir,"/output/scenario/",region,"/",scenario,"/",model))
   png(filename=paste0(deparse(substitute(plot)),"_diff.png"),
       width=844,height=620,units="px")
   print(plot)
@@ -669,7 +618,7 @@ if (sort_by == "scenario") {
                                rsutcs_GISS_plot,rsutcs_NorESM2_plot)
   
   # Save plots as pdf
-  setwd(paste0(file_dir,"/output/scenario/",scenario))
+  setwd(paste0(file_dir,"/output/scenario/",region,"/",scenario))
   pdf(paste0(scenario,'_maps_scenario-diff.pdf'), height = 11, width = 8.5, paper = "letter")
   
   grid.draw(clt_plots)
@@ -736,3 +685,93 @@ if (sort_by == "scenario") {
 #   grid.draw(NorESM2_plots)
 #   dev.off()
 # }
+
+# # get average rsut plot
+# rsut_all <- (rsut_CAM5ATRAS+rsut_CESM1+rsut_E3SM+rsut_GEOS+rsut_GISS+rsut_GFDL+rsut_NorESM2)/7
+# rsut_all.at <- drop_na(rsut_all)
+# bound_rsut_all <- max(abs(rsut_all.at$layer))
+# rsut_all.at <- seq(-bound_rsut_all,bound_rsut_all,length.out=24)
+# 
+# rsut_all_plot <- get_plot("rsut","all",rsut_all,rsut_all.at.atl,"Upwelling Shortwave Radiation \n at TOA (W/m^2) - Atlantic Shift")
+# 
+# # get average rlut plot
+# rlut_all <- (rlut_CAM5ATRAS+rlut_CESM1+rlut_E3SM+rlut_GEOS+rlut_GISS+rlut_GFDL+rlut_NorESM2)/7
+# rlut_all.at <- drop_na(rlut_all)
+# bound_rlut_all <- max(abs(rlut_all.at$layer))
+# rlut_all.at <- seq(-bound_rlut_all,bound_rlut_all,length.out=24)
+# 
+# rlut_all_plot <- get_plot("rlut","all",rlut_all,rsut_all.at,"Upwelling Longwave Radiation \n at TOA (W/m^2) - All Models")
+# 
+# 
+# 
+## Get flux totals in W
+# read in grid area file
+setwd(file_dir)
+nc_grid <- nc_open("gridarea.nc")
+
+# get coordinate vars
+lon <- ncvar_get(nc_grid,"lon") # 0 to 360, rather than -180 to 180
+lon <- lon - 180
+nlon <- dim(lon)
+
+lat <- ncvar_get(nc_grid,"lat") # -90 to 90
+nlat <- dim(lat)
+
+area.array <- ncvar_get(nc_grid,"cell_area")
+
+nc_close(nc_grid)
+
+# raster
+area.r <- raster(t(area.array),xmn=-180,xmx=180,ymn=-90,ymx=90,crs=CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"))
+#area.r <- flip(area.r,direction='y')
+
+#  convert to a format usable by ggplot
+area.df <- as.data.frame(area.r,xy=TRUE)
+
+get_total_basin_diff <- function(input) {
+  output <- input
+  output$W <- input$layer*area.df$layer
+  return(output)
+}
+
+# CAM5ATRAS
+rlut_CAM5ATRAS_tot <- get_total_basin_diff(rlut_CAM5ATRAS)
+rsut_CAM5ATRAS_tot <- get_total_basin_diff(rsut_CAM5ATRAS)
+rlutcs_CAM5ATRAS_tot <- get_total_basin_diff(rlutcs_CAM5ATRAS)
+rsutcs_CAM5ATRAS_tot <- get_total_basin_diff(rsutcs_CAM5ATRAS)
+
+# CESM1
+rlut_CESM1_tot <- get_total_basin_diff(rlut_CESM1)
+rsut_CESM1_tot <- get_total_basin_diff(rsut_CESM1)
+rlutcs_CESM1_tot <- get_total_basin_diff(rlutcs_CESM1)
+rsutcs_CESM1_tot <- get_total_basin_diff(rsutcs_CESM1)
+
+# E3SM
+rlut_E3SM_tot <- get_total_basin_diff(rlut_E3SM)
+rsut_E3SM_tot <- get_total_basin_diff(rsut_E3SM)
+rlutcs_E3SM_tot <- get_total_basin_diff(rlutcs_E3SM)
+rsutcs_E3SM_tot <- get_total_basin_diff(rsutcs_E3SM)
+
+# GEOS
+rlut_GEOS_tot <- get_total_basin_diff(rlut_GEOS)
+rsut_GEOS_tot <- get_total_basin_diff(rsut_GEOS)
+rlutcs_GEOS_tot <- get_total_basin_diff(rlutcs_GEOS)
+rsutcs_GEOS_tot <- get_total_basin_diff(rsutcs_GEOS)
+
+# GFDL
+rlut_GFDL_tot <- get_total_basin_diff(rlut_GFDL)
+rsut_GFDL_tot <- get_total_basin_diff(rsut_GFDL)
+rlutcs_GFDL_tot <- get_total_basin_diff(rlutcs_GFDL)
+rsutcs_GFDL_tot <- get_total_basin_diff(rsutcs_GFDL)
+
+# GISS
+rlut_GISS_tot <- get_total_basin_diff(rlut_GISS)
+rsut_GISS_tot <- get_total_basin_diff(rsut_GISS)
+rlutcs_GISS_tot <- get_total_basin_diff(rlutcs_GISS)
+rsutcs_GISS_tot <- get_total_basin_diff(rsutcs_GISS)
+
+# NorESM2
+rlut_NorESM2_tot <- get_total_basin_diff(rlut_NorESM2)
+rsut_NorESM2_tot <- get_total_basin_diff(rsut_NorESM2)
+rlutcs_NorESM2_tot <- get_total_basin_diff(rlutcs_NorESM2)
+rsutcs_NorESM2_tot <- get_total_basin_diff(rsutcs_NorESM2)

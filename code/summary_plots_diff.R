@@ -29,7 +29,7 @@ if (sort_by == "region") {region <- sorting[2]}
 if (sort_by == "experiment") {exper <- sorting[2]}
 
 sort_by <- "region"
-region <- "NH-atlantic"
+region <- "global"
 #exper <- "shp-60p-red"
 
 
@@ -38,7 +38,7 @@ region <- "NH-atlantic"
 cbPalette <- c("#c4c4c3", "#4477aa", "#228833", "#66ccee", "#ccbb44","#ee6677", "#aa3377")
 
 model_colors <- c('CESM1' = cbPalette[1], 'GISS-E2.1' = cbPalette[2], 'CAM-ATRAS' = cbPalette[3], 'GEOS' = cbPalette[4], 'NorESM2' = cbPalette[5], 'GFDL-ESM4' = cbPalette[6], 'E3SM' = cbPalette[7])
-model_symbols <- c("CESM1" = 15, "GISS-E2.1" = 17, "CAM-ATRAS" = 17,  "GEOS" = 17, "NorESM2" = 17, "GFDL-ESM4" = 19, "E3SM" = 15)
+model_symbols <- c("CESM1" = 15, "GISS-E2.1" = 15, "CAM-ATRAS" = 17,  "GEOS" = 17, "NorESM2" = 17, "GFDL-ESM4" = 19, "E3SM" = 15)
 
 # ------------------------------------------------------------------------------
 # Reads in csv file specifying which models to exclude from the data
@@ -541,6 +541,7 @@ if (sort_by == "region"){
 # loadso4 vs rsut
 if (sort_by == "region"){
   loadso4_rsut_combined <- dplyr::left_join(loadso4,rsut, by = c("model","experiment"))
+  loadso4_rsut_combined <- drop_na(loadso4_rsut_combined)
   loadso4_rsut_plot <- ggplot(loadso4_rsut_combined, aes(value.x,value.y,color=model)) +
     geom_point() +
     
@@ -556,9 +557,9 @@ if (sort_by == "region"){
     # aesthetics
     scale_color_manual(values = model_colors) +
     #facet_wrap(vars(model)) +
-    geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y)) +
-    geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x)) +
-    #xlim(-2.5e-7,1.6e-7) +
+    geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y),width=1e-8,position=position_dodge(0.4)) +
+    geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x),height=0.2,position=position_dodge(0.4)) + # what is happening here???
+    #xlim(-10000,10000) +
     #ylim(-1,0.6) +
     ylab(expression(Delta~shortwave~flux~(W~m^-2))) +
     xlab(expression(Delta~SO4~column~burden~(kg~m^-2)))
@@ -856,6 +857,31 @@ if (sort_by == "region") {
     ylab(expression(Delta~dms~(kg~S~kg^-1)))
 }
 
+# loadso2 vs rsut
+if (sort_by == "region") {
+  loadso2_rad_combined <- dplyr::left_join(loadso2,net_rad, by = c("model","experiment"))
+  loadso2_rad_plot <- ggplot(loadso2_rad_combined, aes(value.x,value.y,color=model)) +
+    geom_point() +
+    # trend lines
+    geom_smooth(method=lm,data=filter(loadso2_rad_combined,model=="CESM1"),se=FALSE, linetype = "dashed") +
+    geom_smooth(method=lm,data=filter(loadso2_rad_combined,model=="CAM-ATRAS"),se=FALSE, linetype = "dashed") +
+    geom_smooth(method=lm,data=filter(loadso2_rad_combined,model=="E3SM"),se=FALSE, linetype = "dashed") +
+    geom_smooth(method=lm,data=filter(loadso2_rad_combined,model=="GEOS"),se=FALSE, linetype = "dashed") +
+    geom_smooth(method=lm,data=filter(loadso2_rad_combined,model=="GFDL-ESM4"),se=FALSE, linetype = "dashed") +
+    geom_smooth(method=lm,data=filter(loadso2_rad_combined,model=="GISS-E2.1"),se=FALSE, linetype = "dashed") +
+    geom_smooth(method=lm,data=filter(loadso2_rad_combined,model=="NorESM2"),se=FALSE, linetype = "dashed") +
+    
+    # aesthetics
+    #facet_wrap(vars(model)) +
+    scale_color_manual(values = model_colors) +
+    geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y)) +
+    geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x)) +
+    #xlim(-1.6e-7,2.5e-7) +
+    #ylim(-1,0.6) +
+    ylab(expression(Delta~net~radiative~flux~(W~m^-2))) +
+    xlab(expression(Delta~SO2~column~burden~(kg~m^-2)))
+}
+
 # Function from stack exchange to generate a shared legend
 grid_arrange_shared_legend <- function(...) {
   plots <- list(...)
@@ -919,7 +945,7 @@ other_plot <- grid_arrange_shared_legend(loadso4_rsut_plot,
                                          loadso4_so4lifetime_plot,
                                          loadso2_dms_plot,
                                          so2_loadso2_plot,
-                                         emiso2_loadso2_plot)
+                                         loadso2_rad_plot)
 
 # other_plot_2 <- grid_arrange_shared_legend(mmrso4_loadso4_plot,
 #                                            so2_clt_plot,
