@@ -29,7 +29,7 @@ if (sort_by == "region") {region <- sorting[2]}
 if (sort_by == "experiment") {exper <- sorting[2]}
 
 sort_by <- "region"
-region <- "global"
+region <- "NH-pacific"
 #exper <- "shp-60p-red"
 
 
@@ -557,8 +557,8 @@ if (sort_by == "region"){
     # aesthetics
     scale_color_manual(values = model_colors) +
     #facet_wrap(vars(model)) +
-    geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y),width=1e-8,position=position_dodge(0.4)) +
-    geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x),height=0.2,position=position_dodge(0.4)) + # what is happening here???
+    geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y),width=0) +
+    geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x),height=0) +
     #xlim(-10000,10000) +
     #ylim(-1,0.6) +
     ylab(expression(Delta~shortwave~flux~(W~m^-2))) +
@@ -582,8 +582,8 @@ if (sort_by == "region") {
     # aesthetics
     #facet_wrap(vars(model)) +
     scale_color_manual(values = model_colors) +
-    geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y)) +
-    geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x)) +
+    geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y),width=0) +
+    geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x),height=0) +
     #xlim(-1.6e-7,2.5e-7) +
     #ylim(-1,0.6) +
     ylab(expression(Delta~shortwave~flux~(W~m^-2))) +
@@ -608,8 +608,8 @@ if (sort_by == "region") {
     # aesthetics
     #facet_wrap(vars(model)) +
     scale_color_manual(values = model_colors) +
-    geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y)) +
-    geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x)) +
+    geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y),width=0) +
+    geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x),height=0) +
     #xlim(-0.08,0.08) +
     #ylim(0,1.1) +
     ylab(expression(Delta~clear-sky~shortwave~flux~(W~m^-2))) +
@@ -634,8 +634,8 @@ if (sort_by == "region") {
     # aesthetics
     #facet_wrap(vars(model))
     scale_color_manual(values = model_colors) +
-    geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y)) +
-    geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x)) +
+    geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y),width=0) +
+    geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x),height=0) +
     #scale_shape_manual(values = model_symbols) +
     #xlim(-1.3e-7,8e-8) +
     #ylim (-2.3e-7,1.7e-7) +
@@ -657,8 +657,8 @@ if (sort_by == "region") {
     geom_smooth(method=lm,data=filter(loadso2_so2lifetime_combined,model=="GISS-E2.1"),se=FALSE, linetype = "dashed") +
     geom_smooth(method=lm,data=filter(loadso2_so2lifetime_combined,model=="NorESM2"),se=FALSE, linetype = "dashed") +
     scale_color_manual(values = model_colors) +
-    geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y)) +
-    geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x)) +
+    geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y),width=0) +
+    geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x),height=0) +
     #scale_shape_manual(values = model_symbols) +
     ylab(expression(Delta~SO2~lifetime~(days))) +
     xlab(expression(Delta~SO2~column~burden~(kg~m^-2)))
@@ -678,8 +678,8 @@ if (sort_by == "region") {
     geom_smooth(method=lm,data=filter(loadso4_so4lifetime_combined,model=="GISS-E2.1"),se=FALSE, linetype = "dashed") +
     geom_smooth(method=lm,data=filter(loadso4_so4lifetime_combined,model=="NorESM2"),se=FALSE, linetype = "dashed") +
     scale_color_manual(values = model_colors) +
-    geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y)) +
-    geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x)) +
+    geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y),width=0) +
+    geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x),height=0) +
     #scale_shape_manual(values = model_symbols) +89
     ylab(expression(Delta~SO4~lifetime~(days))) +
     xlab(expression(Delta~SO4~column~burden~(kg~m^-2)))
@@ -699,8 +699,8 @@ if (sort_by == "region") {
     geom_smooth(method=lm,data=filter(loadso2_dms_combined,model=="GISS-E2.1"),se=FALSE, linetype = "dashed") +
     geom_smooth(method=lm,data=filter(loadso2_dms_combined,model=="NorESM2"),se=FALSE, linetype = "dashed") +
     scale_color_manual(values = model_colors) +
-    geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y)) +
-    geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x)) +
+    geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y),width=0) +
+    geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x),height=0) +
     #scale_shape_manual(values = model_symbols) +
     xlab(expression(Delta~SO2~lifetime~(days))) +
     ylab(expression(Delta~DMS~(mol~mol^-1)))
@@ -720,8 +720,8 @@ if (sort_by == "region") {
     geom_smooth(method=lm,data=filter(so2_loadso2_combined,model=="GISS-E2.1"),se=FALSE, linetype= "dashed") +
     geom_smooth(method=lm,data=filter(so2_loadso2_combined,model=="NorESM2"),se=FALSE, linetype= "dashed") +
     scale_color_manual(values = model_colors) + 
-    geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y)) +
-    geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x)) +
+    geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y),width=0) +
+    geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x),height=0) +
     #scale_shape_manual(values = model_symbols) +
     xlab(expression(Delta~SO2~(kg~kg^-1))) +
     ylab(expression(Delta~SO2~column~burden~(kg~m^-2)))
@@ -741,8 +741,8 @@ if (sort_by == "region") {
     geom_smooth(method=lm,data=filter(emiso2_loadso2_combined,model=="GISS-E2.1"),se=FALSE, linetype= "dashed") +
     geom_smooth(method=lm,data=filter(emiso2_loadso2_combined,model=="NorESM2"),se=FALSE, linetype= "dashed") +
     scale_color_manual(values = model_colors) + 
-    geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y)) +
-    geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x)) +
+    geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y),width=0) +
+    geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x),height=0) +
     #xlim(-2.5e-12,5e-12) +
     #ylim(-1.3e-7,1.3e-7) +
     #scale_shape_manual(values = model_symbols) +
@@ -764,8 +764,8 @@ if (sort_by == "region") {
     geom_smooth(method=lm,data=filter(mmrso4_loadso4_combined,model=="GISS-E2.1"),se=FALSE, linetype= "dashed") +
     geom_smooth(method=lm,data=filter(mmrso4_loadso4_combined,model=="NorESM2"),se=FALSE, linetype= "dashed") +
     scale_color_manual(values = model_colors) + 
-    geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y)) +
-    geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x)) +
+    geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y),width=0) +
+    geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x),height=0) +
     #scale_shape_manual(values = model_symbols) +
     xlab(expression(Delta~SO4~(kg~kg^-1))) +
     ylab(expression(Delta~SO4~column~burden~(kg~m^-2)))
@@ -785,8 +785,8 @@ if (sort_by == "region") {
     geom_smooth(method=lm,data=filter(so2_clt_combined,model=="GISS-E2.1"),se=FALSE, linetype= "dashed") +
     geom_smooth(method=lm,data=filter(so2_clt_combined,model=="NorESM2"),se=FALSE, linetype= "dashed") +
     scale_color_manual(values = model_colors) + 
-    geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y)) +
-    geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x)) +
+    geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y),width=0) +
+    geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x),height=0) +
     #scale_shape_manual(values = model_symbols) +
     xlab(expression(Delta~SO2~(kg~kg^-1))) +
     ylab(expression(Delta~total~cloud~cover~percentage))
@@ -806,8 +806,8 @@ if (sort_by == "region") {
     geom_smooth(method=lm,data=filter(loadso2_clt_combined,model=="GISS-E2.1"),se=FALSE, linetype= "dashed") +
     geom_smooth(method=lm,data=filter(loadso2_clt_combined,model=="NorESM2"),se=FALSE, linetype= "dashed") +
     scale_color_manual(values = model_colors) + 
-    geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y)) +
-    geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x)) +
+    geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y),width=0) +
+    geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x),height=0) +
     #scale_shape_manual(values = model_symbols) +
     xlab(expression(Delta~SO2~column~burden~(kg~m^-2))) +
     ylab(expression(Delta~total~cloud~cover~percentage))
@@ -827,8 +827,8 @@ if (sort_by == "region") {
     geom_smooth(method=lm,data=filter(mmrso4_imp_cld_combined,model=="GISS-E2.1"),se=FALSE, linetype= "dashed") +
     geom_smooth(method=lm,data=filter(mmrso4_imp_cld_combined,model=="NorESM2"),se=FALSE, linetype= "dashed") +
     scale_color_manual(values = model_colors) + 
-    geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y)) +
-    geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x)) +
+    geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y),width=0) +
+    geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x),height=0) +
     #scale_shape_manual(values = model_symbols) +
     xlab(expression(Delta~SO2~column~burden~(kg~m^-2))) +
     ylab(expression(Delta~total~cloud~cover~percentage))
@@ -851,8 +851,8 @@ if (sort_by == "region") {
     geom_smooth(method=lm,data=filter(emiso2_dms_combined,model=="GISS-E2.1"),se=FALSE, linetype= "dashed") +
     geom_smooth(method=lm,data=filter(emiso2_dms_combined,model=="NorESM2"),se=FALSE, linetype= "dashed") +
     scale_color_manual(values = model_colors) + 
-    geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y)) +
-    geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x)) +
+    geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y),width=0) +
+    geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x),height=0) +
     xlab(expression(Delta~emiso2~(kg~m^-2~s^-1))) +
     ylab(expression(Delta~dms~(kg~S~kg^-1)))
 }
@@ -874,8 +874,8 @@ if (sort_by == "region") {
     # aesthetics
     #facet_wrap(vars(model)) +
     scale_color_manual(values = model_colors) +
-    geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y)) +
-    geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x)) +
+    geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y),width=0) +
+    geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x),height=0) +
     #xlim(-1.6e-7,2.5e-7) +
     #ylim(-1,0.6) +
     ylab(expression(Delta~net~radiative~flux~(W~m^-2))) +

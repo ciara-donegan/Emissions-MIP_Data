@@ -1,6 +1,6 @@
 variable,year,value,unit
-dryso2,2000,-38.490063,kg m-2 s-1
-dryso2,2001,-36.4039,kg m-2 s-1
-dryso2,2002,-35.159824,kg m-2 s-1
-dryso2,2003,-35.836494,kg m-2 s-1
-dryso2,2004,-39.38425,kg m-2 s-1
+dryso2,2000,0.05637221,kg m-2 s-1
+dryso2,2001,0.035146482,kg m-2 s-1
+dryso2,2002,0.095052704,kg m-2 s-1
+dryso2,2003,0.074965134,kg m-2 s-1
+dryso2,2004,0.066239804,kg m-2 s-1

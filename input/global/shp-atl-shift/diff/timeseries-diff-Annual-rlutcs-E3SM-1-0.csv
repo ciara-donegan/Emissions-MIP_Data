@@ -1,6 +1,6 @@
 variable,year,value,unit
-rlutcs,2000,0.08267212,W m-2
-rlutcs,2001,0.088134766,W m-2
-rlutcs,2002,0.093933105,W m-2
-rlutcs,2003,0.078704834,W m-2
-rlutcs,2004,0.08135986,W m-2
+rlutcs,2000,0.001373291,W m-2
+rlutcs,2001,-0.0036315918,W m-2
+rlutcs,2002,0.010101318,W m-2
+rlutcs,2003,-0.009002686,W m-2
+rlutcs,2004,-0.007873535,W m-2
