@@ -18,7 +18,7 @@ library(gridExtra)
 library(grid)
 
 # Specify and navigate to the location of Emissions-MIP directory
-emi_dir <- paste0("C:/Users/done231/OneDrive - PNNL/Desktop/Phase1b_input")
+emi_dir <- paste0("C:/Users/done231/OneDrive - PNNL/Desktop/Phase1b_data")
 setwd(paste0(emi_dir))
 
 # Specify what you are sorting by and either the region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, SH-sea) or experiment (i.e., bc-no-season, high-so4, no-so4, reference, so2-at-height, so2-no-season)

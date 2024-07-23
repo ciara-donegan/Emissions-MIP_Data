@@ -1,0 +1,6 @@
+variable,year,value,unit
+loadso4,2000,-0.007250027,kg m-2
+loadso4,2001,-0.051992964,kg m-2
+loadso4,2002,0.114761814,kg m-2
+loadso4,2003,-0.029412197,kg m-2
+loadso4,2004,0.0015758327,kg m-2

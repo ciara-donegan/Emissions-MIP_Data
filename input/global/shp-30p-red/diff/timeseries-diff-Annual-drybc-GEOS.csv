@@ -1,6 +1,6 @@
 variable,year,value,unit
-drybc,2000,1.4894227e-17,kg m-2 s-1
-drybc,2001,9.595189e-18,kg m-2 s-1
-drybc,2002,1.0557419e-17,kg m-2 s-1
-drybc,2003,7.087972e-18,kg m-2 s-1
-drybc,2004,-1.02457105e-17,kg m-2 s-1
+drybc,2001,-1.2822046e-16,kg m-2 s-1
+drybc,2002,-2.215025e-16,kg m-2 s-1
+drybc,2003,6.0375153e-16,kg m-2 s-1
+drybc,2004,-8.067684e-16,kg m-2 s-1
+drybc,2005,7.4834344e-16,kg m-2 s-1
