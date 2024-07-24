@@ -77,6 +77,8 @@ data_accumulation <- function(emi_dir, reg_name, exper){
     within(value <- ifelse(variable %in% c("dryso4", "loadso4", "mmrso4", "wetso4") & model == "NorESM2", 96/98, 1) * value) %>%
     dplyr::summarise(regional_data = mean(value), regional_data_sd = sd(value))
   
+  regional_data_summary <- filter(regional_data_summary,model!="GEOS")
+  
   return(regional_data_summary)
 }
 
@@ -956,7 +958,7 @@ other_plot <- grid_arrange_shared_legend(loadso4_rsut_plot,
 # Print plots
 if (sort_by == 'region'){
   setwd(paste0('../../../../output/', region, '/summary'))
-  pdf(paste0(region, '_summary_plots_diff.pdf'), height = 11, width = 8.5, paper = "letter")
+  pdf(paste0(region, '_summary_plots_diff-dropGEOS.pdf'), height = 11, width = 8.5, paper = "letter")
 }
 
 if (sort_by == 'experiment'){

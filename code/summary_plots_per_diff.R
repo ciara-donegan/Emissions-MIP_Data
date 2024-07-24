@@ -65,6 +65,8 @@ data_accumulation <- function(emi_dir, reg_name, exper){
   regional_data_summary <- regional_data %>% dplyr::group_by(variable, model) %>%
     dplyr::summarise(regional_data = mean(value), regional_data_sd = sd(value))
   
+  #regional_data_summary <- filter(regional_data_summary,model!="GEOS")
+  
   return(regional_data_summary)
 }
 
