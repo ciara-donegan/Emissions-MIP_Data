@@ -29,7 +29,7 @@ if (sort_by == "region"){region <- sorting[2]}
 if (sort_by == "experiment"){exper <- sorting[2]}
 
 sort_by <- "region"
-region <- "SH-sea"
+region <- "arctic"
 
 # Define colorblind-friendly palette colors and associate with models (in case a
 # plot is missing a model, the color scheme will remain consistent)
@@ -65,7 +65,7 @@ data_accumulation <- function(emi_dir, reg_name, exper){
   regional_data_summary <- regional_data %>% dplyr::group_by(variable, model) %>%
     dplyr::summarise(regional_data = mean(value), regional_data_sd = sd(value))
   
-  #regional_data_summary <- filter(regional_data_summary,model!="GEOS")
+  regional_data_summary <- filter(regional_data_summary,model!="GEOS")
   
   return(regional_data_summary)
 }
@@ -228,6 +228,11 @@ dms <- filter_species(summary_long, "dms")
 loadso4 <- filter_species(summary_long, "loadso4")
 loadbc <- filter_species(summary_long, "loadbc")
 loadso2 <- filter_species(summary_long, "loadso2")
+
+# add E3SM's srfdms to dms
+srfdms <- filter_species(summary_long, "srfdms")
+dms <- rbind(dms, srfdms) # append srfdms to dms
+dms[dms=="srfdms"] <- "dms" #replace srfdms variable name with dms
 
 #Creates a function that creates plots for the data based on each species
 if (sort_by == "region"){
@@ -534,7 +539,7 @@ column_plot <- grid_arrange_shared_legend(loadbc_plot,
 if (sort_by == 'region'){
   setwd(paste0('../../../../output/', region, '/summary'))
   
-  pdf(paste0(region, '_summary_plots_per_diff.pdf'), height = 11, width = 8.5, paper = "letter")
+  pdf(paste0(region, '_summary_plots_per_diff-dropGEOS.pdf'), height = 11, width = 8.5, paper = "letter")
 }
 
 if (sort_by == 'experiment'){
