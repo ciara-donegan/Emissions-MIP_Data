@@ -37,3 +37,11 @@ GISS-E2.1,shp_30p_red,rsdt
 GISS-E2.1,shp_60p_red,emiso2
 GISS-E2.1,shp_60p_red,rsdt
 E3SM,shp_atl_shift,wetso4
+E3SM,shp_atl_shift_1950,wetso2
+GISS-E2.1,shp_30p_red,wetso2
+GISS-E2.1,shp_60p_red,wetso2
+GISS-E2.1,shp_60p_red_1950,wetso2
+GISS-E2.1,shp_atl_shift,wetso2
+GISS-E2.1,shp_atl_shift_1950,wetso2
+GISS-E2.1,shp_ind_shift,wetso2
+GISS-E2.1,shp_ind_shift_1950,wetso2

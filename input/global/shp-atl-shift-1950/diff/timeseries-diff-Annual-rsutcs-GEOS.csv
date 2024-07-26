@@ -1,6 +1,6 @@
 variable,year,value,unit
-rsutcs,2000,0.00033950806,W m-2
-rsutcs,2001,-1.1444092e-05,W m-2
-rsutcs,2002,0.00011062622,W m-2
-rsutcs,2003,-0.000415802,W m-2
-rsutcs,2004,4.196167e-05,W m-2
+rsutcs,2001,-0.09792709,W m-2
+rsutcs,2002,0.0713768,W m-2
+rsutcs,2003,0.22444916,W m-2
+rsutcs,2004,0.10651398,W m-2
+rsutcs,2005,-0.017929077,W m-2

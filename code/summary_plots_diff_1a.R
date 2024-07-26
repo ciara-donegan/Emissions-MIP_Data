@@ -29,7 +29,7 @@ if (sort_by == "region") {region <- sorting[2]}
 if (sort_by == "experiment") {exper <- sorting[2]}
 
 sort_by <- "region"
-region <- "SH-sea"
+region <- "NH-land"
 #exper <- "shp-60p-red"
 
 
@@ -113,15 +113,18 @@ data_accumulation_reference <- function(emi_dir, reg_name, exper){
 if (sort_by == "region"){
   CMIP5_SO2_summary <- data_accumulation(emi_dir,region,"CMIP5-SO2")
   CMIP5_SO2_1950_summary <- data_accumulation(emi_dir,region,"CMIP5-SO2-1950")
+  high_so4_at_height_summary <- data_accumulation(emi_dir,region,"high-so4-at-height")
   
   CMIP5_SO2_summary <- rename(CMIP5_SO2_summary, CMIP5_SO2 = regional_data)
   CMIP5_SO2_1950_summary <- rename(CMIP5_SO2_1950_summary, CMIP5_SO2_1950 = regional_data)
+  high_so4_at_height_summary <- rename(high_so4_at_height_summary, high_so4_at_height = regional_data)
   
   CMIP5_SO2_summary <- rename(CMIP5_SO2_summary, CMIP5_SO2_sd = regional_data_sd)
   CMIP5_SO2_1950_summary <- rename(CMIP5_SO2_1950_summary, CMIP5_SO2_1950_sd = regional_data_sd)
+  high_so4_at_height_summary <- rename(high_so4_at_height_summary, high_so4_at_height_sd = regional_data_sd)
   
   # Bind data together
-  summary_data <- list(CMIP5_SO2_summary, CMIP5_SO2_1950_summary) %>% reduce(left_join, by = c("variable", "model"))
+  summary_data <- list(CMIP5_SO2_summary, CMIP5_SO2_1950_summary, high_so4_at_height_summary) %>% reduce(left_join, by = c("variable", "model"))
   
   # Correct model names for CESM, GISS, CAM-ATRAS, GFDL
   summary_data$model[which(summary_data$model == "CESM")] <- "CESM1"
@@ -131,12 +134,12 @@ if (sort_by == "region"){
   
   # Change to long format
   summary_long_exp <- summary_data %>%
-    gather(experiment, value, -c(model, variable, CMIP5_SO2_sd, CMIP5_SO2_1950_sd)) %>%
+    gather(experiment, value, -c(model, variable, CMIP5_SO2_sd, CMIP5_SO2_1950_sd, high_so4_at_height_sd)) %>%
     select(variable, model, experiment, value) %>%
     drop_na()
   
   summary_long_sd <- summary_data %>%
-    gather(experiment, sd, -c(model, variable, CMIP5_SO2, CMIP5_SO2_1950)) %>%
+    gather(experiment, sd, -c(model, variable, CMIP5_SO2, CMIP5_SO2_1950, high_so4_at_height)) %>%
     select(variable, model, experiment, sd) %>%
     drop_na()
   

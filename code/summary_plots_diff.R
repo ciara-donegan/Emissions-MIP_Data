@@ -29,7 +29,7 @@ if (sort_by == "region") {region <- sorting[2]}
 if (sort_by == "experiment") {exper <- sorting[2]}
 
 sort_by <- "region"
-region <- "SH-sea"
+region <- "global"
 #exper <- "shp-60p-red"
 
 
@@ -77,7 +77,7 @@ data_accumulation <- function(emi_dir, reg_name, exper){
     within(value <- ifelse(variable %in% c("dryso4", "loadso4", "mmrso4", "wetso4") & model == "NorESM2", 96/98, 1) * value) %>%
     dplyr::summarise(regional_data = mean(value), regional_data_sd = sd(value))
   
-  regional_data_summary <- filter(regional_data_summary,model!="GEOS")
+  #regional_data_summary <- filter(regional_data_summary,model!="GEOS")
   
   return(regional_data_summary)
 }
@@ -178,7 +178,7 @@ if (sort_by == "experiment"){
     global <- data_accumulation_reference(emi_dir,'global',exper)
     land <- data_accumulation_reference(emi_dir,'land',exper)
     NH_atlantic <- data_accumulation_reference(emi_dir,'NH-atlantic',exper)
-    indian <- data_accumulation_reference(emi_dir,'indian',exper)
+    NH_indian <- data_accumulation_reference(emi_dir,'NH-indian',exper)
     NH_land <- data_accumulation_reference(emi_dir,'NH-land',exper)
     NH_pacific <- data_accumulation_reference(emi_dir,'NH-pacific',exper)
     NH_sea <- data_accumulation_reference(emi_dir,'NH-sea',exper)
@@ -192,7 +192,7 @@ if (sort_by == "experiment"){
     global <- data_accumulation(emi_dir,'global',exper)
     land <- data_accumulation(emi_dir,'land',exper)
     NH_atlantic <- data_accumulation(emi_dir,'NH-atlantic',exper)
-    indian <- data_accumulation(emi_dir,'indian',exper)
+    NH_indian <- data_accumulation(emi_dir,'NH-indian',exper)
     NH_land <- data_accumulation(emi_dir,'NH-land',exper)
     NH_pacific <- data_accumulation(emi_dir,'NH-pacific',exper)
     NH_sea <- data_accumulation(emi_dir,'NH-sea',exper)
@@ -206,7 +206,7 @@ if (sort_by == "experiment"){
   global <- rename(global, global = regional_data)
   land <- rename(land, land = regional_data)
   NH_atlantic <- rename(NH_atlantic, NH_atlantic = regional_data)
-  indian <- rename(indian, indian = regional_data)
+  NH_indian <- rename(NH_indian, NH_indian = regional_data)
   NH_land <- rename(NH_land, NH_land = regional_data)
   NH_pacific <- rename(NH_pacific, NH_pacific = regional_data)
   NH_sea <- rename(NH_sea, NH_sea = regional_data)
@@ -218,7 +218,7 @@ if (sort_by == "experiment"){
   global <- rename(global, global_sd = regional_data_sd)
   land <- rename(land, land_sd = regional_data_sd)
   NH_atlantic <- rename(NH_atlantic, NH_atlantic_sd = regional_data_sd)
-  indian <- rename(indian, indian_sd = regional_data_sd)
+  NH_indian <- rename(NH_indian, NH_indian_sd = regional_data_sd)
   NH_land <- rename(NH_land, NH_land_sd = regional_data_sd)
   NH_pacific <- rename(NH_pacific, NH_pacific_sd = regional_data_sd)
   NH_sea <- rename(NH_sea, NH_sea_sd = regional_data_sd)
@@ -227,7 +227,7 @@ if (sort_by == "experiment"){
   SH_sea <- rename(SH_sea, SH_sea_sd = regional_data_sd)
   
   # Bind data together
-  summary_data <- list(arctic, global, land, NH_atlantic, indian, NH_land, NH_pacific, NH_sea, sea, SH_land, SH_sea) %>% reduce(left_join, by = c("variable", "model"))
+  summary_data <- list(arctic, global, land, NH_atlantic, NH_indian, NH_land, NH_pacific, NH_sea, sea, SH_land, SH_sea) %>% reduce(left_join, by = c("variable", "model"))
   
   # Correct model names
   summary_data$model[which(summary_data$model == "CESM")] <- "CESM1"
@@ -237,12 +237,12 @@ if (sort_by == "experiment"){
   
   # Change to long format
   summary_long_exp <- summary_data %>%
-    gather(region, value, -c(model, variable, arctic_sd, global_sd, land_sd, NH_atlantic_sd, indian_sd, NH_land_sd, NH_pacific_sd, NH_sea_sd, sea_sd, SH_land_sd, SH_sea_sd)) %>%
+    gather(region, value, -c(model, variable, arctic_sd, global_sd, land_sd, NH_atlantic_sd, NH_indian_sd, NH_land_sd, NH_pacific_sd, NH_sea_sd, sea_sd, SH_land_sd, SH_sea_sd)) %>%
     select(variable, model, region, value) %>%
     drop_na()
   
   summary_long_sd <- summary_data %>%
-    gather(region, sd, -c(model, variable, arctic, global, land, NH_atlantic, indian, NH_land, NH_pacific, NH_sea, sea, SH_land, SH_sea)) %>%
+    gather(region, sd, -c(model, variable, arctic, global, land, NH_atlantic, NH_indian, NH_land, NH_pacific, NH_sea, sea, SH_land, SH_sea)) %>%
     select(variable, model, region, sd) %>%
     drop_na()
   
@@ -958,7 +958,7 @@ other_plot <- grid_arrange_shared_legend(loadso4_rsut_plot,
 # Print plots
 if (sort_by == 'region'){
   setwd(paste0('../../../../output/', region, '/summary'))
-  pdf(paste0(region, '_summary_plots_diff-dropGEOS.pdf'), height = 11, width = 8.5, paper = "letter")
+  pdf(paste0(region, '_summary_plots_diff.pdf'), height = 11, width = 8.5, paper = "letter")
 }
 
 if (sort_by == 'experiment'){
