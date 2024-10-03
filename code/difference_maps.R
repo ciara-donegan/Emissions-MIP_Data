@@ -27,7 +27,7 @@ library(gridExtra)
 sort_by <- "scenario"
 
 # select scenario to generate maps for
-scenario <- "shp-ind-shift"
+scenario <- "shp-30p-red"
 region <- "NH-atlantic"
 
 # set path to netCDF files - replace with your path to files
@@ -231,9 +231,9 @@ rsutcs_E3SM <- get_ncdf_data("rsutcs","E3SM")
 
 # GEOS
 clt_GEOS <- get_ncdf_data("clt","GEOS")
-loadbc_GEOS <- get_ncdf_data("loadbc","GEOS")
-loadso2_GEOS <- get_ncdf_data("loadso2","GEOS")
-loadso4_GEOS <- get_ncdf_data("loadso4","GEOS")
+#loadbc_GEOS <- get_ncdf_data("loadbc","GEOS")
+#loadso2_GEOS <- get_ncdf_data("loadso2","GEOS")
+#loadso4_GEOS <- get_ncdf_data("loadso4","GEOS")
 rlut_GEOS <- get_ncdf_data("rlut","GEOS")
 rlutcs_GEOS <- get_ncdf_data("rlutcs","GEOS")
 rsut_GEOS <- get_ncdf_data("rsut","GEOS")
@@ -701,6 +701,23 @@ if (sort_by == "scenario") {
 # rlut_all.at <- seq(-bound_rlut_all,bound_rlut_all,length.out=24)
 # 
 # rlut_all_plot <- get_plot("rlut","all",rlut_all,rsut_all.at,"Upwelling Longwave Radiation \n at TOA (W/m^2) - All Models")
+
+# # get average clt plot
+# clt_all <- (clt_CAM5ATRAS+clt_CESM1+clt_E3SM+clt_GEOS+clt_GISS+clt_NorESM2)/7
+# clt_all.at <- drop_na(clt_all)
+# bound_clt_all <- max(abs(clt_all.at$layer))
+# clt_all.at <- seq(-bound_clt_all,bound_clt_all,length.out=24)
+# 
+# clt_all_plot <- get_plot("clt","all",clt_all,clt_all.at,"Average Total Cloud Cover Percentage (%) - Atlantic Shift")
+# 
+# # get average rlut plot
+# rlut_all <- (rlut_CAM5ATRAS+rlut_CESM1+rlut_E3SM+rlut_GEOS+rlut_GISS+rlut_GFDL+rlut_NorESM2)/7
+# rlut_all.at <- drop_na(rlut_all)
+# bound_rlut_all <- max(abs(rlut_all.at$layer))
+# rlut_all.at <- seq(-bound_rlut_all,bound_rlut_all,length.out=24)
+# 
+# rlut_all_plot <- get_plot("rlut","all",rlut_all,clt_all.at,"Upwelling Longwave Radiation \n at TOA (W/m^2) - All Models")
+
 # 
 # 
 # 
@@ -775,3 +792,17 @@ rlut_NorESM2_tot <- get_total_basin_diff(rlut_NorESM2)
 rsut_NorESM2_tot <- get_total_basin_diff(rsut_NorESM2)
 rlutcs_NorESM2_tot <- get_total_basin_diff(rlutcs_NorESM2)
 rsutcs_NorESM2_tot <- get_total_basin_diff(rsutcs_NorESM2)
+
+# Difference map averages
+group1_clt <- data.frame(x=clt_E3SM$x,y=clt_E3SM$y)
+group1_clt$CAMATRAS <- clt_CAM5ATRAS$layer
+group1_clt$CESM1 <- clt_CESM1$layer
+group1_clt$GISS <- clt_GISS$layer
+group1_clt$layer <- rowMeans(group1_clt[,3:5], na.rm=TRUE)
+group1_clt_plot <- get_plot("clt","",group1_clt,clt.at,"Mean Cloud Cover Percentage (%) - CAM5-ATRAS, CESM1, GISS")
+
+group2_clt <- data.frame(x=clt_E3SM$x,y=clt_E3SM$y)
+group2_clt$E3SM <- clt_E3SM$layer
+group2_clt$NorESM2 <- clt_NorESM2$layer
+group2_clt$layer <- rowMeans(group2_clt[,3:4], na.rm=TRUE)
+group2_clt_plot <- get_plot("clt","",group2_clt,clt.at,"Mean Cloud Cover Percentage (%) - E3SM, NorESM2")

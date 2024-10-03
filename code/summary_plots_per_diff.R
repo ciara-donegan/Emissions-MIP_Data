@@ -28,8 +28,9 @@ sort_by <- sorting[1]
 if (sort_by == "region"){region <- sorting[2]}
 if (sort_by == "experiment"){exper <- sorting[2]}
 
-sort_by <- "region"
+sort_by <- "experiment"
 region <- "NH-indian"
+exper <- "shp-atl-shift"
 
 # Define colorblind-friendly palette colors and associate with models (in case a
 # plot is missing a model, the color scheme will remain consistent)
@@ -161,7 +162,7 @@ if (sort_by == "experiment"){
   global <- rename(global, global_sd = regional_data_sd)
   land <- rename(land, land_sd = regional_data_sd)
   NH_atlantic <- rename(NH_atlantic, NH_atlantic_sd = regional_data_sd)
-  indian <- rename(indian, indian_sd = regional_data_sd)
+  NH_indian <- rename(NH_indian, NH_indian_sd = regional_data_sd)
   NH_land <- rename(NH_land, NH_land_sd = regional_data_sd)
   NH_pacific <- rename(NH_pacific, NH_pacific_sd = regional_data_sd)
   NH_sea <- rename(NH_sea, NH_sea_sd = regional_data_sd)
@@ -172,8 +173,11 @@ if (sort_by == "experiment"){
   # Bind data together
   summary_data <- list(arctic, global, land, NH_atlantic, NH_indian, NH_land, NH_pacific, NH_sea, sea, SH_land, SH_sea) %>% reduce(left_join, by = c("variable", "model"))
   
-  # Correct model names for CESM and CESM2
+  # Correct model names
   summary_data$model[which(summary_data$model == "CESM")] <- "CESM1"
+  summary_data$model[which(summary_data$model == "GISS")] <- "GISS-E2.1"
+  summary_data$model[which(summary_data$model == "CAM5")] <- "CAM-ATRAS"
+  summary_data$model[which(summary_data$model == "GFDL")] <- "GFDL-ESM4"
   
   # Change to long format
   summary_long_exp <- summary_data %>%
@@ -545,7 +549,7 @@ if (sort_by == 'region'){
 if (sort_by == 'experiment'){
   setwd(paste0('../../../../output/', exper, '/summary'))
   
-  pdf(paste0(exper, '_summary_plots_per_diff.pdf'), height = 11, width = 8.5, paper = "letter")
+  pdf(paste0(exper, '_summary_plots_per_diff-noGEOS.pdf'), height = 11, width = 8.5, paper = "letter")
 }
 
 grid.draw(emissions_plot)
