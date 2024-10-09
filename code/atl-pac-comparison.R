@@ -84,8 +84,12 @@ NH_pacific_60_1950 <- data_accumulation(emi_dir,'NH-pacific',"shp-60p-red-1950")
   mutate(experiment="shp_60p_red_1950") %>% select(variable,model,experiment,everything())
 
 # Bind together by region
-NH_atlantic <- bind_rows(list(NH_atlantic_atl,NH_atlantic_atl1950,NH_atlantic_30,NH_atlantic_60,NH_atlantic_60_1950))
-NH_pacific <- bind_rows(list(NH_pacific_atl,NH_pacific_atl1950,NH_pacific_30,NH_pacific_60,NH_pacific_60_1950))
+#NH_atlantic <- bind_rows(list(NH_atlantic_atl,NH_atlantic_atl1950,NH_atlantic_30,NH_atlantic_60,NH_atlantic_60_1950))
+#NH_atlantic <- bind_rows(list(NH_atlantic_atl,NH_atlantic_atl1950))
+NH_atlantic <- bind_rows(list(NH_atlantic_30,NH_atlantic_60,NH_atlantic_60_1950))
+#NH_pacific <- bind_rows(list(NH_pacific_atl,NH_pacific_atl1950,NH_pacific_30,NH_pacific_60,NH_pacific_60_1950))
+#NH_pacific <- bind_rows(list(NH_pacific_atl,NH_pacific_atl1950))
+NH_pacific <- bind_rows(list(NH_pacific_30,NH_pacific_60,NH_pacific_60_1950))
 
 #rename the mean and standard deviation results columns in each data frame
 NH_atlantic <- rename(NH_atlantic, NH_atlantic = regional_data)
@@ -295,7 +299,7 @@ burden_plots <- grid_arrange_shared_legend(loadso2_diff_plot,
 
 # Print plots
 setwd("../../../../output/comparison_plots")
-pdf("atl-pac_comparison.pdf", height = 11, width = 8.5, paper = "letter")
+pdf("atl-pac_comparison_red-scenarios.pdf", height = 11, width = 8.5, paper = "letter")
 
 grid.draw(forcing_plots)
 grid.newpage()
