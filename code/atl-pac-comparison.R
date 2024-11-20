@@ -28,7 +28,7 @@ excluded_models <- excluded_models %>% drop_na() #gets rid of any empty spaces
 #extracts data for each perturbation experiment from csv files
 data_accumulation <- function(emi_dir, reg_name, exper){
   
-  setwd(paste0(emi_dir,'/input/', reg_name,'/', exper, '/diff'))
+  setwd(paste0(emi_dir,'/input/', reg_name,'/', exper, '/per-diff'))
   
   # Read in csv files and bind into single data frame
   target_filename <- list.files(getwd(), "*.csv")
@@ -85,11 +85,11 @@ NH_pacific_60_1950 <- data_accumulation(emi_dir,'NH-pacific',"shp-60p-red-1950")
 
 # Bind together by region
 #NH_atlantic <- bind_rows(list(NH_atlantic_atl,NH_atlantic_atl1950,NH_atlantic_30,NH_atlantic_60,NH_atlantic_60_1950))
-#NH_atlantic <- bind_rows(list(NH_atlantic_atl,NH_atlantic_atl1950))
-NH_atlantic <- bind_rows(list(NH_atlantic_30,NH_atlantic_60,NH_atlantic_60_1950))
+NH_atlantic <- bind_rows(list(NH_atlantic_atl,NH_atlantic_atl1950))
+#NH_atlantic <- bind_rows(list(NH_atlantic_30,NH_atlantic_60,NH_atlantic_60_1950))
 #NH_pacific <- bind_rows(list(NH_pacific_atl,NH_pacific_atl1950,NH_pacific_30,NH_pacific_60,NH_pacific_60_1950))
-#NH_pacific <- bind_rows(list(NH_pacific_atl,NH_pacific_atl1950))
-NH_pacific <- bind_rows(list(NH_pacific_30,NH_pacific_60,NH_pacific_60_1950))
+NH_pacific <- bind_rows(list(NH_pacific_atl,NH_pacific_atl1950))
+#NH_pacific <- bind_rows(list(NH_pacific_30,NH_pacific_60,NH_pacific_60_1950))
 
 #rename the mean and standard deviation results columns in each data frame
 NH_atlantic <- rename(NH_atlantic, NH_atlantic = regional_data)
@@ -256,10 +256,10 @@ rlutcs_diff_plot <- plot_species(rlutcs_diff, "upwelling clear-sky longwave flux
 net_rad_diff_plot <- plot_species(net_rad_diff, "net radiative flux at TOA -",expression(Delta*~rlut~+~rsut~(total~W)),model_colors,model_symbols,c(-2.2e13,2.2e13))
 net_rad_cs_diff_plot <- plot_species(net_rad_cs_diff, "clear-sky net radiative flux at TOA -",expression(Delta*~rlutcs~+~rsutcs~(total~W)),model_colors,model_symbols,c(-2.2e13,2.2e13))
 imp_cld_diff_plot <- plot_species(imp_cld_diff, "implied cloud response at TOA -",expression(Delta*~rlut~+~rsut~-~rlutcs~-~rsutcs~(total~W)),model_colors,model_symbols,c(-2.2e13,2.2e13))
-dryso2_diff_plot <- plot_species(dryso2_diff, "dry deposition rate of SO2 -",expression(Delta*~dryso2~(kg~s^-1)),model_colors,model_symbols,c(-17,17))
-wetso2_diff_plot <- plot_species(wetso2_diff, "wet deposition rate of SO2 -",expression(Delta*~wetso2~(kg~s^-1)),model_colors,model_symbols,c(-17,17))
-dryso4_diff_plot <- plot_species(dryso4_diff, "dry deposition rate of SO4 -",expression(Delta*~dryso4~(kg~s^-1)),model_colors,model_symbols,c(-17,17))
-wetso4_diff_plot <- plot_species(wetso4_diff, "wet deposition rate of SO4 -",expression(Delta*~wetso4~(kg~s^-1)),model_colors,model_symbols,c(-17,17))
+dryso2_diff_plot <- plot_species(dryso2_diff, "dry deposition rate of SO2 -",expression(Delta*~dryso2~(kg~s^-1)),model_colors,model_symbols)#,c(-17,17))
+wetso2_diff_plot <- plot_species(wetso2_diff, "wet deposition rate of SO2 -",expression(Delta*~wetso2~(kg~s^-1)),model_colors,model_symbols)#,c(-17,17))
+dryso4_diff_plot <- plot_species(dryso4_diff, "dry deposition rate of SO4 -",expression(Delta*~dryso4~(kg~s^-1)),model_colors,model_symbols)#,c(-17,17))
+wetso4_diff_plot <- plot_species(wetso4_diff, "wet deposition rate of SO4 -",expression(Delta*~wetso4~(kg~s^-1)),model_colors,model_symbols)#,c(-17,17))
 loadso2_diff_plot <- plot_species(loadso2_diff, "SO2 column burden -",expression(Delta*~loadso2~(kg)),model_colors,model_symbols,c(-4e6,4e6))
 loadso4_diff_plot <- plot_species(loadso4_diff, "SO4 column burden -",expression(Delta*~loadso4~(kg)),model_colors,model_symbols,c(-4e6,4e6))
 
@@ -299,7 +299,7 @@ burden_plots <- grid_arrange_shared_legend(loadso2_diff_plot,
 
 # Print plots
 setwd("../../../../output/comparison_plots")
-pdf("atl-pac_comparison_red-scenarios.pdf", height = 11, width = 8.5, paper = "letter")
+pdf("atl-pac_comparison_atl-scenarios_per-diff.pdf", height = 11, width = 8.5, paper = "letter")
 
 grid.draw(forcing_plots)
 grid.newpage()

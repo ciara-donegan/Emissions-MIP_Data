@@ -18,7 +18,7 @@ library(gridExtra)
 library(grid)
 
 # Specify and navigate to the location of Emissions-MIP directory
-emi_dir <- paste0("C:/Users/done231/OneDrive - PNNL/Documents/GitHub/Emissions-MIP_data/Emissions-MIP_data/")
+emi_dir <- paste0("C:/Users/done231/OneDrive - PNNL/Documents/GitHub/Emissions-MIP_Data/Emissions-MIP_Data/")
 setwd(paste0(emi_dir))
 
 # Specify what you are sorting by and either the region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, SH-sea) or experiment (i.e., bc-no-season, high-so4, no-so4, reference, so2-at-height, so2-no-season)
@@ -29,7 +29,8 @@ if (sort_by == "region") {region <- sorting[2]}
 if (sort_by == "experiment") {exper <- sorting[2]}
 
 sort_by <- "region"
-region <- "NH-atlantic"
+region <- "NH-sea"
+#exper <- "shp-60p-red"
 
 
 # Define colorblind-friendly palette colors and associate with models (in case a
@@ -657,8 +658,8 @@ if (sort_by == "region") {
     scale_color_manual(values = model_colors) + 
     geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y),width=0) +
     geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x),height=0) +
-    #xlim(-2.5e-12,5e-12) +
-    #ylim(-1.3e-7,1.3e-7) +
+    #xlim(-8.5e-13,0) +
+    #ylim(-9e-8,1.5e-8) +
     #scale_shape_manual(values = model_symbols) +
     xlab(expression(Delta~SO2~surface~flux~(kg~m^-2~s^-1))) +
     ylab(expression(Delta~SO2~column~burden~(kg~m^-2)))
@@ -845,14 +846,14 @@ deposition_plot <- grid_arrange_shared_legend(drybc_plot,
                                               wetso4_plot,
                                               tot_s_plot)
 
-column_plot <- grid_arrange_shared_legend(loadbc_plot,
-                                          loadso2_plot,
-                                          loadso4_plot)
+column_plot <- grid_arrange_shared_legend(loadso2_plot,
+                                          loadso4_plot,
+                                          loadbc_plot)
 
 if (sort_by == "region") {
   other_plot <- grid_arrange_shared_legend(loadso4_rsut_plot,
                                            loadso2_rsut_plot,
-                                           so2lifetime_rsutcs_plot,
+                                           emiso2_loadso2_plot,
                                            loadso2_loadso4_plot,
                                            loadso2_so2lifetime_plot,
                                            loadso4_so4lifetime_plot,
@@ -870,13 +871,13 @@ if (sort_by == "region") {
 # Print plots
 if (sort_by == 'region'){
   setwd(paste0('../../../../output/', region, '/summary'))
-  pdf(paste0(region, '_summary_plots_diff-yadjusted-noGEOS.pdf'), height = 11, width = 8.5, paper = "letter")
+  pdf(paste0(region, '_summary_plots_diff.pdf'), height = 11, width = 8.5, paper = "letter")
 }
 
 if (sort_by == 'experiment'){
   setwd(paste0('../../../../output/', exper, '/summary'))
   
-  pdf(paste0(exper, '_summary_plots_diff-noGEOS.pdf'), height = 11, width = 8.5, paper = "letter")
+  pdf(paste0(exper, '_summary_plots_diff.pdf'), height = 11, width = 8.5, paper = "letter")
 }
 
 grid.draw(emissions_plot)

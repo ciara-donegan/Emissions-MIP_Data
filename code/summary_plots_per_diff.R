@@ -18,7 +18,7 @@ library(gridExtra)
 library(grid)
 
 # Specify and navigate to the location of Emissions-MIP directory
-emi_dir <- paste0("C:/Users/done231/OneDrive - PNNL/Desktop/Phase1b_data")
+emi_dir <- paste0("C:/Users/done231/OneDrive - PNNL/Documents/GitHub/Emissions-MIP_Data/Emissions-MIP_Data/")
 setwd(paste0(emi_dir))
 
 # Specify what you are sorting by and either the region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, SH-sea) or experiment (i.e., bc-no-season, high-so4, no-so4, reference, so2-at-height, so2-no-season)
@@ -29,8 +29,8 @@ if (sort_by == "region"){region <- sorting[2]}
 if (sort_by == "experiment"){exper <- sorting[2]}
 
 sort_by <- "experiment"
-region <- "NH-indian"
-exper <- "shp-atl-shift"
+#region <- "NH-indian"
+exper <- "shp-60p-red"
 
 # Define colorblind-friendly palette colors and associate with models (in case a
 # plot is missing a model, the color scheme will remain consistent)
@@ -66,7 +66,7 @@ data_accumulation <- function(emi_dir, reg_name, exper){
   regional_data_summary <- regional_data %>% dplyr::group_by(variable, model) %>%
     dplyr::summarise(regional_data = mean(value), regional_data_sd = sd(value))
   
-  regional_data_summary <- filter(regional_data_summary,model!="GEOS")
+  #regional_data_summary <- filter(regional_data_summary,model!="GEOS")
   
   return(regional_data_summary)
 }
@@ -292,7 +292,7 @@ if (sort_by == "region"){
   loadso2_plot <- plot_species(loadso2, region, value, 'load \n of so2', expression(Delta*~loadso2~(kg~m^-2)), region, model_colors, model_symbols)
 }
 if (sort_by == "experiment"){
-  plot_species <- function(variable, x, y, title, units, region_or_exper, model_colors, model_symbols){
+  plot_species <- function(variable, x, y, title, units, region_or_exper, model_colors, model_symbols, ylimit=c(NA,NA)){
     species <- variable
     species_plot <- ggplot(species, aes(x = region, y = value, color = model, shape = model))+
       theme_bw()+
@@ -306,8 +306,12 @@ if (sort_by == "experiment"){
       scale_colour_manual(values = model_colors) +
       scale_shape_manual(values = model_symbols) +
       geom_point( position=position_dodge(width = 0.4), size = 1.5) +
-      geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F)
-    
+      geom_errorbar(aes(ymin=value-sd, ymax=value+sd), width=0.2, position=position_dodge(0.4), show.legend = F) +
+      if(missing(ylimit)) {
+        
+      } else {
+        ylim(ylimit[1],ylimit[2])
+      }
     return(species_plot)
   }
   #creates plots based on each species using the plot_species function
@@ -333,8 +337,9 @@ if (sort_by == "experiment"){
   cl_plot <- plot_species(cl, region, value, 'cloud cover \n percentage', "expression cl (%)", exper, model_colors, model_symbols)
   clivi_plot <- plot_species(clivi, region, value, 'Ice water path', expression(Delta*~clivi~(kg~m^-2)), exper, model_colors, model_symbols)
   dms_plot <- plot_species(dms, region, value, 'Dimethyl sulphide (DMS) mole fraction', expression(Delta*~dms~(mol~mol^-1)), exper, model_colors, model_symbols)
-  loadso4_plot  <- plot_species(loadso4, region, value, 'load \n of so4', expression(Delta*~loadso4~(kg~m^-2)), exper, model_colors, model_symbols)
+  loadso4_plot  <- plot_species(loadso4, region, value, 'load \n of so4', expression(Delta*~loadso4~(kg~m^-2)), exper, model_colors, model_symbols,c(-10,1))
   loadbc_plot  <- plot_species(loadbc, region, value, 'load \n of bc', expression(Delta*~loadbc~(kg~m^-2)), exper, model_colors, model_symbols)
+  loadso2_plot  <- plot_species(loadso2, region, value, 'load \n of so2', expression(Delta*~loadso2~(kg~m^-2)), exper, model_colors, model_symbols,c(-10,1))
   
 }
 
@@ -549,7 +554,7 @@ if (sort_by == 'region'){
 if (sort_by == 'experiment'){
   setwd(paste0('../../../../output/', exper, '/summary'))
   
-  pdf(paste0(exper, '_summary_plots_per_diff-noGEOS.pdf'), height = 11, width = 8.5, paper = "letter")
+  pdf(paste0(exper, '_summary_plots_per_diff.pdf'), height = 11, width = 8.5, paper = "letter")
 }
 
 grid.draw(emissions_plot)
