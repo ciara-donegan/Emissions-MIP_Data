@@ -66,7 +66,7 @@ data_accumulation <- function(emi_dir, reg_name, exper){
   regional_data_summary <- regional_data %>% dplyr::group_by(variable, model) %>%
     dplyr::summarise(regional_data = mean(value), regional_data_sd = sd(value))
   
-  #regional_data_summary <- filter(regional_data_summary,model!="GEOS")
+  regional_data_summary <- filter(regional_data_summary,model!="GEOS")
   
   return(regional_data_summary)
 }
@@ -548,13 +548,13 @@ column_plot <- grid_arrange_shared_legend(loadbc_plot,
 if (sort_by == 'region'){
   setwd(paste0('../../../../output/', region, '/summary'))
   
-  pdf(paste0(region, '_summary_plots_per_diff-dropGEOS.pdf'), height = 11, width = 8.5, paper = "letter")
+  pdf(paste0(region, '_summary_plots_per_diff-noGEOS.pdf'), height = 11, width = 8.5, paper = "letter")
 }
 
 if (sort_by == 'experiment'){
   setwd(paste0('../../../../output/', exper, '/summary'))
   
-  pdf(paste0(exper, '_summary_plots_per_diff.pdf'), height = 11, width = 8.5, paper = "letter")
+  pdf(paste0(exper, '_summary_plots_per_diff-noGEOS.pdf'), height = 11, width = 8.5, paper = "letter")
 }
 
 grid.draw(emissions_plot)
