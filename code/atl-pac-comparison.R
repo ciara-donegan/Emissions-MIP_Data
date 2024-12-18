@@ -28,7 +28,7 @@ excluded_models <- excluded_models %>% drop_na() #gets rid of any empty spaces
 #extracts data for each perturbation experiment from csv files
 data_accumulation <- function(emi_dir, reg_name, exper){
   
-  setwd(paste0(emi_dir,'/input/', reg_name,'/', exper, '/per-diff'))
+  setwd(paste0(emi_dir,'/input/', reg_name,'/', exper, '/diff'))
   
   # Read in csv files and bind into single data frame
   target_filename <- list.files(getwd(), "*.csv")
@@ -153,7 +153,7 @@ title_font <- 9.5
 axis_font <- 9
 axis_title_font <- 9
 
-#creates a function that filters species out of a database
+#creates a function that filters species out of a database and multiplies by ocean basin area
 filter_species <- function(database, species){
   species <- dplyr::filter(database, variable == species) %>%
     #dplyr::mutate(experiment=exper) %>%
@@ -256,10 +256,10 @@ rlutcs_diff_plot <- plot_species(rlutcs_diff, "upwelling clear-sky longwave flux
 net_rad_diff_plot <- plot_species(net_rad_diff, "net radiative flux at TOA -",expression(Delta*~rlut~+~rsut~(total~W)),model_colors,model_symbols,c(-2.2e13,2.2e13))
 net_rad_cs_diff_plot <- plot_species(net_rad_cs_diff, "clear-sky net radiative flux at TOA -",expression(Delta*~rlutcs~+~rsutcs~(total~W)),model_colors,model_symbols,c(-2.2e13,2.2e13))
 imp_cld_diff_plot <- plot_species(imp_cld_diff, "implied cloud response at TOA -",expression(Delta*~rlut~+~rsut~-~rlutcs~-~rsutcs~(total~W)),model_colors,model_symbols,c(-2.2e13,2.2e13))
-dryso2_diff_plot <- plot_species(dryso2_diff, "dry deposition rate of SO2 -",expression(Delta*~dryso2~(kg~s^-1)),model_colors,model_symbols)#,c(-17,17))
-wetso2_diff_plot <- plot_species(wetso2_diff, "wet deposition rate of SO2 -",expression(Delta*~wetso2~(kg~s^-1)),model_colors,model_symbols)#,c(-17,17))
-dryso4_diff_plot <- plot_species(dryso4_diff, "dry deposition rate of SO4 -",expression(Delta*~dryso4~(kg~s^-1)),model_colors,model_symbols)#,c(-17,17))
-wetso4_diff_plot <- plot_species(wetso4_diff, "wet deposition rate of SO4 -",expression(Delta*~wetso4~(kg~s^-1)),model_colors,model_symbols)#,c(-17,17))
+dryso2_diff_plot <- plot_species(dryso2_diff, "dry deposition rate of SO2 -",expression(Delta*~dryso2~(kg~s^-1)),model_colors,model_symbols,c(-30,30))
+wetso2_diff_plot <- plot_species(wetso2_diff, "wet deposition rate of SO2 -",expression(Delta*~wetso2~(kg~s^-1)),model_colors,model_symbols,c(-30,30))
+dryso4_diff_plot <- plot_species(dryso4_diff, "dry deposition rate of SO4 -",expression(Delta*~dryso4~(kg~s^-1)),model_colors,model_symbols,c(-30,30))
+wetso4_diff_plot <- plot_species(wetso4_diff, "wet deposition rate of SO4 -",expression(Delta*~wetso4~(kg~s^-1)),model_colors,model_symbols,c(-30,30))
 loadso2_diff_plot <- plot_species(loadso2_diff, "SO2 column burden -",expression(Delta*~loadso2~(kg)),model_colors,model_symbols,c(-4e6,4e6))
 loadso4_diff_plot <- plot_species(loadso4_diff, "SO4 column burden -",expression(Delta*~loadso4~(kg)),model_colors,model_symbols,c(-4e6,4e6))
 
@@ -299,7 +299,7 @@ burden_plots <- grid_arrange_shared_legend(loadso2_diff_plot,
 
 # Print plots
 setwd("../../../../output/comparison_plots")
-pdf("atl-pac_comparison_atl-scenarios_per-diff.pdf", height = 11, width = 8.5, paper = "letter")
+pdf("atl-pac_comparison_atl-scenarios_diff.pdf", height = 11, width = 8.5, paper = "letter")
 
 grid.draw(forcing_plots)
 grid.newpage()

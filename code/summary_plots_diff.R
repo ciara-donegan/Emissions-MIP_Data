@@ -28,7 +28,7 @@ sort_by <- sorting[1]
 if (sort_by == "region") {region <- sorting[2]}
 if (sort_by == "experiment") {exper <- sorting[2]}
 
-sort_by <- "region"
+sort_by <- "experiment"
 #region <- "NH-sea"
 exper <- "shp-60p-red"
 
@@ -521,6 +521,7 @@ if (sort_by == "region"){
   tot_so4_plot <- plot_species(tot_so4, region, value, 'total SO4 - \n', expression(Delta*~dryso4~+~wetso4), region, model_colors, model_symbols)
 }
 
+## Get linear regression plots
 # loadso4 vs rsut
 if (sort_by == "region"){
   loadso4_rsut_combined <- dplyr::left_join(loadso4,rsut, by = c("model","experiment"))
