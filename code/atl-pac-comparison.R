@@ -132,7 +132,7 @@ if(nrow(excluded_models) != 0) { #only runs if the data frame is not empty
 
 # Multiply by areas of ocean basins to get values over entire basin
 get_basin_area <- function(grid_file) {
-  nc_file <- nc_open(paste0(emi_dir,"/input/",grid_file))
+  nc_file <- nc_open(paste0(emi_dir,"input/",grid_file))
   area_array <- ncvar_get(nc_file,"cell_area")
   nc_close(nc_file)
   total_area <- sum(area_array,na.rm=TRUE)
