@@ -46,14 +46,14 @@ loadso2 <- filter_species(summary_long, "loadso2")
 
 if (sort_by=="region") {
   #creates plots based on each species using the plot_species function
-  loadso4_plot  <- plot_species(loadso4, region, value, 'Load of SO4', expression(Delta*~loadso4~(kg~m^-2)), region, model_colors, model_symbols)
-  loadso2_plot <- plot_species(loadso2, region, value, 'Load of SO2', expression(Delta*~loadso2~(kg~m^-2)), region, model_colors, model_symbols)
+  loadso4_plot  <- plot_species(loadso4, region, value, 'Load of SO4', expression(Delta*~loadso4~(kg~m^-2)), region, model_colors, model_symbols, ylimit=c(NA,0))
+  loadso2_plot <- plot_species(loadso2, region, value, 'Load of SO2', expression(Delta*~loadso2~(kg~m^-2)), region, model_colors, model_symbols, ylimit=c(NA,0))
 }
 
 if (sort_by=="experiment") {
   #creates plots based on each species using the plot_species function
-  loadso4_plot  <- plot_species(loadso4, region, value, 'Load of SO4', expression(Delta*~loadso4~(kg~m^-2)), exper, model_colors, model_symbols)
-  loadso2_plot  <- plot_species(loadso2, region, value, 'Load of SO2', expression(Delta*~loadso2~(kg~m^-2)), exper, model_colors, model_symbols)
+  loadso4_plot  <- plot_species(loadso4, region, value, 'Load of SO4', expression(Delta*~loadso4~(kg~m^-2)), exper, model_colors, model_symbols, ylimit=c(NA,0))
+  loadso2_plot  <- plot_species(loadso2, region, value, 'Load of SO2', expression(Delta*~loadso2~(kg~m^-2)), exper, model_colors, model_symbols, ylimit=c(NA,0))
 }
 
 # Save loadso2 and loadso4
@@ -77,14 +77,14 @@ loadso2 <- filter_species(summary_long, "loadso2")
 
 if (sort_by=="region") {
   #creates plots based on each species using the plot_species function
-  loadso4_plot  <- plot_species(loadso4, region, value, 'Load of SO4', "Percent Difference", region, model_colors, model_symbols)
-  loadso2_plot <- plot_species(loadso2, region, value, 'Load of SO2', "Percent Difference", region, model_colors, model_symbols)
+  loadso4_plot  <- plot_species(loadso4, region, value, 'Load of SO4', "%", region, model_colors, model_symbols, ylimit=c(NA,0))
+  loadso2_plot <- plot_species(loadso2, region, value, 'Load of SO2', "%", region, model_colors, model_symbols, ylimit=c(NA,0))
 }
 
 if (sort_by=="experiment") {
   #creates plots based on each species using the plot_species function
-  loadso4_plot  <- plot_species(loadso4, region, value, 'Load of SO4', "Percent Difference", exper, model_colors, model_symbols)
-  loadso2_plot  <- plot_species(loadso2, region, value, 'Load of SO2', "Percent Difference", exper, model_colors, model_symbols)
+  loadso4_plot  <- plot_species(loadso4, region, value, 'Load of SO4', "%", exper, model_colors, model_symbols, ylimit=c(NA,0))
+  loadso2_plot  <- plot_species(loadso2, region, value, 'Load of SO2', "%", exper, model_colors, model_symbols, ylimit=c(NA,0))
 }
 
 # Save loadso2 and loadso4
@@ -146,5 +146,11 @@ loadso4$sd[loadso4$region=="NH_indian"] <- loadso4$sd[loadso4$region=="NH_indian
 loadso4$sd[loadso4$region=="arctic"] <- loadso4$sd[loadso4$region=="arctic"]*arctic_area*1e-9
 
 ## Plot
-loadso2_basin_plot  <- plot_species(loadso2, region, value, 'SO2 Column Burden', expression(Delta*~loadso2~(Tg)), exper, model_colors, model_symbols)
-loadso4_basin_plot  <- plot_species(loadso4, region, value, 'SO4 Column Burden', expression(Delta*~loadso4~(Tg)), exper, model_colors, model_symbols)
+loadso2_basin_plot  <- plot_species(loadso2, region, value, 'SO2 Column Burden', expression(Delta*~loadso2~(Tg)), exper, model_colors, model_symbols,ylimit=c(NA,0.005))
+loadso4_basin_plot  <- plot_species(loadso4, region, value, 'SO4 Column Burden', expression(Delta*~loadso4~(Tg)), exper, model_colors, model_symbols,ylimit=c(NA,0.01))
+
+# Save so2/so4 plots together
+sox_basin_plots <- grid_arrange_shared_legend(loadso2_basin_plot,loadso4_basin_plot)
+png(paste0(emi_dir,"/output/SOx_basin_plots_shp-60p-red.png"))
+grid.draw(sox_basin_plots)
+dev.off()
