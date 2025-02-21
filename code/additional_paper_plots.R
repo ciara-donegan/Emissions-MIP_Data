@@ -8,6 +8,7 @@ library(ggplot2)
 library(gridExtra)
 library(grid)
 library(ncdf4)
+library(cowplot)
 
 # Specify and navigate to the location of Emissions-MIP directory
 emi_dir <- paste0("C:/Users/done231/OneDrive - PNNL/Documents/GitHub/Emissions-MIP_Data/Emissions-MIP_Data/")
@@ -92,9 +93,16 @@ loadso2_perdiff <- loadso2_plot
 loadso4_perdiff <- loadso4_plot
 
 # Save so2/so4 plots together
-sox_plots <- grid_arrange_shared_legend(loadso2_diff,loadso4_diff,loadso2_perdiff,loadso4_perdiff)
+#sox_plots <- grid_arrange_shared_legend(loadso2_diff,loadso4_diff,loadso2_perdiff,loadso4_perdiff)
+legend <- get_legend(loadso2_diff)
+loadso2_diff2 <- loadso2_diff + theme(legend.position = "none")
+loadso4_diff2 <- loadso4_diff + theme(legend.position = "none")
+loadso2_perdiff2 <- loadso2_perdiff + theme(legend.position = "none")
+loadso4_perdiff2 <- loadso4_perdiff + theme(legend.position = "none")
+sox_plots <- plot_grid(loadso2_diff2,loadso4_diff2,loadso2_perdiff2,loadso4_perdiff2,ncol=2,align="hv",axis="tblr")
+sox_plots_grid <- plot_grid(sox_plots,legend,ncol=2,rel_heights=c(4,5))
 png(paste0(emi_dir,"/output/SOx_plots_shp-60p-red.png"))
-grid.draw(sox_plots)
+grid.draw(sox_plots_grid)
 dev.off()
 
 ## Generate load plots with absolute amounts (kg over entire basin)

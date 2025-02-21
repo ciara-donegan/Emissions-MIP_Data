@@ -282,6 +282,6 @@ grid_arrange_shared_legend <- function(...) {
       x + theme(legend.position="none"))),
     legend,
     ncol = 1,
+    #widths = 5,
     heights = unit.c(unit(1, "npc") - 1.5 * lheight, lheight)) # the "1.5" adds room for title
-    #top = textGrob("Summary - absolute difference", gp = gpar(fontsize = 12)))
 }
