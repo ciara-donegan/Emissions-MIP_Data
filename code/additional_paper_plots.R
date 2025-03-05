@@ -47,14 +47,14 @@ loadso2 <- filter_species(summary_long, "loadso2")
 
 if (sort_by=="region") {
   #creates plots based on each species using the plot_species function
-  loadso4_plot  <- plot_species(loadso4, region, value, 'Load of SO4', expression(Delta*~loadso4~(kg~m^-2)), region, model_colors, model_symbols, ylimit=c(NA,0))
-  loadso2_plot <- plot_species(loadso2, region, value, 'Load of SO2', expression(Delta*~loadso2~(kg~m^-2)), region, model_colors, model_symbols, ylimit=c(NA,0))
+  loadso4_plot  <- plot_species(loadso4, region, value, 'SO4 Absolute Difference', expression(Delta*~loadso4~(kg~m^-2)), region, model_colors, model_symbols, ylimit=c(NA,0))
+  loadso2_plot <- plot_species(loadso2, region, value, 'SO2 Absolute Difference', expression(Delta*~loadso2~(kg~m^-2)), region, model_colors, model_symbols, ylimit=c(NA,0))
 }
 
 if (sort_by=="experiment") {
   #creates plots based on each species using the plot_species function
-  loadso4_plot  <- plot_species(loadso4, region, value, 'Load of SO4', expression(Delta*~loadso4~(kg~m^-2)), exper, model_colors, model_symbols, ylimit=c(NA,0))
-  loadso2_plot  <- plot_species(loadso2, region, value, 'Load of SO2', expression(Delta*~loadso2~(kg~m^-2)), exper, model_colors, model_symbols, ylimit=c(NA,0))
+  loadso4_plot  <- plot_species(loadso4, region, value, 'SO4 Absolute Difference', expression(Delta*~loadso4~(kg~m^-2)), exper, model_colors, model_symbols, ylimit=c(NA,0))
+  loadso2_plot  <- plot_species(loadso2, region, value, 'SO2 Absolute Difference', expression(Delta*~loadso2~(kg~m^-2)), exper, model_colors, model_symbols, ylimit=c(NA,0))
 }
 
 # Save loadso2 and loadso4
@@ -78,14 +78,14 @@ loadso2 <- filter_species(summary_long, "loadso2")
 
 if (sort_by=="region") {
   #creates plots based on each species using the plot_species function
-  loadso4_plot  <- plot_species(loadso4, region, value, 'Load of SO4', "%", region, model_colors, model_symbols, ylimit=c(NA,0))
-  loadso2_plot <- plot_species(loadso2, region, value, 'Load of SO2', "%", region, model_colors, model_symbols, ylimit=c(NA,0))
+  loadso4_plot  <- plot_species(loadso4, region, value, 'SO4 Percent Difference', "%", region, model_colors, model_symbols, ylimit=c(NA,0))
+  loadso2_plot <- plot_species(loadso2, region, value, 'SO4 Percent Difference', "%", region, model_colors, model_symbols, ylimit=c(NA,0))
 }
 
 if (sort_by=="experiment") {
   #creates plots based on each species using the plot_species function
-  loadso4_plot  <- plot_species(loadso4, region, value, 'Load of SO4', "%", exper, model_colors, model_symbols, ylimit=c(NA,0))
-  loadso2_plot  <- plot_species(loadso2, region, value, 'Load of SO2', "%", exper, model_colors, model_symbols, ylimit=c(NA,0))
+  loadso4_plot  <- plot_species(loadso4, region, value, 'SO4 Percent Difference', "%", exper, model_colors, model_symbols, ylimit=c(NA,0))
+  loadso2_plot  <- plot_species(loadso2, region, value, 'SO4 Percent Difference', "%", exper, model_colors, model_symbols, ylimit=c(NA,0))
 }
 
 # Save loadso2 and loadso4
@@ -120,45 +120,57 @@ loadso2 <- loadso2_diff_df %>% filter(region %in% filtered_regions)
 loadso4 <- loadso4_diff_df %>% filter(region %in% filtered_regions)
 
 # Multiply by area of basin and 1e-9 (kg -> Tg), to get units in Tg over basin
-loadso2$value[loadso2$region=="global"] <- loadso2$value[loadso2$region=="global"]*global_area*1e-9
-loadso2$value[loadso2$region=="sea"] <- loadso2$value[loadso2$region=="sea"]*sea_area*1e-9
-loadso2$value[loadso2$region=="land"] <- loadso2$value[loadso2$region=="land"]*land_area*1e-9
-loadso2$value[loadso2$region=="NH_atlantic"] <- loadso2$value[loadso2$region=="NH_atlantic"]*atlantic_area*1e-9
-loadso2$value[loadso2$region=="NH_pacific"] <- loadso2$value[loadso2$region=="NH_pacific"]*pacific_area*1e-9
-loadso2$value[loadso2$region=="NH_indian"] <- loadso2$value[loadso2$region=="NH_indian"]*indian_area*1e-9
-loadso2$value[loadso2$region=="arctic"] <- loadso2$value[loadso2$region=="arctic"]*arctic_area*1e-9
+loadso2$value[loadso2$region=="global"] <- loadso2$value[loadso2$region=="global"]*global_area#*1e-9
+loadso2$value[loadso2$region=="sea"] <- loadso2$value[loadso2$region=="sea"]*sea_area#*1e-9
+loadso2$value[loadso2$region=="land"] <- loadso2$value[loadso2$region=="land"]*land_area#*1e-9
+loadso2$value[loadso2$region=="NH_atlantic"] <- loadso2$value[loadso2$region=="NH_atlantic"]*atlantic_area#*1e-9
+loadso2$value[loadso2$region=="NH_pacific"] <- loadso2$value[loadso2$region=="NH_pacific"]*pacific_area#*1e-9
+loadso2$value[loadso2$region=="NH_indian"] <- loadso2$value[loadso2$region=="NH_indian"]*indian_area#*1e-9
+loadso2$value[loadso2$region=="arctic"] <- loadso2$value[loadso2$region=="arctic"]*arctic_area#*1e-9
 
-loadso4$value[loadso4$region=="global"] <- loadso4$value[loadso4$region=="global"]*global_area*1e-9
-loadso4$value[loadso4$region=="sea"] <- loadso4$value[loadso4$region=="sea"]*sea_area*1e-9
-loadso4$value[loadso4$region=="land"] <- loadso4$value[loadso4$region=="land"]*land_area*1e-9
-loadso4$value[loadso4$region=="NH_atlantic"] <- loadso4$value[loadso4$region=="NH_atlantic"]*atlantic_area*1e-9
-loadso4$value[loadso4$region=="NH_pacific"] <- loadso4$value[loadso4$region=="NH_pacific"]*pacific_area*1e-9
-loadso4$value[loadso4$region=="NH_indian"] <- loadso4$value[loadso4$region=="NH_indian"]*indian_area*1e-9
-loadso4$value[loadso4$region=="arctic"] <- loadso4$value[loadso4$region=="arctic"]*arctic_area*1e-9
+loadso4$value[loadso4$region=="global"] <- loadso4$value[loadso4$region=="global"]*global_area#*1e-9
+loadso4$value[loadso4$region=="sea"] <- loadso4$value[loadso4$region=="sea"]*sea_area#*1e-9
+loadso4$value[loadso4$region=="land"] <- loadso4$value[loadso4$region=="land"]*land_area#*1e-9
+loadso4$value[loadso4$region=="NH_atlantic"] <- loadso4$value[loadso4$region=="NH_atlantic"]*atlantic_area#*1e-9
+loadso4$value[loadso4$region=="NH_pacific"] <- loadso4$value[loadso4$region=="NH_pacific"]*pacific_area#*1e-9
+loadso4$value[loadso4$region=="NH_indian"] <- loadso4$value[loadso4$region=="NH_indian"]*indian_area#*1e-9
+loadso4$value[loadso4$region=="arctic"] <- loadso4$value[loadso4$region=="arctic"]*arctic_area#*1e-9
 
 # Multiply standard deviation by constants
-loadso2$sd[loadso2$region=="global"] <- loadso2$sd[loadso2$region=="global"]*global_area*1e-9
-loadso2$sd[loadso2$region=="sea"] <- loadso2$sd[loadso2$region=="sea"]*sea_area*1e-9
-loadso2$sd[loadso2$region=="land"] <- loadso2$sd[loadso2$region=="land"]*land_area*1e-9
-loadso2$sd[loadso2$region=="NH_atlantic"] <- loadso2$sd[loadso2$region=="NH_atlantic"]*atlantic_area*1e-9
-loadso2$sd[loadso2$region=="NH_pacific"] <- loadso2$sd[loadso2$region=="NH_pacific"]*pacific_area*1e-9
-loadso2$sd[loadso2$region=="NH_indian"] <- loadso2$sd[loadso2$region=="NH_indian"]*indian_area*1e-9
-loadso2$sd[loadso2$region=="arctic"] <- loadso2$sd[loadso2$region=="arctic"]*arctic_area*1e-9
+loadso2$sd[loadso2$region=="global"] <- loadso2$sd[loadso2$region=="global"]*global_area#*1e-9
+loadso2$sd[loadso2$region=="sea"] <- loadso2$sd[loadso2$region=="sea"]*sea_area#*1e-9
+loadso2$sd[loadso2$region=="land"] <- loadso2$sd[loadso2$region=="land"]*land_area#*1e-9
+loadso2$sd[loadso2$region=="NH_atlantic"] <- loadso2$sd[loadso2$region=="NH_atlantic"]*atlantic_area#*1e-9
+loadso2$sd[loadso2$region=="NH_pacific"] <- loadso2$sd[loadso2$region=="NH_pacific"]*pacific_area#*1e-9
+loadso2$sd[loadso2$region=="NH_indian"] <- loadso2$sd[loadso2$region=="NH_indian"]*indian_area#*1e-9
+loadso2$sd[loadso2$region=="arctic"] <- loadso2$sd[loadso2$region=="arctic"]*arctic_area#*1e-9
 
-loadso4$sd[loadso4$region=="global"] <- loadso4$sd[loadso4$region=="global"]*global_area*1e-9
-loadso4$sd[loadso4$region=="sea"] <- loadso4$sd[loadso4$region=="sea"]*sea_area*1e-9
-loadso4$sd[loadso4$region=="land"] <- loadso4$sd[loadso4$region=="land"]*land_area*1e-9
-loadso4$sd[loadso4$region=="NH_atlantic"] <- loadso4$sd[loadso4$region=="NH_atlantic"]*atlantic_area*1e-9
-loadso4$sd[loadso4$region=="NH_pacific"] <- loadso4$sd[loadso4$region=="NH_pacific"]*pacific_area*1e-9
-loadso4$sd[loadso4$region=="NH_indian"] <- loadso4$sd[loadso4$region=="NH_indian"]*indian_area*1e-9
-loadso4$sd[loadso4$region=="arctic"] <- loadso4$sd[loadso4$region=="arctic"]*arctic_area*1e-9
+loadso4$sd[loadso4$region=="global"] <- loadso4$sd[loadso4$region=="global"]*global_area#*1e-9
+loadso4$sd[loadso4$region=="sea"] <- loadso4$sd[loadso4$region=="sea"]*sea_area#*1e-9
+loadso4$sd[loadso4$region=="land"] <- loadso4$sd[loadso4$region=="land"]*land_area#*1e-9
+loadso4$sd[loadso4$region=="NH_atlantic"] <- loadso4$sd[loadso4$region=="NH_atlantic"]*atlantic_area#*1e-9
+loadso4$sd[loadso4$region=="NH_pacific"] <- loadso4$sd[loadso4$region=="NH_pacific"]*pacific_area#*1e-9
+loadso4$sd[loadso4$region=="NH_indian"] <- loadso4$sd[loadso4$region=="NH_indian"]*indian_area#*1e-9
+loadso4$sd[loadso4$region=="arctic"] <- loadso4$sd[loadso4$region=="arctic"]*arctic_area#*1e-9
 
 ## Plot
-loadso2_basin_plot  <- plot_species(loadso2, region, value, 'SO2 Column Burden', expression(Delta*~loadso2~(Tg)), exper, model_colors, model_symbols,ylimit=c(NA,0.005))
-loadso4_basin_plot  <- plot_species(loadso4, region, value, 'SO4 Column Burden', expression(Delta*~loadso4~(Tg)), exper, model_colors, model_symbols,ylimit=c(NA,0.01))
+loadso2_basin_plot  <- plot_species(loadso2, region, value, 'SO2 Basin Total', expression(Delta*~loadso2~(kg)), exper, model_colors, model_symbols,ylimit=c(NA,0.005))
+loadso4_basin_plot  <- plot_species(loadso4, region, value, 'SO4 Basin Total', expression(Delta*~loadso4~(kg)), exper, model_colors, model_symbols,ylimit=c(NA,0.01))
 
 # Save so2/so4 plots together
 sox_basin_plots <- grid_arrange_shared_legend(loadso2_basin_plot,loadso4_basin_plot)
 png(paste0(emi_dir,"/output/SOx_basin_plots_shp-60p-red.png"))
 grid.draw(sox_basin_plots)
+dev.off()
+
+# All so2/so4 plots (absolute diff per m, absolute diff in total kg, % diff)
+loadso2_basin_plot2 <- loadso2_basin_plot + theme(legend.position = "none")
+loadso4_basin_plot2 <- loadso4_basin_plot + theme(legend.position = "none")
+all_sox_plots <- plot_grid(loadso2_diff2,loadso2_basin_plot2,loadso2_perdiff2,loadso4_diff2,
+                           loadso4_basin_plot2,loadso4_perdiff2,
+                           ncol=3,align="hv",axis="tblr")
+all_sox_plots_grid <- plot_grid(all_sox_plots,legend,ncol=3,rel_heights=c(4,5))
+
+png(paste0(emi_dir,"/output/all_SOx_plots_shp-60p-red.png"))
+grid.draw(all_sox_plots_grid)
 dev.off()

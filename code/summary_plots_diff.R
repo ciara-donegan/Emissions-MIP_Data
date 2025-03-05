@@ -29,8 +29,8 @@ if (sort_by == "region") {region <- sorting[2]}
 if (sort_by == "experiment") {exper <- sorting[2]}
 
 sort_by <- "experiment"
-#region <- "NH-sea"
-exper <- "shp-60p-red"
+#region <- "land"
+exper <- "shp-ind-shift"
 
 
 # Define colorblind-friendly palette colors and associate with models (in case a
@@ -77,7 +77,7 @@ data_accumulation <- function(emi_dir, reg_name, exper){
     within(value <- ifelse(variable %in% c("dryso4", "loadso4", "mmrso4", "wetso4") & model == "NorESM2", 96/98, 1) * value) %>%
     dplyr::summarise(regional_data = mean(value), regional_data_sd = sd(value))
   
-  #regional_data_summary <- filter(regional_data_summary,model!="GEOS")
+  regional_data_summary <- filter(regional_data_summary,model!="GEOS")
   
   return(regional_data_summary)
 }
