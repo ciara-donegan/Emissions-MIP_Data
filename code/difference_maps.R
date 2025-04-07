@@ -27,8 +27,8 @@ library(gridExtra)
 sort_by <- "scenario"
 
 # select scenario to generate maps for
-scenario <- "shp-30p-red"
-region <- "NH-atlantic"
+scenario <- "shp-60p-red"
+region <- "global"
 
 # set path to netCDF files - replace with your path to files
 file_dir <- paste0("C:/Users/done231/OneDrive - PNNL/Desktop/difference_plot_files")
@@ -41,7 +41,7 @@ coast_outline <- shapefile("ne_110m_coastline.shp")
 get_ncdf_data <- function(variable,model) {
   filepath <- paste0(file_dir,"/input/",region,"/",scenario,"/",model)
   
-  # Get control file
+  # Get reference file
   if (model == "CAM5ATRAS" | model == "GEOS" | model == "GFDL" | model == "NorESM2") {
     file_control <- list.files(path=filepath,
                                pattern=paste0("base.+",variable,".nc"))
@@ -331,7 +331,7 @@ if (scenario == "shp-30p-red" || scenario == "shp-ind-shift-1950") {
   all_loadso4 <- rbind(loadso4_CAM5ATRAS,loadso4_CESM1,loadso4_E3SM,loadso4_GEOS,loadso4_GFDL,loadso4_GISS,loadso4_NorESM2)
   all_loadso4 <- drop_na(all_loadso4)
   bound_loadso4 <- max(abs(all_loadso4$layer))
-  loadso4.at <- seq(-bound_loadso4,bound_loadso4,length.out=24)
+  loadso4.at <- c(-bound_loadso4, seq(-4e-7, 4e-7, length.out=22), bound_loadso4) #seq(-bound_loadso4,bound_loadso4,length.out=24)
 }
 
 # rlut
@@ -387,7 +387,7 @@ if (scenario == "shp-ind-shift-1950") {
 # all.flux.at.list <- list(flux.at.shp_30p_red,flux.at.shp_60p_red,flux.at.shp_60p_red_1950,
 #                          flux.at.shp_atl_shift,flux.at.shp_ind_shift,flux.at.shp_atl_shift_1950,
 #                          flux.at.shp_ind_shift_1950)
-flux.at <- flux.at.shp_30p_red #all.flux.at.list[[which.max(sapply(flux.at.list,max))]]
+flux.at <- flux.at.shp_60p_red #all.flux.at.list[[which.max(sapply(flux.at.list,max))]]
 
 ## Get plots
 # CAM5ATRAS
@@ -637,90 +637,6 @@ if (sort_by == "scenario") {
   dev.off()
 }
 
-# if (sort_by == "model") {
-#   CAM5ATRAS_plots <- grid.arrange(clt_CAM5ATRAS_plot,loadso2_CAM5ATRAS_plot,
-#                                   loadso4_CAM5ATRAS_plot,rlut_CAM5ATRAS_plot,
-#                                   rsut_CAM5ATRAS_plot,rlutcs_CAM5ATRAS_plot,
-#                                   rsutcs_CAM5ATRAS_plot)
-#   CESM1_plots <- grid.arrange(clt_CESM1_plot,loadso2_CESM1_plot,
-#                               loadso4_CESM1_plot,rlut_CESM1_plot,
-#                               rsut_CESM1_plot,rlutcs_CESM1_plot,
-#                               rsutcs_CESM1_plot)
-#   E3SM_plots <- grid.arrange(clt_E3SM_plot,loadso2_E3SM_plot,
-#                              loadso4_E3SM_plot,rlut_E3SM_plot,
-#                              rsut_E3SM_plot,rlutcs_E3SM_plot,
-#                              rsutcs_E3SM_plot)
-#   GEOS_plots <- grid.arrange(clt_GEOS_plot,loadso2_GEOS_plot,
-#                              loadso4_GEOS_plot,rlut_GEOS_plot,
-#                              rsut_GEOS_plot,rlutcs_GEOS_plot,
-#                              rsutcs_GEOS_plot)
-#   GFDL_plots <- grid.arrange(loadso2_GFDL_plot,loadso4_GFDL_plot,
-#                              rlut_GFDL_plot,rsut_GFDL_plot,rlutcs_GFDL_plot,
-#                              rsutcs_GFDL_plot)
-#   GISS_plots <- grid.arrange(clt_GISS_plot,loadso2_GISS_plot,
-#                              loadso4_GISS_plot,rlut_GISS_plot,
-#                              rsut_GISS_plot,rlutcs_GISS_plot,
-#                              rsutcs_GISS_plot)
-#   NorESM2_plots <- grid.arrange(clt_NorESM2_plot,loadso2_NorESM2_plot,
-#                                 loadso4_NorESM2_plot,rlut_NorESM2_plot,
-#                                 rsut_NorESM2_plot,rlutcs_NorESM2_plot,
-#                                 rsutcs_NorESM2_plot)
-#   
-#   # Save plots as pdf
-#   setwd(paste0(file_dir,"/output/scenario/",scenario))
-#   pdf(paste0(scenario,'_maps_model-diff.pdf'), height = 11, width = 8.5, paper = "letter")
-#   
-#   grid.draw(CAM5ATRAS_plots)
-#   grid.newpage()
-#   grid.draw(CESM1_plots)
-#   grid.newpage()
-#   grid.draw(E3SM_plots)
-#   grid.newpage()
-#   grid.draw(GEOS_plots)
-#   grid.newpage()
-#   grid.draw(GISS_plots)
-#   grid.newpage()
-#   grid.draw(GFDL_plots)
-#   grid.newpage()
-#   grid.draw(NorESM2_plots)
-#   dev.off()
-# }
-
-# # get average rsut plot
-# rsut_all <- (rsut_CAM5ATRAS+rsut_CESM1+rsut_E3SM+rsut_GEOS+rsut_GISS+rsut_GFDL+rsut_NorESM2)/7
-# rsut_all.at <- drop_na(rsut_all)
-# bound_rsut_all <- max(abs(rsut_all.at$layer))
-# rsut_all.at <- seq(-bound_rsut_all,bound_rsut_all,length.out=24)
-# 
-# rsut_all_plot <- get_plot("rsut","all",rsut_all,rsut_all.at.atl,"Upwelling Shortwave Radiation \n at TOA (W/m^2) - Atlantic Shift")
-# 
-# # get average rlut plot
-# rlut_all <- (rlut_CAM5ATRAS+rlut_CESM1+rlut_E3SM+rlut_GEOS+rlut_GISS+rlut_GFDL+rlut_NorESM2)/7
-# rlut_all.at <- drop_na(rlut_all)
-# bound_rlut_all <- max(abs(rlut_all.at$layer))
-# rlut_all.at <- seq(-bound_rlut_all,bound_rlut_all,length.out=24)
-# 
-# rlut_all_plot <- get_plot("rlut","all",rlut_all,rsut_all.at,"Upwelling Longwave Radiation \n at TOA (W/m^2) - All Models")
-
-# # get average clt plot
-# clt_all <- (clt_CAM5ATRAS+clt_CESM1+clt_E3SM+clt_GEOS+clt_GISS+clt_NorESM2)/7
-# clt_all.at <- drop_na(clt_all)
-# bound_clt_all <- max(abs(clt_all.at$layer))
-# clt_all.at <- seq(-bound_clt_all,bound_clt_all,length.out=24)
-# 
-# clt_all_plot <- get_plot("clt","all",clt_all,clt_all.at,"Average Total Cloud Cover Percentage (%) - Atlantic Shift")
-# 
-# # get average rlut plot
-# rlut_all <- (rlut_CAM5ATRAS+rlut_CESM1+rlut_E3SM+rlut_GEOS+rlut_GISS+rlut_GFDL+rlut_NorESM2)/7
-# rlut_all.at <- drop_na(rlut_all)
-# bound_rlut_all <- max(abs(rlut_all.at$layer))
-# rlut_all.at <- seq(-bound_rlut_all,bound_rlut_all,length.out=24)
-# 
-# rlut_all_plot <- get_plot("rlut","all",rlut_all,clt_all.at,"Upwelling Longwave Radiation \n at TOA (W/m^2) - All Models")
-
-# 
-# 
-# 
 ## Get flux totals in W
 # read in grid area file
 setwd(file_dir)
@@ -806,3 +722,18 @@ group2_clt$E3SM <- clt_E3SM$layer
 group2_clt$NorESM2 <- clt_NorESM2$layer
 group2_clt$layer <- rowMeans(group2_clt[,3:4], na.rm=TRUE)
 group2_clt_plot <- get_plot("clt","",group2_clt,clt.at,"Mean Cloud Cover Percentage (%) - E3SM, NorESM2")
+
+# loadso4 averages
+group_loadso4 <- data.frame(x=loadso4_E3SM$x,y=loadso4_E3SM$y)
+group_loadso4$E3SM <- loadso4_E3SM$layer
+group_loadso4$GEOS <- loadso4_GEOS$layer
+group_loadso4$GISS <- loadso4_GISS$layer
+group_loadso4$NorESM2 <- loadso4_NorESM2$layer
+group_loadso4$layer <- rowMeans(group_loadso4[,3:6],na.rm=TRUE)
+group_loadso4_plot <- get_plot("loadso4","",group_loadso4,loadso4.at,"d) E3SM, GEOS, GISS-E2.1, NorESM2")
+
+# Regenerate other models with new title
+loadso4_CAM5ATRAS_gridplot <- get_plot("loadso4","",loadso4_CAM5ATRAS,loadso4.at,"a) CAM-ATRAS")
+loadso4_CESM1_gridplot <- get_plot("loadso4","",loadso4_CESM1,loadso4.at,"b) CESM1")
+loadso4_GFDL_gridplot <- get_plot("loadso4","",loadso4_GFDL,loadso4.at,"c) GFDL-ESM4")
+grid.arrange(loadso4_CAM5ATRAS_gridplot,loadso4_CESM1_gridplot,loadso4_GFDL_gridplot,group_loadso4_plot)
