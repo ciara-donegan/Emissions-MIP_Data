@@ -50,6 +50,8 @@ dryso4_diff <- filter_species(summary_long, "dryso4")
 wetso4_diff <- filter_species(summary_long, "wetso4")
 rsut <- filter_species(summary_long,"rsut")
 rlut <- filter_species(summary_long,"rlut")
+rsutcs <- filter_species(summary_long, "rsutcs")
+rlutcs <- filter_species(summary_long, "rlutcs")
 
 if (sort_by=="region") {
   #creates plots based on each species using the plot_species function
@@ -73,6 +75,16 @@ loadso4_diff_df <- loadso4
 ## Generate loadso4/net rad linear regressions
 net_rad <- dplyr::left_join(rlut, rsut, by = c("model", "region"))
 net_rad <- dplyr::mutate(net_rad, value = value.x + value.y) %>%
+  dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
+  dplyr::select(c(model, region, value, sd))
+
+net_rad_cs <- dplyr::left_join(rlutcs, rsutcs, by = c("model", "region"))
+net_rad_cs <- dplyr::mutate(net_rad_cs, value = value.x + value.y) %>%
+  dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
+  dplyr::select(c(model, region, value, sd))
+
+imp_cld <- dplyr::left_join(net_rad, net_rad_cs, by = c("model", "region"))
+imp_cld <- dplyr::mutate(imp_cld, value = value.x - value.y) %>%
   dplyr::mutate(sd = sqrt(sd.x^2 + sd.y^2)) %>%
   dplyr::select(c(model, region, value, sd))
 
@@ -163,14 +175,16 @@ if (sort_by=="experiment") {
   net_rad_filtered <- net_rad %>% filter(model!="GEOS")
   rsut_filtered <- rsut %>% filter(model!="GEOS")
   rlut_filtered <- rlut %>% filter(model!="GEOS")
+  imp_cld_filtered <- imp_cld %>% filter(model!="GEOS")
   
-  rlut_plot  <- plot_species(rlut_filtered, region, value, 'Upwelling Longwave Flux', expression(Delta*~rlut~(W~m^-2)), exper, model_colors, model_symbols)
-  rsut_plot  <- plot_species(rsut_filtered, region, value, 'Upwelling Shortwave Flux', expression(Delta*~rsut~(W~m^-2)), exper, model_colors, model_symbols)
-  net_rad_plot  <- plot_species(net_rad_filtered, region, value, 'Net Radiative Flux', expression(Delta*~net_rad~(W~m^-2)), exper, model_colors, model_symbols)
+  rlut_plot  <- plot_species(rlut_filtered, region, value, 'a) Upwelling Longwave Flux', expression(Delta*~rlut~(W~m^-2)), exper, model_colors, model_symbols, c(-0.75,0.75))
+  rsut_plot  <- plot_species(rsut_filtered, region, value, 'b) Upwelling Shortwave Flux', expression(Delta*~rsut~(W~m^-2)), exper, model_colors, model_symbols, c(-0.75,0.75))
+  net_rad_plot  <- plot_species(net_rad_filtered, region, value, 'c) Net Radiative Flux', expression(Delta*~net_rad~(W~m^-2)), exper, model_colors, model_symbols, c(-0.75,0.75))
+  imp_cld_plot <- plot_species(imp_cld_filtered, region, value, 'd) Implied Cloud Response', expression(Delta*~imp_cld~(W~m^-2)), exper, model_colors, model_symbols, c(-0.75,0.75))
 }
 
 # Save so2/so4 plots together
-flux_plots <- grid_arrange_shared_legend(rlut_plot,rsut_plot,net_rad_plot,ncol=3)
+flux_plots <- grid_arrange_shared_legend(rlut_plot,rsut_plot,net_rad_plot,imp_cld_plot,ncol=4)
 png(paste0(emi_dir,"/output/flux_plots_shp-60p-red.png"))
 grid.draw(flux_plots)
 dev.off()

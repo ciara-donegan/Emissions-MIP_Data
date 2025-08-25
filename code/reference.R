@@ -17,12 +17,12 @@ library(gridExtra)
 library(grid)
 
 # Specify and navigate to the location of Emissions-MIP directory
-emi_dir <- paste0("C:/Users/done231/OneDrive - PNNL/Desktop/Phase1b_input")
+emi_dir <- paste0("C:/Users/done231/OneDrive - PNNL/Documents/GitHub/Emissions-MIP_Data/Emissions-MIP_Data/")
 setwd(paste0(emi_dir))
 
 # Specify region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, SH-sea,
 # NH-pacific, NH-atlantic)
-region <- "SH-land"
+region <- "global"
 
 # Define colorblind-friendly palette colors and associate with models (in case a  
 # plot is missing a model, the color scheme will remain consistent)
@@ -37,7 +37,8 @@ model_lines <- c('CESM1' = "solid", 'CESM1-1950' = "dashed", 'GISS' = "solid",
                  'GISS-1950' = "dashed", 'CAM-ATRAS' = "solid", 
                  'CAM-ATRAS-1950' = "dashed", 'NorESM2' = "solid",
                  'NorESM2-1950' = "dashed", 'E3SM' = "solid", 'E3SM-1950' = "dashed",
-                 'GEOS' = "solid", 'GEOS-1950' = "dashed")
+                 'GEOS' = "solid", 'GEOS-1950' = "dashed", 'GFDL' = "solid",
+                 'GFDL-1950' = "dashed")
 
 # Setup directory for difference data
 setwd(paste0(emi_dir, '/input/', region, '/reference'))
@@ -108,7 +109,6 @@ wetso2_experiment <- dplyr::filter(experiment, variable == 'wetso2')
 dryso4_experiment <- dplyr::filter(experiment, variable == 'dryso4')
 wetso4_experiment <- dplyr::filter(experiment, variable == 'wetso4')
 dms_experiment <- dplyr::filter(experiment, variable == 'dms')
-# any others? check
 
 # Define normal and clear-sky net radiative flux and  (sum of longwave and shortwave radiation)
 net_rad <- dplyr::left_join(rlut_experiment, rsut_experiment, by = c("year", "unit", "model"))

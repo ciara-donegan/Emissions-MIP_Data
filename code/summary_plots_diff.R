@@ -29,9 +29,8 @@ if (sort_by == "region") {region <- sorting[2]}
 if (sort_by == "experiment") {exper <- sorting[2]}
 
 sort_by <- "experiment"
-#region <- "land"
+region <- "global"
 exper <- "shp-ind-shift"
-
 
 # Define colorblind-friendly palette colors and associate with models (in case a
 # plot is missing a model, the color scheme will remain consistent)
@@ -601,25 +600,25 @@ if (sort_by == "region") {
     xlab(expression(Delta~SO2~column~burden~(kg~m^-2)))
 }
 
-# delta so2 vs delta dms
+# loadso4 vs imp cld
 if (sort_by == "region") {
-  loadso2_dms_combined <- dplyr::left_join(loadso2,dms, by = c("model","experiment"))
-  loadso2_dms_plot <- ggplot(loadso2_dms_combined, aes(value.x,value.y,color=model)) +
+  loadso4_imp_cld_combined <- dplyr::left_join(loadso4,imp_cld, by = c("model","experiment"))
+  loadso4_imp_cld_plot <- ggplot(loadso4_imp_cld_combined, aes(value.x,value.y,color=model)) +
     geom_point() +
     # trend lines
-    geom_smooth(method=lm,data=filter(loadso2_dms_combined,model=="CESM1"),se=FALSE, linetype = "dashed") +
-    geom_smooth(method=lm,data=filter(loadso2_dms_combined,model=="CAM-ATRAS"),se=FALSE, linetype = "dashed") +
-    geom_smooth(method=lm,data=filter(loadso2_dms_combined,model=="E3SM"),se=FALSE, linetype = "dashed") +
-    geom_smooth(method=lm,data=filter(loadso2_dms_combined,model=="GEOS"),se=FALSE, linetype = "dashed") +
-    geom_smooth(method=lm,data=filter(loadso2_dms_combined,model=="GFDL-ESM4"),se=FALSE, linetype = "dashed") +
-    geom_smooth(method=lm,data=filter(loadso2_dms_combined,model=="GISS-E2.1"),se=FALSE, linetype = "dashed") +
-    geom_smooth(method=lm,data=filter(loadso2_dms_combined,model=="NorESM2"),se=FALSE, linetype = "dashed") +
+    geom_smooth(method=lm,data=filter(loadso4_imp_cld_combined,model=="CESM1"),se=FALSE, linetype = "dashed") +
+    geom_smooth(method=lm,data=filter(loadso4_imp_cld_combined,model=="CAM-ATRAS"),se=FALSE, linetype = "dashed") +
+    geom_smooth(method=lm,data=filter(loadso4_imp_cld_combined,model=="E3SM"),se=FALSE, linetype = "dashed") +
+    geom_smooth(method=lm,data=filter(loadso4_imp_cld_combined,model=="GEOS"),se=FALSE, linetype = "dashed") +
+    geom_smooth(method=lm,data=filter(loadso4_imp_cld_combined,model=="GFDL-ESM4"),se=FALSE, linetype = "dashed") +
+    geom_smooth(method=lm,data=filter(loadso4_imp_cld_combined,model=="GISS-E2.1"),se=FALSE, linetype = "dashed") +
+    geom_smooth(method=lm,data=filter(loadso4_imp_cld_combined,model=="NorESM2"),se=FALSE, linetype = "dashed") +
     scale_color_manual(values = model_colors) +
     geom_errorbar(aes(ymin=value.y-sd.y,ymax=value.y+sd.y),width=0) +
     geom_errorbarh(aes(xmin=value.x-sd.x,xmax=value.x+sd.x),height=0) +
     #scale_shape_manual(values = model_symbols) +
-    xlab(expression(Delta~SO2~column~burden~(kg~m^-2))) +
-    ylab(expression(Delta~DMS~(mol~mol^-1)))
+    xlab(expression(Delta~SO4~column~burden~(kg~m^-2))) +
+    ylab(expression(Delta~implied~cloud~response~(W~m^-2)))
 }
 
 # delta SO2 vs loadso2

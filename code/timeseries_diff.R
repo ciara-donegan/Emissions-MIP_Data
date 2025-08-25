@@ -18,7 +18,7 @@ library(gridExtra)
 library(grid)
 
 # Specify and navigate to the location of Emissions-MIP directory
-emi_dir <- paste0("C:/Users/done231/OneDrive - PNNL/Desktop/Phase1b_data")
+emi_dir <- paste0("C:/Users/done231/OneDrive - PNNL/Documents/GitHub/Emissions-MIP_Data/Emissions-MIP_Data/")
 setwd(paste0(emi_dir))
 
 # Specify what you are sorting by and either the region (i.e., global, land, sea, arctic, NH-land, NH-sea, SH-land, SH-sea) or experiment (i.e., bc-no-season, high-so4, no-so4, reference, so2-at-height, so2-no-season)
@@ -27,6 +27,9 @@ sorting <- commandArgs(trailingOnly = TRUE) #pulling region from command line
 sort_by <- sorting[1]
 if (sort_by == "region"){region <- sorting[2]}
 if (sort_by == "experiment"){pert <- sorting[2]}
+
+sort_by <- 'experiment'
+pert <- 'shp-60p-red'
 
 # Define colorblind-friendly palette colors and associate with models (in case a
 # plot is missing a model, the color scheme will remain consistent)
@@ -223,8 +226,8 @@ for(scenario in scenarios){
     imp_cld_plot <- plot_species(imp_cld, region, "implied cloud response \n at TOA", expression(rlut~+~rsut~-~rlutcs~-~rsutcs~(W~m^-2)))
     loadso2_plot <- plot_species(loadso2_experiment, region, "load of so2 \n", expression(loadso2~(kg~m^-2)))
     tot_so4_plot <- plot_species(tot_so4, region, 'total SO4 - \n', expression(dryso4~+~wetso4))
-    so4_lifetime_plot <- plot_species(so4_lifetime, region, 'SO4 lifetime - \n ', expression(loadso4/(dryso4~+~wetso4)~(days)))
-    so2_lifetime_plot <- plot_species(so2_lifetime, region, 'SO2 lifetime - \n', expression(loadso2/emiso2~(days)))
+    so4_lifetime <- plot_species(so4_lifetime, region, 'SO4 lifetime - \n ', expression(loadso4/(dryso4~+~wetso4)~(days)))
+    so2_lifetime <- plot_species(so2_lifetime, region, 'SO2 lifetime - \n', expression(loadso2/emiso2~(days)))
   }
 
   if (sort_by == "experiment"){
@@ -258,10 +261,10 @@ for(scenario in scenarios){
     loadso4_plot <- plot_species(loadso4_experiment, pert, "load \n of so4", expression(loadso4~(kg~m^-2)))
     loadbc_plot <- plot_species(loadbc_experiment, pert, "load \n of bc", expression(loadbc~(kg~m^-2)))
     imp_cld_plot <- plot_species(imp_cld, pert, "implied cloud response \n at TOA", expression(rlut~+~rsut~-~rlutcs~-~rsutcs~(W~m^-2)))
-    loadso2_plot <- plot_species(loadso2, pert, "load of so2 \n", expression(loadso2~(kg~m^-2)))
-    tot_so4_plot <- plot_species(tot_so4, pert, value, 'total SO4 - \n', expression(dryso4~+~wetso4))
-    so4_lifetime_plot <- plot_species(so4_lifetime, pert, value, 'SO4 lifetime - \n ', expression(loadso4/(dryso4~+~wetso4)~(days)))
-    so2_lifetime_plot <- plot_species(so2_lifetime, pert, value, 'SO2 lifetime - \n', expression(loadso2/emiso2~(days)))
+    loadso2_plot <- plot_species(loadso2_experiment, pert, "load of so2 \n", expression(loadso2~(kg~m^-2)))
+    #tot_so4_plot <- plot_species(tot_so4, pert, value, 'total SO4 - \n', expression(dryso4~+~wetso4~(kg~m^-2~s^-1)))
+    #so4_lifetime_plot <- plot_species(so4_lifetime, pert, value, 'SO4 lifetime - \n ', expression(loadso4/(dryso4~+~wetso4)~(days)))
+    #so2_lifetime_plot <- plot_species(so2_lifetime, pert, value, 'SO2 lifetime - \n', expression(loadso2/emiso2~(days)))
   }
 
   # Function from stack exchange to generate a shared legend
